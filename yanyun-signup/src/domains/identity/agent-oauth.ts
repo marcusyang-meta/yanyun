@@ -16,9 +16,14 @@
  * the grant's user_id is the session user at consent time, taken
  * from the platform account the Discord login resolved to.
  *
- * Scopes are exactly two tiers: `read` and `read signup`
- * (space-separated storage form). The MCP layer gates its write
- * tools on the `signup` atom; nothing else exists in v1.
+ * Scopes are composable atoms on a `read` base (space-separated
+ * storage form): `read` alone, plus the `signup` atom (own-seat
+ * signup writes) and the `create` atom (creating new groupings
+ * led by the member — added 2026-11-11 when marcus ruled agents
+ * must be able to 发车). A grant holds one canonical string:
+ * atoms in read/signup/create order, each write atom implying
+ * read. Grants issued before the create atom existed keep their
+ * exact strings — nothing widens retroactively.
  *
  * Revocation sets revoked_at on the grant row and kills both
  * tokens at once (the row IS the grant); refresh rotation rewrites
@@ -36,27 +41,32 @@ export const AGENT_ACCESS_TTL_SEC = 3600;
 export const AGENT_AUTH_CODE_TTL_SEC = 600;
 export const AGENT_SCOPE_READ = 'read';
 export const AGENT_SCOPE_SIGNUP = 'signup';
-/** The only scope strings a client may request / a grant may hold. */
-export const AGENT_SCOPE_SETS = ['read', 'read signup'] as const;
+export const AGENT_SCOPE_CREATE = 'create';
+/** The canonical scope strings a grant may hold (atoms in
+ * read/signup/create order; `read` is always present). */
+export const AGENT_SCOPE_SETS = ['read', 'read signup', 'read create', 'read signup create'] as const;
 
 export function parseScopes(scopes: string | null | undefined): Set<string> {
   return new Set(String(scopes || '').split(/\s+/).filter(Boolean));
 }
 
-/** Canonicalize a requested scope string to one of the two tiers;
- * null when it asks for anything outside them. An empty request
- * means the read tier. */
+/** Canonicalize a requested scope string to one of the canonical
+ * sets; null when it asks for an atom outside read/signup/create.
+ * An empty request means the read tier; each write atom implies
+ * read, and the stored order is always read, signup, create — so
+ * pre-create grants keep byte-identical strings ('read',
+ * 'read signup'). */
 export function canonicalAgentScopes(requested: string | null | undefined): string | null {
   const atoms = parseScopes(requested);
   if (atoms.size === 0) return AGENT_SCOPE_READ;
   for (const a of atoms) {
-    if (a !== AGENT_SCOPE_READ && a !== AGENT_SCOPE_SIGNUP) return null;
+    if (a !== AGENT_SCOPE_READ && a !== AGENT_SCOPE_SIGNUP && a !== AGENT_SCOPE_CREATE) return null;
   }
-  if (atoms.has(AGENT_SCOPE_SIGNUP)) {
-    atoms.add(AGENT_SCOPE_READ);
-    return 'read signup';
-  }
-  return AGENT_SCOPE_READ;
+  atoms.add(AGENT_SCOPE_READ);
+  const ordered = [AGENT_SCOPE_READ];
+  if (atoms.has(AGENT_SCOPE_SIGNUP)) ordered.push(AGENT_SCOPE_SIGNUP);
+  if (atoms.has(AGENT_SCOPE_CREATE)) ordered.push(AGENT_SCOPE_CREATE);
+  return ordered.join(' ');
 }
 
 function randomBase64Url(bytes: number): string {

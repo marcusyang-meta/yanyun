@@ -20935,6 +20935,18 @@
       ],
       "types": []
     },
+    "4P41htMrfVwPbd9P3I4Z7w==": {
+      "description": "Scope bullet for the agent OAuth consent page, used to describe the create tier: creating new squads led by the member; existing squads of other members cannot be edited or managed.",
+      "id": "identity/agent_consentScopeCreate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Create new squads led by you — you can only create your own squads; you cannot edit, merge, disband, or complete other members' squads",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
     "0T+bMEk+2HMh9Inxcs0E/A==": {
       "description": "Button label for the agent OAuth consent page, used to approve the authorization request.",
       "id": "identity/agent_consentApprove",
@@ -21038,6 +21050,30 @@
       "translations": [
         {
           "translation": "Read + sign-up",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "GmAiY+xxYCr7FO2V1TGqZw==": {
+      "description": "Scope label for the agent grants section in personal settings, used for a grant that can read and create squads.",
+      "id": "identity/agent_scopesCreateLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Read + create",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "aQ7O15r8TkrQxeHqJY9LeA==": {
+      "description": "Scope label for the agent grants section in personal settings, used for a grant that can read, sign up and create squads.",
+      "id": "identity/agent_scopesSignupCreateLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Read + sign-up + create",
           "variations": {}
         }
       ],
@@ -21150,6 +21186,18 @@
       "translations": [
         {
           "translation": "Ready state changed via agent",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qubmoGCeehhEy6I16a2UvA==": {
+      "description": "Audit action label for the guild audit log, used when a member's authorized agent creates a new squad led by that member.",
+      "id": "guilds/governance_actionAgentCreate",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Created via agent",
           "variations": {}
         }
       ],

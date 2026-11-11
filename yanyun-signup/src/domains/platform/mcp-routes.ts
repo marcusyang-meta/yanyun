@@ -14,25 +14,34 @@
  * through a side channel.
  *
  * v1 scope is read + own-seat signup writes. There is no
- * management tool, and the write documents are shaped so proxy
- * signup is impossible by construction: joinGrouping is called
- * WITHOUT forDiscordId (the seat always lands on the caller's own
- * identity stamp), leaveGrouping is only ever called with uids
- * the server resolved from the caller's own seat rows, and
- * setSeatReady acts by identity stamp server-side.
+ * management tool for existing groupings, and the write
+ * documents are shaped so proxy signup is impossible by
+ * construction: joinGrouping is called WITHOUT forDiscordId (the
+ * seat always lands on the caller's own identity stamp),
+ * leaveGrouping is only ever called with uids the server
+ * resolved from the caller's own seat rows, and setSeatReady
+ * acts by identity stamp server-side.
+ *
+ * The one creation surface (added 2026-11-11, marcus's ruling):
+ * create_grouping runs the platform's own createGrouping
+ * mutation with the grant owner as creator/leader. It mints a
+ * NEW grouping and cannot touch an existing one; it sits behind
+ * its own `create` scope atom, so grants issued earlier (read /
+ * read signup) never gain it retroactively.
  *
  * Seat output never carries uid or any Discord id: the pinned
  * selection sets do not fetch them, so they never cross.
  *
  * Agent writes land in the guild audit (agent.join / agent.leave
- * / agent.ready) — a deliberate asymmetry with manual signups,
- * which are not audited.
+ * / agent.ready / agent.create) — a deliberate asymmetry with
+ * manual signups, which are not audited.
  */
 import { Hono } from 'hono';
 import { yoga } from '../../graphql.ts';
 import { buildContext, type ViewerRef } from './context.ts';
-import { negotiateLocale, rateLimitGql } from './graphql-base.ts';
-import { weekWindowUtc } from './blocks.ts';
+import { negotiateLocale, rateLimitGql, TAB_TO_TYPE } from './graphql-base.ts';
+import { weekWindowUtc, TYPE_SHORT_KEY } from './blocks.ts';
+import { translate } from './i18n.ts';
 import {
   getAccountRow,
   getDiscordIdByUserId,
@@ -129,23 +138,37 @@ mutation McpSetReady($input: SetSeatReadyInput!) {
   setSeatReady(input: $input) { ${SEAT_PAYLOAD_FIELDS} }
 }`;
 
+const DOC_CREATE = `
+mutation McpCreateGrouping($input: CreateGroupingInput!) {
+  createGrouping(input: $input) {
+    ok error errorCode
+    grouping { ...McpGrouping }
+  }
+}
+${GROUPING_FRAGMENT}`;
+
 /* ---------------- tool catalog ---------------- */
 
 interface ToolDef {
   name: string;
   write: boolean;
+  /** The scope atom a write tool requires ('signup' for the
+   * own-seat writes, 'create' for create_grouping); null on read
+   * tools. tools/list and the call gate both key off this, so a
+   * grant only ever sees and runs the writes it was granted. */
+  scopeAtom: 'signup' | 'create' | null;
   description: string;
   inputSchema: Record<string, unknown>;
 }
 
 const TOOLS: ToolDef[] = [
   {
-    name: 'list_my_guilds', write: false,
+    name: 'list_my_guilds', write: false, scopeAtom: null,
     description: 'List the guilds (百业) the authorizing member belongs to, with their slug and the member\'s in-guild nickname.',
     inputSchema: { type: 'object', properties: {} },
   },
   {
-    name: 'list_groupings', write: false,
+    name: 'list_groupings', write: false, scopeAtom: null,
     description: 'List a guild\'s groupings (车队) for one tab and week. weekOffset 0 is the current week, -1 the previous, 1 the next. Seats show occupancy and ready state but never member ids.',
     inputSchema: {
       type: 'object',
@@ -158,7 +181,7 @@ const TOOLS: ToolDef[] = [
     },
   },
   {
-    name: 'get_grouping', write: false,
+    name: 'get_grouping', write: false, scopeAtom: null,
     description: 'Read one grouping in full: seats, occupancy, custom signup fields.',
     inputSchema: {
       type: 'object',
@@ -170,17 +193,17 @@ const TOOLS: ToolDef[] = [
     },
   },
   {
-    name: 'my_signups', write: false,
+    name: 'my_signups', write: false, scopeAtom: null,
     description: 'List every grouping, across all of the member\'s guilds, where the member currently holds a seat.',
     inputSchema: { type: 'object', properties: {} },
   },
   {
-    name: 'list_dex', write: false,
+    name: 'list_dex', write: false, scopeAtom: null,
     description: 'List the dungeon/boss compendium (图鉴): current-version and past dungeons with their bosses.',
     inputSchema: { type: 'object', properties: {} },
   },
   {
-    name: 'get_boss', write: false,
+    name: 'get_boss', write: false, scopeAtom: null,
     description: 'Read one boss guide: mechanics, talents and shout macros.',
     inputSchema: {
       type: 'object',
@@ -189,7 +212,7 @@ const TOOLS: ToolDef[] = [
     },
   },
   {
-    name: 'calc_tiaolv', write: false,
+    name: 'calc_tiaolv', write: false, scopeAtom: null,
     description: 'Run the tuning （调律） calculation server-side. input mirrors the platform calculator: innerSkills (4 names, "N/A" for empty), suit (required), optional wuxue/wuku/attrRequire/bowSkill and tunes cells.',
     inputSchema: {
       type: 'object',
@@ -198,7 +221,7 @@ const TOOLS: ToolDef[] = [
     },
   },
   {
-    name: 'calc_graduation', write: false,
+    name: 'calc_graduation', write: false, scopeAtom: null,
     description: 'Run the graduation-rate （毕业率） calculation server-side. input: sectSlug, items (slot + affixes), optional three-rate values precision/crit/affinity.',
     inputSchema: {
       type: 'object',
@@ -207,7 +230,7 @@ const TOOLS: ToolDef[] = [
     },
   },
   {
-    name: 'join_grouping', write: true,
+    name: 'join_grouping', write: true, scopeAtom: 'signup',
     description: 'Sign the member up for a grouping, into their OWN seat only (proxy signup is impossible on this surface). Answer the grouping\'s customFields via answers when it defines any.',
     inputSchema: {
       type: 'object',
@@ -228,7 +251,7 @@ const TOOLS: ToolDef[] = [
     },
   },
   {
-    name: 'leave_grouping', write: true,
+    name: 'leave_grouping', write: true, scopeAtom: 'signup',
     description: 'Withdraw ALL of the member\'s own seats from a grouping. Other members\' seats cannot be touched.',
     inputSchema: {
       type: 'object',
@@ -237,7 +260,7 @@ const TOOLS: ToolDef[] = [
     },
   },
   {
-    name: 'set_ready', write: true,
+    name: 'set_ready', write: true, scopeAtom: 'signup',
     description: 'Set the member\'s ready （就位） state on all of their own seats in a grouping.',
     inputSchema: {
       type: 'object',
@@ -246,6 +269,36 @@ const TOOLS: ToolDef[] = [
         ready: { type: 'boolean' },
       },
       required: ['groupingId', 'ready'],
+    },
+  },
+  {
+    name: 'create_grouping', write: true, scopeAtom: 'create',
+    description: 'Create a NEW grouping （车队） in one of the member\'s guilds, led by the authorizing member (they become its creator/leader; the create form\'s rules apply unchanged — membership and write gates, start within 60 days). It cannot touch an existing grouping. Capacity is derived server-side, never an input: ACTIVITY and TOWER seat 10 with no dungeon; TALENT defaults to 5 and RACE to 10, or the chosen dungeon\'s size. For a co-op exploration run （联机探索） use type ACTIVITY without a dungeonId.',
+    inputSchema: {
+      type: 'object',
+      properties: {
+        guildSlug: { type: 'string', description: 'Guild slug, from list_my_guilds.' },
+        type: { type: 'string', enum: ['ACTIVITY', 'TALENT', 'RACE', 'TOWER'] },
+        startsAt: { type: 'integer', description: 'Start time as epoch seconds.' },
+        title: { type: 'string', description: 'Optional. Defaults to the platform pattern "{your guild nickname}的{type}车队".' },
+        dungeonId: { type: 'string', description: 'Optional dungeon id (TALENT / RACE only), from list_dex. Ignored for ACTIVITY / TOWER.' },
+        weapon: { type: 'string', description: 'Optional school/build （流派）, e.g. 破竹·樽. When given, you take the leader seat exactly like the create form does; without it the grouping is created with no seat taken.' },
+        customFields: {
+          type: 'array',
+          description: 'Optional custom signup-field DEFINITIONS for the new grouping (same shape the create form submits).',
+          items: {
+            type: 'object',
+            properties: {
+              label: { type: 'string' },
+              fieldType: { type: 'string', enum: ['TEXT', 'CHOICE'] },
+              options: { type: 'array', items: { type: 'string' } },
+              required: { type: 'boolean' },
+            },
+            required: ['label', 'fieldType'],
+          },
+        },
+      },
+      required: ['guildSlug', 'type', 'startsAt'],
     },
   },
 ];
@@ -361,6 +414,23 @@ async function readbackGrouping(env: any, session: McpSession, groupingId: strin
   return 'error' in r ? null : r.value;
 }
 
+/** The create form's default title, composed exactly the way the
+ * form composes it: the platform pattern (groupingForm_titleTemplate)
+ * over the creator's guild nickname and the type's short label —
+ * backend copy throughout, resolved in the grant's locale. */
+async function defaultGroupingTitle(env: Env, session: McpSession, slug: string, typeEnum: string): Promise<string> {
+  let nick = session.user.name;
+  const g = await runField(env, session, DOC_MY_GUILDS, {}, ['viewer', 'guilds']);
+  if (!('error' in g) && Array.isArray(g.value)) {
+    const rows = g.value as { slug?: unknown; viewerNick?: unknown }[];
+    const row = rows.find((x) => x.slug === slug);
+    if (row?.viewerNick) nick = String(row.viewerNick);
+  }
+  const shortKey = TYPE_SHORT_KEY[TAB_TO_TYPE[typeEnum] || 'activity'] || 'shortActivity';
+  const typeShort = translate(`groupingType_${shortKey}`, session.locale);
+  return translate('groupingForm_titleTemplate', session.locale, { nickname: nick, type: typeShort });
+}
+
 /** Agent writes are audited in the guild's own log (Q3 ruling):
  * actor is the member whose grant acted, target is the grouping.
  * recordGuildAudit never throws. */
@@ -382,11 +452,14 @@ async function auditAgentWrite(env: any, session: McpSession, groupingId: number
 const TABS = ['ACTIVITY', 'TALENT', 'RACE', 'TOWER'] as const;
 
 async function callTool(env: any, session: McpSession, name: string, args: any): Promise<any> {
-  const hasSignup = parseScopes(session.grant.scopes).has('signup');
+  const scopes = parseScopes(session.grant.scopes);
   const def = TOOLS.find((t) => t.name === name);
   if (!def) return toolErr(`Unknown tool: ${name}`);
-  if (def.write && !hasSignup) {
+  if (def.scopeAtom === 'signup' && !scopes.has('signup')) {
     return toolErr('This grant is read-only; the signup scope was not authorized.');
+  }
+  if (def.scopeAtom === 'create' && !scopes.has('create')) {
+    return toolErr('This grant cannot create groupings; the create scope was not authorized.');
   }
 
   switch (name) {
@@ -541,6 +614,63 @@ async function callTool(env: any, session: McpSession, name: string, args: any):
       if (mine.length) await auditAgentWrite(env, session, Number(groupingId), 'agent.ready');
       return toolOk({ ok: true, grouping, mySeatIndexes: mine });
     }
+
+    case 'create_grouping': {
+      const guildSlug = String(args?.guildSlug || '');
+      const type = String(args?.type || '');
+      const startsAt = Number(args?.startsAt);
+      if (!guildSlug) return toolErr('guildSlug is required.');
+      if (!TAB_TO_TYPE[type]) return toolErr('type must be one of ACTIVITY, TALENT, RACE, TOWER.');
+      if (!Number.isFinite(startsAt) || startsAt <= 0) return toolErr('startsAt (epoch seconds) is required.');
+      const title = String(args?.title || '').trim()
+        || await defaultGroupingTitle(env, session, guildSlug, type);
+      const input: Record<string, unknown> = {
+        slug: guildSlug, title, type, startsAt: String(Math.trunc(startsAt)),
+      };
+      // Mirror the create form: a dungeon is only meaningful for
+      // TALENT / RACE; ACTIVITY / TOWER never carry one. Capacity
+      // is NOT an input — createGrouping derives it from the type
+      // and the dungeon's size, exactly as for form-built cars.
+      if (type === 'TALENT' || type === 'RACE') {
+        input.dungeonId = args?.dungeonId ? String(args.dungeonId) : null;
+      }
+      // The leader seat, exactly as the form submits it: the
+      // resolver names and stamps seat 0 from the creator's own
+      // identity chain, so the submitted nickname is a placeholder
+      // the server replaces.
+      const weapon = String(args?.weapon || '').trim();
+      if (weapon) input.seats = [{ nickname: '', weapon }];
+      if (Array.isArray(args?.customFields)) {
+        const defs: Record<string, unknown>[] = [];
+        for (const f of args.customFields) {
+          const label = String(f?.label || '').trim();
+          const fieldType = String(f?.fieldType || '');
+          if (!label || (fieldType !== 'TEXT' && fieldType !== 'CHOICE')) {
+            return toolErr('customFields entries need a label and a fieldType of TEXT or CHOICE.');
+          }
+          defs.push({
+            label, fieldType,
+            options: Array.isArray(f?.options) ? f.options.map((o: unknown) => String(o)) : [],
+            required: !!f?.required,
+          });
+        }
+        if (defs.length) input.customFields = defs;
+      }
+      // No creator field exists in the input: the mutation takes
+      // the creator from the session, which is the grant owner by
+      // construction — the new grouping's leader is the member.
+      const r = await runField(env, session, DOC_CREATE, { input }, ['createGrouping']);
+      if ('error' in r) return toolErr(r.error);
+      const payload = r.value;
+      if (!payload?.ok) return toolOk({ ok: false, error: payload?.error ?? null, errorCode: payload?.errorCode ?? null });
+      const grouping = payload.grouping;
+      await auditAgentWrite(env, session, Number(grouping.id), 'agent.create');
+      return toolOk({
+        ok: true,
+        grouping,
+        url: `https://yanyun.app/${guildSlug}/grouping/${grouping.id}`,
+      });
+    }
   }
   return toolErr(`Unknown tool: ${name}`);
 }
@@ -604,9 +734,9 @@ mcpRoutes.post('/mcp', async (c) => {
     if (!rateLimitGql(`mcp:${grant.id}:read`, READ_RATE.max, READ_RATE.windowMs)) {
       return rpcError(id, -32000, 'Rate limit exceeded');
     }
-    const hasSignup = parseScopes(grant.scopes).has('signup');
+    const scopes = parseScopes(grant.scopes);
     const tools = TOOLS
-      .filter((t) => !t.write || hasSignup)
+      .filter((t) => !t.scopeAtom || scopes.has(t.scopeAtom))
       .map((t) => ({ name: t.name, description: t.description, inputSchema: t.inputSchema }));
     return rpcResult(id, { tools });
   }

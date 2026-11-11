@@ -15,7 +15,11 @@
  *   arguments try to smuggle a proxy target -> set_ready + audit
  *   rows -> leave removes ONLY the caller's seats (a second
  *   member's seat in the same car survives) and is idempotent ->
- *   both calculators answer through the pinned mutations.
+ *   both calculators answer through the pinned mutations -> the
+ *   create atom: tools/list and the call gate key off it (older
+ *   grants never gain it), a create lands as the grant owner with
+ *   the platform default title, the leader seat is server-named,
+ *   and agent.create is audited.
  * =================================================== */
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
 import { describe, it, expect, afterAll } from 'vitest';
@@ -125,6 +129,11 @@ const BOSS_ID = bossRow!.id;
 const grantA = await svc.issueAgentTokens(db, { userId: userA, clientId: 'yyc_test', clientName: 'Muse', scopes: 'read signup' });
 const grantB = await svc.issueAgentTokens(db, { userId: userB, clientId: 'yyc_test', clientName: 'Muse', scopes: 'read' });
 const grantC = await svc.issueAgentTokens(db, { userId: userC, clientId: 'yyc_test', clientName: 'Muse', scopes: 'read signup' });
+// Create-atom grants: D holds every atom, E holds create without
+// signup, F is a create grant for a member of the OTHER guild.
+const grantD = await svc.issueAgentTokens(db, { userId: userA, clientId: 'yyc_test', clientName: 'Muse', scopes: 'read signup create' });
+const grantE = await svc.issueAgentTokens(db, { userId: userB, clientId: 'yyc_test', clientName: 'Muse', scopes: 'read create' });
+const grantF = await svc.issueAgentTokens(db, { userId: userC, clientId: 'yyc_test', clientName: 'Muse', scopes: 'read create' });
 
 let rpcSeq = 0;
 async function rpc(token: string | null, method: string, params?: any) {
@@ -284,6 +293,105 @@ describe('agent MCP resource server', () => {
     check('second leave not an error', again.isError !== true);
     eq('second leave is a no-op', toolJson(again).left, 0);
     eq('no duplicate audit row', await auditActions('agent.leave'), 1);
+  });
+
+  it('lists create_grouping only for create grants', async () => {
+    const names = async (token: string) => {
+      const list = await (await rpc(token, 'tools/list')).json() as any;
+      return list.result.tools.map((t: any) => t.name).sort();
+    };
+    eq('full grant sees all 12 tools', await names(grantD.accessToken), [
+      'calc_graduation', 'calc_tiaolv', 'create_grouping', 'get_boss', 'get_grouping', 'join_grouping',
+      'leave_grouping', 'list_dex', 'list_groupings', 'list_my_guilds', 'my_signups', 'set_ready',
+    ]);
+    eq('create-only grant sees reads + create, no signup writes', await names(grantE.accessToken), [
+      'calc_graduation', 'calc_tiaolv', 'create_grouping', 'get_boss', 'get_grouping',
+      'list_dex', 'list_groupings', 'list_my_guilds', 'my_signups',
+    ]);
+    const namesA = await names(grantA.accessToken);
+    check('a pre-create signup grant does NOT gain create_grouping',
+      !namesA.includes('create_grouping'), namesA.join(','));
+  });
+
+  it('creates groupings only under the create atom, as the grant owner', async () => {
+    const [ws, we] = weekWindowUtc(0);
+    const CREATE_START = Math.min(Math.max(NOW + 3600, ws + 3600), we - 3600);
+    const countEvents = async () => {
+      const row = await db.prepare(`SELECT COUNT(*) AS n FROM events WHERE tenant = ?`).bind(GID).first<{ n: number }>();
+      return row?.n || 0;
+    };
+    const before = await countEvents();
+
+    // Scope matrix: read and read-signup grants are refused, and a
+    // create grant without signup cannot use the signup writes.
+    const byRead = await callTool(grantB.accessToken, 'create_grouping', {
+      guildSlug: 'mcpguild', type: 'ACTIVITY', startsAt: CREATE_START,
+    });
+    eq('read grant create refused', byRead.isError, true);
+    const bySignup = await callTool(grantA.accessToken, 'create_grouping', {
+      guildSlug: 'mcpguild', type: 'ACTIVITY', startsAt: CREATE_START,
+    });
+    eq('signup grant without create refused', bySignup.isError, true);
+    const joinByCreateOnly = await callTool(grantE.accessToken, 'join_grouping', {
+      groupingId: String(EV1), weapon: '破竹·樽',
+    });
+    eq('create grant without signup cannot join', joinByCreateOnly.isError, true);
+    eq('refusals wrote no event', await countEvents(), before);
+
+    // Membership gate: a create grant for a member of another
+    // guild cannot create here.
+    const foreign = await callTool(grantF.accessToken, 'create_grouping', {
+      guildSlug: 'mcpguild', type: 'ACTIVITY', startsAt: CREATE_START,
+    });
+    check('non-member create refused',
+      foreign.isError === true || toolJson(foreign)?.ok === false, JSON.stringify(foreign).slice(0, 200));
+    eq('foreign attempt wrote no event', await countEvents(), before);
+
+    // The real create: default title, leader seat from the weapon,
+    // creator is the grant owner, capacity derived (ACTIVITY = 10).
+    const created = await callTool(grantD.accessToken, 'create_grouping', {
+      guildSlug: 'mcpguild', type: 'ACTIVITY', startsAt: CREATE_START, weapon: '破竹·樽',
+    });
+    check('create not an error', created.isError !== true, JSON.stringify(created).slice(0, 300));
+    const createdJson = toolJson(created);
+    eq('create ok', createdJson.ok, true);
+    const newId = Number(createdJson.grouping.id);
+    check('new grouping id minted', newId > 0);
+    eq('default title follows the platform pattern', createdJson.grouping.title, '甲队员的双十车队');
+    eq('type is the ACTIVITY enum', createdJson.grouping.type, 'ACTIVITY');
+    eq('canonical url returned', createdJson.url, `https://yanyun.app/mcpguild/grouping/${newId}`);
+    const evRow = await db.prepare(
+      `SELECT creator_user_id, type, max_slots, status FROM events WHERE id = ?`).bind(newId).first<any>();
+    eq('creator is the grant owner', evRow?.creator_user_id, userA);
+    eq('stored type is activity', evRow?.type, 'activity');
+    eq('capacity derived as 10', evRow?.max_slots, 10);
+    eq('status open', evRow?.status, 'open');
+    const leaderSeat = await db.prepare(
+      `SELECT nickname, weapon, discord_id FROM signups WHERE event_id = ?`).bind(newId).all<any>();
+    eq('exactly the leader seat is taken', (leaderSeat.results || []).length, 1);
+    eq('leader seat stamped with the creator', leaderSeat.results?.[0]?.discord_id, DISCORD_A);
+    eq('leader seat name is server-set', leaderSeat.results?.[0]?.nickname, '甲队员');
+    eq('agent.create audited once', await auditActions('agent.create'), 1);
+
+    // Readback through the read tools.
+    const listed = toolJson(await callTool(grantD.accessToken, 'list_groupings', { slug: 'mcpguild' }));
+    check('new car appears in list_groupings',
+      listed.groupings.map((g: any) => String(g.id)).includes(String(newId)));
+    const mine = toolJson(await callTool(grantD.accessToken, 'my_signups'));
+    check('new car appears in my_signups (leader seat)',
+      mine.signups.map((s: any) => String(s.grouping.id)).includes(String(newId)));
+
+    // Explicit title, no weapon: title as given, no seat taken.
+    const second = await callTool(grantD.accessToken, 'create_grouping', {
+      guildSlug: 'mcpguild', type: 'ACTIVITY', startsAt: CREATE_START, title: '周五联机探索',
+    });
+    check('second create not an error', second.isError !== true, JSON.stringify(second).slice(0, 300));
+    const secondJson = toolJson(second);
+    eq('explicit title kept', secondJson.grouping.title, '周五联机探索');
+    const seats2 = await db.prepare(
+      `SELECT COUNT(*) AS n FROM signups WHERE event_id = ?`).bind(Number(secondJson.grouping.id)).first<{ n: number }>();
+    eq('no seat taken without a weapon', seats2?.n, 0);
+    eq('agent.create audited twice', await auditActions('agent.create'), 2);
   });
 });
 

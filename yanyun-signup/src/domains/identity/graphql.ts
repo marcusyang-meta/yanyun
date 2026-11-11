@@ -592,9 +592,13 @@ export class AgentGrantShell extends ShellBase {
   genClientName(){ return this.row().client_name || ''; }
   genName(){ return this.row().name || ''; }
   genScopesLabel(){
-    return parseScopes(this.row().scopes).has('signup')
-      ? this.t('agent_scopesSignupLabel')
-      : this.t('agent_scopesReadLabel');
+    const scopes = parseScopes(this.row().scopes);
+    const hasSignup = scopes.has('signup');
+    const hasCreate = scopes.has('create');
+    if (hasSignup && hasCreate) return this.t('agent_scopesSignupCreateLabel');
+    if (hasCreate) return this.t('agent_scopesCreateLabel');
+    if (hasSignup) return this.t('agent_scopesSignupLabel');
+    return this.t('agent_scopesReadLabel');
   }
   genSourceLabel(){
     return this.row().source === 'oauth' ? this.t('agent_sourceOauthLabel') : this.row().source;

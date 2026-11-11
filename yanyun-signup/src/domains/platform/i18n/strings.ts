@@ -4630,6 +4630,9 @@ export abstract class GovernanceFbtUtils {
 	static actionAgentReady(fbs: FbsRuntime) {
 		return fbs._("经 Agent 调整就位", null, { hk: "YFaGD" });
 	}
+	static actionAgentCreate(fbs: FbsRuntime) {
+		return fbs._("经 Agent 建车", null, { hk: "xawA1" });
+	}
 	static actionSignupRemove(fbs: FbsRuntime) {
 		return fbs._("移除报名", null, { hk: "1mLK3J" });
 	}
@@ -5413,6 +5416,9 @@ export abstract class AgentFbtUtils {
 	static consentScopeSignup(fbs: FbsRuntime) {
 		return fbs._("以你的身份报名、退报、调整就位状态——只能操作你自己的座位，不能代他人报名，也不能管理车队", null, { hk: "2FRWAm" });
 	}
+	static consentScopeCreate(fbs: FbsRuntime) {
+		return fbs._("以你的身份创建由你带队的车队——只能新建你自己的车，不能编辑、合并、解散或完成他人的车队", null, { hk: "1AYDHH" });
+	}
 	static consentApprove(fbs: FbsRuntime) {
 		return fbs._("同意授权", null, { hk: "1RlFsD" });
 	}
@@ -5439,6 +5445,12 @@ export abstract class AgentFbtUtils {
 	}
 	static scopesSignupLabel(fbs: FbsRuntime) {
 		return fbs._("只读 + 报名", null, { hk: "4fsQ0e" });
+	}
+	static scopesCreateLabel(fbs: FbsRuntime) {
+		return fbs._("只读 + 建车", null, { hk: "4q0c5Q" });
+	}
+	static scopesSignupCreateLabel(fbs: FbsRuntime) {
+		return fbs._("只读 + 报名 + 建车", null, { hk: "CbqCG" });
 	}
 	static sourceOauthLabel(fbs: FbsRuntime) {
 		return fbs._("OAuth 授权", null, { hk: "30nA5N" });
@@ -6949,6 +6961,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"governance_actionAgentJoin": GovernanceFbtUtils.actionAgentJoin,
 	"governance_actionAgentLeave": GovernanceFbtUtils.actionAgentLeave,
 	"governance_actionAgentReady": GovernanceFbtUtils.actionAgentReady,
+	"governance_actionAgentCreate": GovernanceFbtUtils.actionAgentCreate,
 	"governance_actionSignupRemove": GovernanceFbtUtils.actionSignupRemove,
 	"governance_actionResultAdd": GovernanceFbtUtils.actionResultAdd,
 	"governance_actionResultDelete": GovernanceFbtUtils.actionResultDelete,
@@ -7206,6 +7219,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"agent_consentScopeTitle": AgentFbtUtils.consentScopeTitle,
 	"agent_consentScopeRead": AgentFbtUtils.consentScopeRead,
 	"agent_consentScopeSignup": AgentFbtUtils.consentScopeSignup,
+	"agent_consentScopeCreate": AgentFbtUtils.consentScopeCreate,
 	"agent_consentApprove": AgentFbtUtils.consentApprove,
 	"agent_consentDeny": AgentFbtUtils.consentDeny,
 	"agent_consentErrorTitle": AgentFbtUtils.consentErrorTitle,
@@ -7215,6 +7229,8 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"agent_emptyText": AgentFbtUtils.emptyText,
 	"agent_scopesReadLabel": AgentFbtUtils.scopesReadLabel,
 	"agent_scopesSignupLabel": AgentFbtUtils.scopesSignupLabel,
+	"agent_scopesCreateLabel": AgentFbtUtils.scopesCreateLabel,
+	"agent_scopesSignupCreateLabel": AgentFbtUtils.scopesSignupCreateLabel,
 	"agent_sourceOauthLabel": AgentFbtUtils.sourceOauthLabel,
 	"agent_createdTemplate": AgentFbtUtils.createdTemplate,
 	"agent_lastUsedTemplate": AgentFbtUtils.lastUsedTemplate,
