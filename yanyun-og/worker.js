@@ -257,7 +257,7 @@ async function fetchTeamCount(slug) {
   }
 }
 
-const CAR_TYPE_LABEL = { ACTIVITY: '双十人本', TALENT: '天赋组队', RACE: '竞速报名' };
+const CAR_TYPE_LABEL = { ACTIVITY: '双十人本', TALENT: '天赋组队', RACE: '竞速报名', EXPLORE: '联机探索' };
 
 /* 本周车队图的数据: ogGuildCard.weekCars (公开卡面窄口) — 窗口
  * 缺省与 fetchTeamCount 同一 weekWindowUtc (周一 05:00 北京, 半开
