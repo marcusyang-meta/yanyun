@@ -373,7 +373,7 @@ describe('governance', () => {
   check('SDL: stats union 含 SectionLocked', /union GuildAdminStatsResult = GuildAdminStats \| GuildAdminStatsLocked \| GuildAdminSectionLocked/.test(typeDefs));
   eq('审计动作标签映射与动作词表双向一致',
     Object.keys(AUDIT_ACTION_LABEL_FIELD).sort(), [...GUILD_AUDIT_ACTIONS].sort());
-  eq('审计动作词表共 40 个', GUILD_AUDIT_ACTIONS.length, 40);
+  eq('审计动作词表共 41 个', GUILD_AUDIT_ACTIONS.length, 41);
 }
   });
 
