@@ -151,6 +151,10 @@ export async function getSessionUser(request: any, env: any) {
         discordId,
         name: p.name || '',
         avatar: p.avatar || '',
+        // The session's own issued-at: the OAuth authorize ceremony
+        // uses it to recognize a session minted by the login round
+        // trip that just completed (see oauth-server-routes).
+        iat: Number(p.iat) || 0,
         guilds: Array.isArray(p.guilds) ? p.guilds.map(String) : [],
         guildsMeta: Array.isArray(p.gm) ? p.gm : null, // present only on test-issued sessions
       };
