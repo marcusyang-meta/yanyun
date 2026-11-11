@@ -103,7 +103,28 @@ export type IdentityStringKey =
   | 'feedback_placeholder'
   | 'feedback_submit'
   | 'feedback_submitting'
-  | 'feedback_success';
+  | 'feedback_success'
+  | 'agent_consentTitle'
+  | 'agent_consentIntro'
+  | 'agent_consentIdentity'
+  | 'agent_consentScopeTitle'
+  | 'agent_consentScopeRead'
+  | 'agent_consentScopeSignup'
+  | 'agent_consentApprove'
+  | 'agent_consentDeny'
+  | 'agent_consentErrorTitle'
+  | 'agent_consentErrorBody'
+  | 'agent_sectionTitle'
+  | 'agent_hint'
+  | 'agent_emptyText'
+  | 'agent_scopesReadLabel'
+  | 'agent_scopesSignupLabel'
+  | 'agent_sourceOauthLabel'
+  | 'agent_createdTemplate'
+  | 'agent_lastUsedTemplate'
+  | 'agent_neverUsedText'
+  | 'agent_revokeLabel'
+  | 'agent_revokeDoneText';
 
 export const IDENTITY_STRING_KEYS: readonly IdentityStringKey[] = [
   'site_title',
@@ -209,4 +230,25 @@ export const IDENTITY_STRING_KEYS: readonly IdentityStringKey[] = [
   'feedback_submit',
   'feedback_submitting',
   'feedback_success',
+  'agent_consentTitle',
+  'agent_consentIntro',
+  'agent_consentIdentity',
+  'agent_consentScopeTitle',
+  'agent_consentScopeRead',
+  'agent_consentScopeSignup',
+  'agent_consentApprove',
+  'agent_consentDeny',
+  'agent_consentErrorTitle',
+  'agent_consentErrorBody',
+  'agent_sectionTitle',
+  'agent_hint',
+  'agent_emptyText',
+  'agent_scopesReadLabel',
+  'agent_scopesSignupLabel',
+  'agent_sourceOauthLabel',
+  'agent_createdTemplate',
+  'agent_lastUsedTemplate',
+  'agent_neverUsedText',
+  'agent_revokeLabel',
+  'agent_revokeDoneText',
 ];

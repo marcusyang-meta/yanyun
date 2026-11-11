@@ -69,6 +69,9 @@ id = typeCode * 1_000_000_000 + dayIndex * 100_000 + sequence
 | 62 | time poll option | `time_poll_options` |
 | 70 | feedback | `feedback` |
 | 80 | ops nudge send | `ops_nudge_sends` |
+| 81 | agent API token | `user_agent_tokens` |
+| 82 | OAuth client | `oauth_clients` |
+| 83 | OAuth authorization code | `oauth_auth_codes` |
 | 90–99 | RESERVED extension segment | — |
 
 Free segments for future entities: 03–09 (platform roots), 17–19,

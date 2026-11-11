@@ -68,6 +68,60 @@ export const userCalendarTokens = sqliteTable('user_calendar_tokens', {
   updatedAt: integer('updated_at').notNull().default(0),
 });
 
+/* ------------- agent-native OAuth (MCP) [ddl 0042] -------------- */
+// The platform runs a small OAuth 2.1 authorization server for the
+// MCP endpoint: MCP clients register dynamically (oauth_clients,
+// public clients — code flow + PKCE S256 only, no secrets), members
+// authorize them through the platform consent page behind their
+// Discord login (oauth_auth_codes, hash-only, 10-minute, single
+// use), and each resulting grant is one user_agent_tokens row
+// holding the SHA-256 hashes of its access + refresh pair. The
+// plaintext tokens exist only in the token endpoint's response.
+// Revocation sets revoked_at; rotation rewrites the hashes in
+// place. `source` is an open issuance-path tag ('oauth').
+export const oauthClients = sqliteTable('oauth_clients', {
+  id: integer('id').primaryKey(),
+  clientId: text('client_id').notNull().unique(),
+  clientName: text('client_name').notNull().default(''),
+  redirectUris: text('redirect_uris').notNull().default('[]'),
+  scopes: text('scopes').notNull().default('read'),
+  createdAt: integer('created_at').notNull().default(0),
+});
+
+export const oauthAuthCodes = sqliteTable('oauth_auth_codes', {
+  id: integer('id').primaryKey(),
+  codeHash: text('code_hash').notNull().unique(),
+  clientId: text('client_id').notNull(),
+  userId: integer('user_id').notNull(),
+  scopes: text('scopes').notNull().default('read'),
+  codeChallenge: text('code_challenge').notNull(),
+  redirectUri: text('redirect_uri').notNull(),
+  resource: text('resource'),
+  expiresAt: integer('expires_at').notNull(),
+  usedAt: integer('used_at'),
+  createdAt: integer('created_at').notNull().default(0),
+});
+
+export const userAgentTokens = sqliteTable('user_agent_tokens', {
+  id: integer('id').primaryKey(),
+  userId: integer('user_id').notNull(),
+  clientId: text('client_id'),
+  clientName: text('client_name').notNull().default(''),
+  name: text('name').notNull().default(''),
+  source: text('source').notNull().default('oauth'),
+  scopes: text('scopes').notNull().default('read'),
+  accessTokenHash: text('access_token_hash').notNull().unique(),
+  accessPrefix: text('access_prefix').notNull().default(''),
+  refreshTokenHash: text('refresh_token_hash').unique(),
+  refreshPrefix: text('refresh_prefix').notNull().default(''),
+  accessExpiresAt: integer('access_expires_at').notNull().default(0),
+  createdAt: integer('created_at').notNull().default(0),
+  lastUsedAt: integer('last_used_at'),
+  revokedAt: integer('revoked_at'),
+}, (t) => [
+  index('idx_user_agent_tokens_user').on(t.userId),
+]);
+
 export const userGuildNicks = sqliteTable('user_guild_nicks', {
   discordId: text('discord_id').notNull(),
   guildId: text('guild_id').notNull(),

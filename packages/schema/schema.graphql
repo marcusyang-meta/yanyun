@@ -1567,6 +1567,10 @@ type SettingsPage {
   # 只读公开端点, 内容仅本人已报名的未结束车); 未登录为 null。
   # token 首次读取时惰性生成, 重置走 resetCalendarFeedToken。
   calendarFeed: CalendarFeedSettings
+  # ---- Agent 授权 (agent-native): 本人通过 OAuth 授权给 Agent 的
+  # 令牌授权清单; 只有元数据 (客户端名/档位/时间/前缀), 永不
+  # 下发任何令牌值; 未登录为 null。
+  agentGrants: AgentGrantsSettings
 }
 
 # 个人设置里的日历订阅区: 标题/说明/订阅链接 (绝对地址, 含
@@ -1582,6 +1586,39 @@ type CalendarFeedSettings {
   calendarResetDoneText: String!
 }
 
+# 个人设置里的 Agent 授权区: 本人已授权的 Agent 令牌清单 (仅
+# 元数据) 与吊销文案。吊销走 revokeAgentGrant, 要求 fresh-auth
+# (与删除账号同档); 吊销后该授权的访问与刷新令牌立即失效。
+type AgentGrantsSettings {
+  agentSectionTitle: String!
+  agentHintText: String!
+  agentEmptyText: String!
+  agentRevokeDoneText: String!
+  grants: [AgentGrant!]!
+}
+
+# 一条 Agent 授权的元数据行: 客户端名/备注名/档位标签/来源
+# 标签/授权与最近使用时间均为服务端组合好的展示值, 客户端不
+# 自行拼装; tokenPrefix 仅令牌前缀, 不是凭证。
+type AgentGrant {
+  id: ID!
+  clientName: String!
+  name: String!
+  scopesLabel: String!
+  sourceLabel: String!
+  tokenPrefix: String!
+  createdText: String!
+  lastUsedText: String!
+  revokeLabel: String!
+}
+
+type RevokeAgentGrantPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  agentGrants: AgentGrantsSettings
+}
+
 type ResetCalendarFeedPayload {
   ok: Boolean!
   error: String
@@ -1593,6 +1630,14 @@ extend type Mutation {
   # 重置本人的日历订阅 token: 旧链接立即失效, 返回带新链接的
   # 订阅区对象; 未登录 errorCode = notLoggedIn。
   resetCalendarFeedToken: ResetCalendarFeedPayload!
+}
+
+extend type Mutation {
+  # 吊销本人的一条 Agent 授权: 该授权的访问与刷新令牌立即
+  # 失效。要求 fresh-auth (近期重新验证, 与删除账号同档):
+  # 未登录 errorCode = notLoggedIn, 未 fresh-auth =
+  # accountReauthRequired, 授权不属于本人或已吊销 = notFound。
+  revokeAgentGrant(id: ID!): RevokeAgentGrantPayload!
 }
 
 # 设置页里的一份可用时间: 一个本人所属百业 + 已存的 UTC 周时段。

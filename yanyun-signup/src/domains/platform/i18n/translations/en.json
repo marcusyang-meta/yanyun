@@ -20858,6 +20858,302 @@
         }
       ],
       "types": []
+    },
+    "OUGwwn9or71qPLRS9ptoQA==": {
+      "description": "Title text for the agent OAuth consent page, used as the heading when a member is asked to authorize an agent client.",
+      "id": "identity/agent_consentTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Authorize Agent Access",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Jo/zLXq8PNj82T69FJrWBw==": {
+      "description": "Intro text for the agent OAuth consent page, used to name the client asking for authorization, where {clientName} is the registered client name.",
+      "id": "identity/agent_consentIntro",
+      "tokens": [
+        "clientName"
+      ],
+      "translations": [
+        {
+          "translation": "{clientName} wants to connect to Yanyun Guilds as you.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wZHu0PrRDNA8SUV+nUrwTQ==": {
+      "description": "Identity line for the agent OAuth consent page, used to state which Discord account the grant will belong to, where {name} is the member's platform display name.",
+      "id": "identity/agent_consentIdentity",
+      "tokens": [
+        "name"
+      ],
+      "translations": [
+        {
+          "translation": "The grant will be bound to your Discord account: {name}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "1izKWyYkqba2A5EyoEaW0w==": {
+      "description": "Lead-in text for the agent OAuth consent page, used above the list of things the authorized agent can do.",
+      "id": "identity/agent_consentScopeTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "After you approve, this agent will be able to:",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "2k5OtcxCVHJWtFaKrXQ0dg==": {
+      "description": "Scope bullet for the agent OAuth consent page, used to describe the read tier: viewing groupings, rosters and the compendium, and using the tuning and graduation calculators.",
+      "id": "identity/agent_consentScopeRead",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "View the guild groupings, rosters and compendium you can see, and use the tuning and graduation calculators",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "vxpEaJvI2eyNlisJUIl0Wg==": {
+      "description": "Scope bullet for the agent OAuth consent page, used to describe the signup tier: signing up, withdrawing and toggling ready state as the member, limited to the member's own seats.",
+      "id": "identity/agent_consentScopeSignup",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Sign you up, withdraw you, and toggle your ready state — it can only touch your own seats, cannot sign up other members, and cannot manage groupings",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0T+bMEk+2HMh9Inxcs0E/A==": {
+      "description": "Button label for the agent OAuth consent page, used to approve the authorization request.",
+      "id": "identity/agent_consentApprove",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Approve",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jRxRqUCqqya1lNGbPFVOVQ==": {
+      "description": "Button label for the agent OAuth consent page, used to deny the authorization request.",
+      "id": "identity/agent_consentDeny",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Deny",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ZNQwIdkgyzCJnKxH6ppnaw==": {
+      "description": "Title text for the agent OAuth error page, used when an authorization request is malformed or expired.",
+      "id": "identity/agent_consentErrorTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Invalid Authorization Request",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "avnW36P1WdJE0BqeXqH57Q==": {
+      "description": "Body text for the agent OAuth error page, used to tell the member to restart the authorization from their agent.",
+      "id": "identity/agent_consentErrorBody",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This authorization request is missing required parameters or has expired. Please start again from your agent.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "kEDzft0u/2ABPso9K+/soQ==": {
+      "description": "Title text for the agent grants section in personal settings, used as the heading above the member's authorized agent clients.",
+      "id": "identity/agent_sectionTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "My Agent Grants",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dIbA9suYwQXMQ3udJEgYMA==": {
+      "description": "Hint text for the agent grants section in personal settings, used to explain that revoking a grant immediately invalidates the agent's access and refresh tokens.",
+      "id": "identity/agent_hint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Access granted to agents (such as Muse) via OAuth is listed here. Revoking a grant immediately invalidates that agent's access and refresh tokens.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "ASYeOk89eBXWwcAxMGtSdg==": {
+      "description": "Empty-state text for the agent grants section in personal settings, used when the member has no active agent grants.",
+      "id": "identity/agent_emptyText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No agent has been authorized yet.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "qHQEkmgOQjkfbWouaiLAlQ==": {
+      "description": "Scope label for the agent grants section in personal settings, used for a grant that can only read.",
+      "id": "identity/agent_scopesReadLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Read only",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+LjUxaWnLQg2+TgO6GEeJA==": {
+      "description": "Scope label for the agent grants section in personal settings, used for a grant that can read and sign up.",
+      "id": "identity/agent_scopesSignupLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Read + sign-up",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FYvvx+Xx3zcS2gGHeiFEEw==": {
+      "description": "Source label for the agent grants section in personal settings, used for grants issued through the OAuth authorization flow.",
+      "id": "identity/agent_sourceOauthLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "OAuth grant",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "izfqdL+nhAK1mLrNUFnnqg==": {
+      "description": "Created line for the agent grants section in personal settings, used to show when a grant was authorized, where {date} is the formatted authorization date.",
+      "id": "identity/agent_createdTemplate",
+      "tokens": [
+        "date"
+      ],
+      "translations": [
+        {
+          "translation": "Authorized on {date}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "agZ4iOLk2E9kR1DA4gEaNw==": {
+      "description": "Last-used line for the agent grants section in personal settings, used to show when a grant was last used, where {date} is the formatted date.",
+      "id": "identity/agent_lastUsedTemplate",
+      "tokens": [
+        "date"
+      ],
+      "translations": [
+        {
+          "translation": "Last used: {date}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "+JquHAn0P9f8FQMBOPqUCg==": {
+      "description": "Last-used line for the agent grants section in personal settings, used when a grant has never been used.",
+      "id": "identity/agent_neverUsedText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Never used",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "G1NwOVp72wx4S+700vcryQ==": {
+      "description": "Button label for the agent grants section in personal settings, used to revoke one agent grant.",
+      "id": "identity/agent_revokeLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Revoke",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "lHuLh5vE+vvyMdEQRyRhNQ==": {
+      "description": "Confirmation text for the agent grants section in personal settings, used after a grant is revoked.",
+      "id": "identity/agent_revokeDoneText",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Revoked.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "YuyIHpmjgvhpVeJP0U3bSw==": {
+      "description": "Audit action label for the guild audit log, used when a member's authorized agent signs them up for a squad.",
+      "id": "guilds/governance_actionAgentJoin",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Signed up via agent",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "/leFRTK3r1Nfn67yO3jivw==": {
+      "description": "Audit action label for the guild audit log, used when a member's authorized agent withdraws their signup from a squad.",
+      "id": "guilds/governance_actionAgentLeave",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Withdrew via agent",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "k5VvnrOhY7yCAw7vjSmf2w==": {
+      "description": "Audit action label for the guild audit log, used when a member's authorized agent toggles their ready state in a squad.",
+      "id": "guilds/governance_actionAgentReady",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Ready state changed via agent",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

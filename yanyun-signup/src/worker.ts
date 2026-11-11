@@ -23,6 +23,7 @@ import { billingRoutes } from './domains/platform/billing-routes.ts';
 import { guildAvatarRoutes } from './domains/guilds/avatar-routes.ts';
 import { shortLinkRoutes } from './domains/groupings/shortlink-routes.ts';
 import { calendarFeedRoutes } from './domains/identity/calendar-routes.ts';
+import { oauthRoutes } from './domains/identity/oauth-server-routes.ts';
 import { combatReportRoutes } from './domains/groupings/combat-routes.ts';
 
 /* Hono app */
@@ -47,7 +48,13 @@ app.route('/api/platform-admin', platformAdminBackupRoutes); // backup file down
 app.route('/', billingRoutes); // Stripe webhook /stripe/webhook (signature-authenticated, no session)
 app.route('/', guildAvatarRoutes); // avatar public path /guilds/:slug/avatar (standalone, survives the REST shutdown)
 app.route('/', shortLinkRoutes); // share short links /c/:code -> 302 to the canonical car URL
-app.route('/', calendarFeedRoutes); // personal calendar subscription /calendar/<token>.ics (token-authenticated, read-only)
+app.route('/', calendarFeedRoutes);
+/* OAuth 2.1 authorization server for the MCP endpoint
+ * (agent-native): discovery metadata, dynamic client registration,
+ * /oauth/authorize (behind the Discord login + platform consent
+ * page) and /oauth/token. The MCP resource server itself mounts
+ * with the agent-native tool surface. */
+app.route('/', oauthRoutes); // personal calendar subscription /calendar/<token>.ics (token-authenticated, read-only)
 app.route('/', combatReportRoutes); // combat report imports POST /api/groupings/:id/combat-reports (session + tier gate)
 
 app.all('/graphql', async (c: any) => {
