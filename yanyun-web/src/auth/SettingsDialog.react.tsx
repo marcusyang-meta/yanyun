@@ -32,6 +32,11 @@ import { ToastHost } from '../guild/components/Toast.react.tsx';
 //     checklist via UserBar's initialPage): one AvailabilityEditor
 //     per guild the viewer belongs to — availability is personal
 //     data and its only editor lives here (marcus, 2026-10-27);
+//   - agent page, pushed by the agent entry row: the member's own
+//     OAuth grants for agent clients (agent-native, 2026-11-10) —
+//     metadata only, never a token value; revoking a grant demands
+//     fresh auth (the account-deletion tier) and resumes here via
+//     the ?accountflow=agent landing in UserBar;
 //   - internal page (platform admin, hub overhaul): pushed by an
 //     entry row that is rendered only when the gating layer composes
 //     the PlatformAdmin response type for the viewer; its title is
@@ -158,6 +163,23 @@ const SettingsDialogQueryNode = graphql`
         calendarResetLabel
         calendarResetDoneText
       }
+      agentGrants {
+        agentSectionTitle
+        agentHintText
+        agentEmptyText
+        agentRevokeDoneText
+        grants {
+          id
+          clientName
+          name
+          scopesLabel
+          sourceLabel
+          tokenPrefix
+          createdText
+          lastUsedText
+          revokeLabel
+        }
+      }
     }
     gradPage {
       gearMyLibTitle
@@ -252,11 +274,38 @@ const SettingsResetCalendarMutationNode = graphql`
   }
 `;
 
+const SettingsRevokeAgentMutationNode = graphql`
+  mutation SettingsDialogRevokeAgentMutation($id: ID!) {
+    revokeAgentGrant(id: $id) {
+      ok
+      error
+      errorCode
+      agentGrants {
+        agentSectionTitle
+        agentHintText
+        agentEmptyText
+        agentRevokeDoneText
+        grants {
+          id
+          clientName
+          name
+          scopesLabel
+          sourceLabel
+          tokenPrefix
+          createdText
+          lastUsedText
+          revokeLabel
+        }
+      }
+    }
+  }
+`;
+
 export type AccountFlow = 'export' | 'delete';
 
 // The pages of this dialog host (see the file header): the root settings
 // page plus the pages pushed over it inside the same dialog.
-export type DialogPage = 'main' | 'feedback' | 'gear' | 'goals' | 'availability' | 'internal';
+export type DialogPage = 'main' | 'feedback' | 'gear' | 'goals' | 'availability' | 'agent' | 'internal';
 
 export default function SettingsDialog({ open, onClose, user, initialFlow, initialPage, logoutText }: {
   open: boolean;
@@ -396,6 +445,45 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage, logoutTe
         }
       },
       onError: () => setCalError(viewer.commonUnknownErrorText || ''),
+    });
+  };
+
+  // Agent grants page (agent-native): the member's own OAuth grants
+  // for agent clients. The section object comes from the backend
+  // (metadata only — a token value never reaches this page); a
+  // revoke returns the refreshed section on its payload, which
+  // becomes the local mirror until the next query refetch. Revoking
+  // is an unbind, so it demands fresh auth like account deletion:
+  // a stale session round-trips through Discord login and lands
+  // back on this page via the ?accountflow=agent marker (UserBar).
+  const [commitRevokeAgent, revokeAgentInFlight] = useMutation<any>(SettingsRevokeAgentMutationNode);
+  const [agentMirror, setAgentMirror] = useState<any>(null);
+  const [agentError, setAgentError] = useState('');
+  const [agentNotice, setAgentNotice] = useState('');
+  const agentSection: any = agentMirror ?? page.agentGrants ?? null;
+  const startAgentReauth = () => {
+    const ret = `${window.location.pathname}?accountflow=agent`;
+    window.location.href = `/auth/discord/login?returnTo=${encodeURIComponent(ret)}`;
+  };
+  const revokeAgent = (grantId: string) => {
+    if (revokeAgentInFlight) return;
+    setAgentError('');
+    setAgentNotice('');
+    commitRevokeAgent({
+      variables: { id: grantId },
+      onCompleted: (resp: any) => {
+        const payload = resp?.revokeAgentGrant;
+        if (payload?.ok) {
+          if (payload.agentGrants) setAgentMirror(payload.agentGrants);
+          setAgentNotice(agentSection?.agentRevokeDoneText || '');
+          refetchSelf();
+        } else if (payload?.errorCode === 'accountReauthRequired') {
+          startAgentReauth();
+        } else {
+          setAgentError(payload?.error || viewer.commonUnknownErrorText || '');
+        }
+      },
+      onError: () => setAgentError(viewer.commonUnknownErrorText || ''),
     });
   };
 
@@ -758,6 +846,24 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage, logoutTe
           <span>{page.availabilityTitle}</span>
           <span style={{ color: theme.gold, fontSize: 19, lineHeight: 1 }}>›</span>
         </button>
+        {/* Agent grants entry: rendered only when the backend
+            composed the section for this viewer (a signed-in
+            member); the section object is the gate. */}
+        {page.agentGrants && (
+          <button
+            data-agent-entry
+            onClick={() => { setAgentError(''); setAgentNotice(''); pushPage('agent'); }}
+            style={{
+              display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+              width: '100%', textAlign: 'left', padding: '11px 16px', borderRadius: 10, cursor: 'pointer',
+              background: 'rgba(255,255,255,.02)', border: '1px solid rgba(201,163,92,.25)',
+              color: theme.paper, fontSize: 14.5, marginTop: 8,
+            }}
+          >
+            <span>{page.agentGrants.agentSectionTitle}</span>
+            <span style={{ color: theme.gold, fontSize: 19, lineHeight: 1 }}>›</span>
+          </button>
+        )}
         <button
           data-feedback-entry
           onClick={openFeedback}
@@ -1252,6 +1358,72 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage, logoutTe
     </>
   );
 
+  // Agent grants page: the member's own agent authorizations,
+  // metadata only. Each grant row carries its server-composed
+  // labels and time lines; the revoke button acts per grant.
+  const agentGrantsList: any[] = agentSection?.grants ?? [];
+  const agentBody = (
+    <>
+      {!isMobile && (
+        <div
+          data-agent-back
+          onClick={popPage}
+          style={{ color: theme.gold, fontSize: 24, lineHeight: 1, cursor: 'pointer', padding: '0 8px 10px 0', width: 32 }}
+        >‹</div>
+      )}
+      <div style={{ color: theme.muted, fontSize: 13, lineHeight: 1.7, marginBottom: 18 }}>{agentSection?.agentHintText}</div>
+      {agentNotice && (
+        <div style={{ color: '#7fb069', fontSize: 13, marginBottom: 14 }}>✓ {agentNotice}</div>
+      )}
+      {agentError && (
+        <div style={{ color: '#e58d7f', fontSize: 13, marginBottom: 14 }}>{agentError}</div>
+      )}
+      {!agentGrantsList.length && (
+        <div style={{ fontSize: 13.5, color: theme.muted }}>{agentSection?.agentEmptyText}</div>
+      )}
+      {agentGrantsList.map((g: any) => (
+        <div
+          key={g.id}
+          data-agent-grant={g.id}
+          style={{
+            border: '1px solid rgba(201,163,92,.25)', borderRadius: 10,
+            padding: '13px 16px', marginBottom: 12, background: 'rgba(255,255,255,.02)',
+          }}
+        >
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12 }}>
+            <span style={{ color: theme.paper, fontSize: 15 }}>{g.clientName || g.name}</span>
+            <button
+              data-agent-revoke={g.id}
+              onClick={() => revokeAgent(g.id)}
+              disabled={revokeAgentInFlight}
+              style={{
+                padding: '6px 14px', borderRadius: 8, cursor: 'pointer', flexShrink: 0,
+                background: 'transparent', border: '1px solid rgba(229,141,127,.55)',
+                color: '#e58d7f', fontSize: 13,
+              }}
+            >{g.revokeLabel}</button>
+          </div>
+          <div style={{ color: theme.muted, fontSize: 12.5, marginTop: 7, lineHeight: 1.8 }}>
+            <span>{g.scopesLabel}</span>
+            <span> · </span>
+            <span>{g.sourceLabel}</span>
+            {g.tokenPrefix && (
+              <>
+                <span> · </span>
+                <span style={{ fontFamily: 'monospace' }}>{g.tokenPrefix}…</span>
+              </>
+            )}
+            <br />
+            <span>{g.createdText}</span>
+            <span> · </span>
+            <span>{g.lastUsedText}</span>
+          </div>
+        </div>
+      ))}
+      <ToastHost />
+    </>
+  );
+
   // Internal (platform admin) page: pushed only from the gated entry
   // row above; the page body loads its own admin query, whose response
   // type guards the data (Locked composes zero admin data). The title
@@ -1276,6 +1448,7 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage, logoutTe
     : view === 'gear' ? gearBody
     : view === 'goals' ? goalsBody
     : view === 'availability' ? availabilityBody
+    : view === 'agent' ? agentBody
     : view === 'internal' ? internalBody
     : mainBody;
   const headerTitle = view === 'feedback'
@@ -1283,6 +1456,7 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage, logoutTe
     : view === 'gear' ? data.gradPage?.gearMyLibTitle
     : view === 'goals' ? goalsPage.title
     : view === 'availability' ? page.availabilityTitle
+    : view === 'agent' ? agentSection?.agentSectionTitle
     : view === 'internal' ? '[intern only] internal settings'
     : page.settingsTitle;
   // The mobile header chevron pops one page; on the root page it closes

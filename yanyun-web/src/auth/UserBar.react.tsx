@@ -36,12 +36,19 @@ export default function UserBar({ user, text }: { user: ViewerUser; text: UserBa
   // Return landing from a fresh-OAuth round trip started in the Profile
   // dialog's My Data section: the returnTo carried ?accountflow=… —
   // reopen the dialog with the flow so it resumes where it left off,
-  // then scrub the marker from the URL.
+  // then scrub the marker from the URL. The 'agent' marker (agent
+  // grant revocation, same fresh-auth tier) lands on the agent page
+  // instead of resuming an account action.
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const flow = params.get('accountflow');
-    if (flow !== 'export' && flow !== 'delete') return;
-    setAccountFlow(flow);
+    if (flow !== 'export' && flow !== 'delete' && flow !== 'agent') return;
+    if (flow === 'agent') {
+      setSettingsPageReq('agent');
+      setSettingsSeq((n) => n + 1);
+    } else {
+      setAccountFlow(flow);
+    }
     setSettingsOpen(true);
     params.delete('accountflow');
     const qs = params.toString();
