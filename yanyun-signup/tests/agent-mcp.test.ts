@@ -359,7 +359,7 @@ describe('agent MCP resource server', () => {
     check('new grouping id minted', newId > 0);
     eq('default title follows the platform pattern', createdJson.grouping.title, '甲队员的双十车队');
     eq('type is the ACTIVITY enum', createdJson.grouping.type, 'ACTIVITY');
-    eq('canonical url returned', createdJson.url, `https://yanyun.app/mcpguild/grouping/${newId}`);
+    eq('canonical url returned', createdJson.url, `https://yanyun.app/mcpguild/car/${newId}`);
     const evRow = await db.prepare(
       `SELECT creator_user_id, type, max_slots, status FROM events WHERE id = ?`).bind(newId).first<any>();
     eq('creator is the grant owner', evRow?.creator_user_id, userA);
