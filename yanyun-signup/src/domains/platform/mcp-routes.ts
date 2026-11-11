@@ -668,7 +668,7 @@ async function callTool(env: any, session: McpSession, name: string, args: any):
       return toolOk({
         ok: true,
         grouping,
-        url: `https://yanyun.app/${guildSlug}/grouping/${grouping.id}`,
+        url: `https://yanyun.app/${encodeURIComponent(guildSlug)}/car/${grouping.id}`,
       });
     }
   }
