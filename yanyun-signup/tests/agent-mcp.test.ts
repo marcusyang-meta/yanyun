@@ -382,12 +382,15 @@ describe('agent MCP resource server', () => {
       mine.signups.map((s: any) => String(s.grouping.id)).includes(String(newId)));
 
     // Explicit title, no weapon: title as given, no seat taken.
+    // The title is a co-op exploration run （联机探索）, which the
+    // catalog maps to TALENT (ruling of 2026-11-11).
     const second = await callTool(grantD.accessToken, 'create_grouping', {
-      guildSlug: 'mcpguild', type: 'ACTIVITY', startsAt: CREATE_START, title: '周五联机探索',
+      guildSlug: 'mcpguild', type: 'TALENT', startsAt: CREATE_START, title: '周五联机探索',
     });
     check('second create not an error', second.isError !== true, JSON.stringify(second).slice(0, 300));
     const secondJson = toolJson(second);
     eq('explicit title kept', secondJson.grouping.title, '周五联机探索');
+    eq('exploration create is TALENT', secondJson.grouping.type, 'TALENT');
     const seats2 = await db.prepare(
       `SELECT COUNT(*) AS n FROM signups WHERE event_id = ?`).bind(Number(secondJson.grouping.id)).first<{ n: number }>();
     eq('no seat taken without a weapon', seats2?.n, 0);

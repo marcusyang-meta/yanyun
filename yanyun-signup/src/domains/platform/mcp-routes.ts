@@ -273,7 +273,7 @@ const TOOLS: ToolDef[] = [
   },
   {
     name: 'create_grouping', write: true, scopeAtom: 'create',
-    description: 'Create a NEW grouping （车队） in one of the member\'s guilds, led by the authorizing member (they become its creator/leader; the create form\'s rules apply unchanged — membership and write gates, start within 60 days). It cannot touch an existing grouping. Capacity is derived server-side, never an input: ACTIVITY and TOWER seat 10 with no dungeon; TALENT defaults to 5 and RACE to 10, or the chosen dungeon\'s size. For a co-op exploration run （联机探索） use type ACTIVITY without a dungeonId.',
+    description: 'Create a NEW grouping （车队） in one of the member\'s guilds, led by the authorizing member (they become its creator/leader; the create form\'s rules apply unchanged — membership and write gates, start within 60 days). It cannot touch an existing grouping. Capacity is derived server-side, never an input: ACTIVITY and TOWER seat 10 with no dungeon; TALENT defaults to 5 and RACE to 10, or the chosen dungeon\'s size. For a co-op exploration run （联机探索） use type TALENT; without a dungeonId it takes the TALENT default size.',
     inputSchema: {
       type: 'object',
       properties: {
