@@ -250,6 +250,17 @@ const TOOLS: ToolDef[] = [
   },
 ];
 
+/* The tool catalog in the shape the discovery surfaces
+ * (platform/agent-discovery-routes.ts) render for agents: the
+ * llms.txt tool section and the /.well-known/mcp pointer are
+ * generated from this list, so the signposts can never drift
+ * from the tools the server actually serves. */
+export const MCP_TOOL_CATALOG: ReadonlyArray<{
+  name: string;
+  write: boolean;
+  description: string;
+}> = TOOLS.map((t) => ({ name: t.name, write: t.write, description: t.description }));
+
 /* ---------------- execution plumbing ---------------- */
 
 interface McpSession {
