@@ -52,6 +52,7 @@ const db = await mf.getD1Database('DB');
 }
 
 const { oauthRoutes } = await import('../src/domains/identity/oauth-server-routes.ts');
+const { MCP_TOOL_CATALOG } = await import('../src/domains/platform/mcp-routes.ts');
 const { signJwt } = await import('../src/domains/identity/auth.ts');
 const svc = await import('../src/domains/identity/agent-oauth.ts');
 const { yoga } = await import('../src/graphql.ts');
@@ -394,6 +395,57 @@ describe('worker dispatch', () => {
     eq('MCP without a token is 401 (not the SPA)', mcp.status, 401);
     check('MCP 401 carries the resource metadata pointer',
       (mcp.headers.get('www-authenticate') || '').includes('/.well-known/oauth-protected-resource'));
+  });
+});
+
+describe('agent discovery signposts', () => {
+  it('serves /llms.txt and /.well-known/mcp through the real worker fetch', async () => {
+    const worker = (await import('../src/worker.ts')).default;
+    const ctx = { waitUntil: () => {}, passThroughOnException: () => {} } as any;
+
+    const llms = await worker.fetch(
+      new Request('https://yanyun.app/llms.txt'), env as any, ctx);
+    eq('llms.txt status', llms.status, 200);
+    check('llms.txt is plain text',
+      (llms.headers.get('content-type') || '').includes('text/plain'));
+    const text = await llms.text();
+    check('llms.txt opens with the H1 site name', text.startsWith('# Yanyun'));
+    for (const needle of [
+      'https://yanyun.app/mcp',
+      'https://yanyun.app/.well-known/oauth-protected-resource',
+      'https://yanyun.app/.well-known/oauth-authorization-server',
+      'https://yanyun.app/oauth/register',
+      'https://yanyun.app/oauth/authorize',
+      'https://yanyun.app/oauth/token',
+      'S256',
+      '`read signup`',
+      '我的 Agent 授权',
+    ]) {
+      check(`llms.txt carries ${needle}`, text.includes(needle));
+    }
+    eq('llms.txt tool section is generated from the served catalog',
+      MCP_TOOL_CATALOG.length, 11);
+    for (const t of MCP_TOOL_CATALOG) {
+      check(`llms.txt lists tool ${t.name} as ${t.write ? 'write' : 'read'}`,
+        text.includes(`\`${t.name}\` (${t.write ? 'write' : 'read'})`));
+    }
+
+    const ptr = await worker.fetch(
+      new Request('https://yanyun.app/.well-known/mcp'), env as any, ctx);
+    eq('mcp pointer status', ptr.status, 200);
+    check('mcp pointer is JSON',
+      (ptr.headers.get('content-type') || '').includes('application/json'));
+    const pj = await ptr.json() as any;
+    eq('pointer name', pj.name, 'yanyun-mcp');
+    eq('pointer endpoint', pj.endpoint, 'https://yanyun.app/mcp');
+    eq('pointer auth type', pj.auth?.type, 'oauth2');
+    eq('pointer protected-resource metadata', pj.auth?.protected_resource_metadata,
+      'https://yanyun.app/.well-known/oauth-protected-resource');
+    eq('pointer authorization-server metadata', pj.auth?.authorization_server_metadata,
+      'https://yanyun.app/.well-known/oauth-authorization-server');
+    eq('pointer scopes', pj.scopes, ['read', 'signup']);
+    eq('pointer documentation points at the llms.txt', pj.documentation,
+      'https://yanyun.app/llms.txt');
   });
 });
 

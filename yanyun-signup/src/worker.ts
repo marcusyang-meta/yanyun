@@ -25,6 +25,7 @@ import { shortLinkRoutes } from './domains/groupings/shortlink-routes.ts';
 import { calendarFeedRoutes } from './domains/identity/calendar-routes.ts';
 import { oauthRoutes } from './domains/identity/oauth-server-routes.ts';
 import { mcpRoutes } from './domains/platform/mcp-routes.ts';
+import { agentDiscoveryRoutes } from './domains/platform/agent-discovery-routes.ts';
 import { combatReportRoutes } from './domains/groupings/combat-routes.ts';
 
 /* Hono app */
@@ -60,6 +61,11 @@ app.route('/', oauthRoutes);
  * GraphQL documents against the same yoga instance under the
  * token grant's identity; see domains/platform/mcp-routes.ts. */
 app.route('/', mcpRoutes); // personal calendar subscription /calendar/<token>.ics (token-authenticated, read-only)
+/* Agent discovery signposts: /llms.txt and /.well-known/mcp,
+ * rendered from the MCP tool catalog so an agent that knows only
+ * the domain can find the endpoint and onboard (see
+ * domains/platform/agent-discovery-routes.ts). */
+app.route('/', agentDiscoveryRoutes);
 app.route('/', combatReportRoutes); // combat report imports POST /api/groupings/:id/combat-reports (session + tier gate)
 
 app.all('/graphql', async (c: any) => {
@@ -206,7 +212,7 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
       return handleGuildLive(request, env, slug);
     }
 
-    if (path.startsWith('/api/') || path === '/graphql' || path === '/stripe/webhook' || path.startsWith('/.well-known/') || path.startsWith('/oauth/') || path === '/mcp' || /^\/guilds\/[^/]+\/avatar$/.test(path) || /^\/calendar\/[^/]+\.ics$/.test(path) || /^\/c\/[^/]+$/.test(path)) {
+    if (path.startsWith('/api/') || path === '/graphql' || path === '/stripe/webhook' || path.startsWith('/.well-known/') || path.startsWith('/oauth/') || path === '/mcp' || path === '/llms.txt' || /^\/guilds\/[^/]+\/avatar$/.test(path) || /^\/calendar\/[^/]+\.ics$/.test(path) || /^\/c\/[^/]+$/.test(path)) {
       return app.fetch(request, env, ctx);
     }
 
