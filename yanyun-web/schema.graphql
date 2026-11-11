@@ -1273,6 +1273,7 @@ type SettingsPage {
   availabilityNoGuildsText: String!
   availabilityGuilds: [SettingsAvailabilityGuild!]!
   calendarFeed: CalendarFeedSettings
+  agentGrants: AgentGrantsSettings
 }
 
 type CalendarFeedSettings {
@@ -1283,6 +1284,33 @@ type CalendarFeedSettings {
   calendarCopiedText: String!
   calendarResetLabel: String!
   calendarResetDoneText: String!
+}
+
+type AgentGrantsSettings {
+  agentSectionTitle: String!
+  agentHintText: String!
+  agentEmptyText: String!
+  agentRevokeDoneText: String!
+  grants: [AgentGrant!]!
+}
+
+type AgentGrant {
+  id: ID!
+  clientName: String!
+  name: String!
+  scopesLabel: String!
+  sourceLabel: String!
+  tokenPrefix: String!
+  createdText: String!
+  lastUsedText: String!
+  revokeLabel: String!
+}
+
+type RevokeAgentGrantPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  agentGrants: AgentGrantsSettings
 }
 
 type ResetCalendarFeedPayload {
@@ -1891,6 +1919,7 @@ type Mutation {
   calcTiaolv(input: TiaolvInput!): TiaolvResult!
   calcGraduation(input: GraduationInput!): GraduationResult!
   resetCalendarFeedToken: ResetCalendarFeedPayload!
+  revokeAgentGrant(id: ID!): RevokeAgentGrantPayload!
   submitFeedback(category: FeedbackCategory!, text: String!): SubmitFeedbackPayload!
   updateMyLocale(locale: String): UpdateLocalePayload!
   exportMyData: ExportMyDataPayload!

@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<1378914133ed7f8e66f2b42016c30732>>
+ * @generated SignedSource<<d2528268e4d27dd26cd8d226467735e7>>
  * @lightSyntaxTransform
  */
 
@@ -42,6 +42,23 @@ export type SettingsDialogQuery$data = {
     readonly accountSectionTitle: string;
     readonly accountSubmitLabel: string;
     readonly accountUsernameLabel: string;
+    readonly agentGrants: {
+      readonly agentEmptyText: string;
+      readonly agentHintText: string;
+      readonly agentRevokeDoneText: string;
+      readonly agentSectionTitle: string;
+      readonly grants: ReadonlyArray<{
+        readonly clientName: string;
+        readonly createdText: string;
+        readonly id: string;
+        readonly lastUsedText: string;
+        readonly name: string;
+        readonly revokeLabel: string;
+        readonly scopesLabel: string;
+        readonly sourceLabel: string;
+        readonly tokenPrefix: string;
+      }>;
+    } | null | undefined;
     readonly availabilityAddSlotLabel: string;
     readonly availabilityEmptyText: string;
     readonly availabilityGuilds: ReadonlyArray<{
@@ -982,6 +999,107 @@ v7 = [
           }
         ],
         "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "concreteType": "AgentGrantsSettings",
+        "kind": "LinkedField",
+        "name": "agentGrants",
+        "plural": false,
+        "selections": [
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "agentSectionTitle",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "agentHintText",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "agentEmptyText",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "agentRevokeDoneText",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "concreteType": "AgentGrant",
+            "kind": "LinkedField",
+            "name": "grants",
+            "plural": true,
+            "selections": [
+              (v2/*:: as any*/),
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "clientName",
+                "storageKey": null
+              },
+              (v6/*:: as any*/),
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "scopesLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "sourceLabel",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "tokenPrefix",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "createdText",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "lastUsedText",
+                "storageKey": null
+              },
+              {
+                "alias": null,
+                "args": null,
+                "kind": "ScalarField",
+                "name": "revokeLabel",
+                "storageKey": null
+              }
+            ],
+            "storageKey": null
+          }
+        ],
+        "storageKey": null
       }
     ],
     "storageKey": null
@@ -1023,16 +1141,16 @@ return {
     "selections": (v7/*:: as any*/)
   },
   "params": {
-    "cacheID": "710a7d9b0b288d88e7aeb27798ef3796",
+    "cacheID": "c02c70382f7574b84fbfd01339831148",
     "id": null,
     "metadata": {},
     "name": "SettingsDialogQuery",
     "operationKind": "query",
-    "text": "query SettingsDialogQuery {\n  viewer {\n    commonUnknownErrorText\n    platformAdmin {\n      __typename\n    }\n  }\n  settingsPage {\n    settingsTitle\n    settingsDiscordLabel\n    settingsLanguageLabel\n    settingsLanguageHint\n    settingsAutoLabel\n    settingsLangZhCnLabel\n    settingsLangZhTwLabel\n    settingsLangEnLabel\n    settingsLangEsLabel\n    settingsLangFrLabel\n    settingsSavedText\n    feedbackEntryLabel\n    feedbackTitle\n    feedbackCategoryLabel\n    feedbackCategoryProblemLabel\n    feedbackCategorySuggestionLabel\n    feedbackCategoryOtherLabel\n    feedbackPlaceholder\n    feedbackSubmitLabel\n    feedbackSubmittingLabel\n    feedbackSuccessText\n    localePref\n    effectiveLocale\n    accountSectionTitle\n    accountExportLabel\n    accountExportHint\n    accountDeleteLabel\n    accountDeleteHint\n    accountReauthLabel\n    accountReauthHint\n    accountConfirmTitle\n    accountConfirmIntro\n    accountConsequenceCars\n    accountConsequenceData\n    accountConsequenceGuilds\n    accountConsequenceResidual\n    accountConsequenceReregister\n    accountExportFirstHint\n    accountUsernameLabel\n    accountSubmitLabel\n    accountBackLabel\n    accountCancelDeletionLabel\n    accountDeletionRequestedText\n    accountDeletionCancelledText\n    freshAuthAt\n    seasonGoals {\n      entryLabel\n      title\n      hint\n      emptyText\n      guildLabel\n      goalTitleLabel\n      goalTitlePlaceholder\n      goalNoteLabel\n      goalNotePlaceholder\n      dungeonLabel\n      dungeonNoneLabel\n      statusLabel\n      addLabel\n      saveLabel\n      editLabel\n      deleteLabel\n      statusActiveLabel\n      statusDoneLabel\n      statusDroppedLabel\n      goals {\n        id\n        guildSlug\n        guildName\n        title\n        note\n        status\n        statusLabel\n        dungeonId\n        dungeonName\n        seasonName\n      }\n      guildOptions {\n        slug\n        name\n      }\n      dungeonOptions {\n        id\n        name\n        seasonName\n      }\n    }\n    accountPendingDeletion {\n      executesAt\n      daysLeft\n      accountPendingTitle\n      accountPendingBody\n    }\n    availabilityTitle\n    availabilityHint\n    availabilityWeekdayNames\n    availabilityAddSlotLabel\n    availabilityRemoveLabel\n    availabilitySaveLabel\n    availabilitySavedText\n    availabilitySaveFailedTemplate\n    availabilityEmptyText\n    availabilityNoGuildsText\n    availabilityGuilds {\n      slug\n      guildName\n      slots {\n        weekday\n        startMinute\n        endMinute\n      }\n    }\n    calendarFeed {\n      calendarSectionTitle\n      calendarHintText\n      calendarUrl\n      calendarCopyLabel\n      calendarCopiedText\n      calendarResetLabel\n      calendarResetDoneText\n    }\n  }\n  gradPage {\n    gearMyLibTitle\n  }\n}\n"
+    "text": "query SettingsDialogQuery {\n  viewer {\n    commonUnknownErrorText\n    platformAdmin {\n      __typename\n    }\n  }\n  settingsPage {\n    settingsTitle\n    settingsDiscordLabel\n    settingsLanguageLabel\n    settingsLanguageHint\n    settingsAutoLabel\n    settingsLangZhCnLabel\n    settingsLangZhTwLabel\n    settingsLangEnLabel\n    settingsLangEsLabel\n    settingsLangFrLabel\n    settingsSavedText\n    feedbackEntryLabel\n    feedbackTitle\n    feedbackCategoryLabel\n    feedbackCategoryProblemLabel\n    feedbackCategorySuggestionLabel\n    feedbackCategoryOtherLabel\n    feedbackPlaceholder\n    feedbackSubmitLabel\n    feedbackSubmittingLabel\n    feedbackSuccessText\n    localePref\n    effectiveLocale\n    accountSectionTitle\n    accountExportLabel\n    accountExportHint\n    accountDeleteLabel\n    accountDeleteHint\n    accountReauthLabel\n    accountReauthHint\n    accountConfirmTitle\n    accountConfirmIntro\n    accountConsequenceCars\n    accountConsequenceData\n    accountConsequenceGuilds\n    accountConsequenceResidual\n    accountConsequenceReregister\n    accountExportFirstHint\n    accountUsernameLabel\n    accountSubmitLabel\n    accountBackLabel\n    accountCancelDeletionLabel\n    accountDeletionRequestedText\n    accountDeletionCancelledText\n    freshAuthAt\n    seasonGoals {\n      entryLabel\n      title\n      hint\n      emptyText\n      guildLabel\n      goalTitleLabel\n      goalTitlePlaceholder\n      goalNoteLabel\n      goalNotePlaceholder\n      dungeonLabel\n      dungeonNoneLabel\n      statusLabel\n      addLabel\n      saveLabel\n      editLabel\n      deleteLabel\n      statusActiveLabel\n      statusDoneLabel\n      statusDroppedLabel\n      goals {\n        id\n        guildSlug\n        guildName\n        title\n        note\n        status\n        statusLabel\n        dungeonId\n        dungeonName\n        seasonName\n      }\n      guildOptions {\n        slug\n        name\n      }\n      dungeonOptions {\n        id\n        name\n        seasonName\n      }\n    }\n    accountPendingDeletion {\n      executesAt\n      daysLeft\n      accountPendingTitle\n      accountPendingBody\n    }\n    availabilityTitle\n    availabilityHint\n    availabilityWeekdayNames\n    availabilityAddSlotLabel\n    availabilityRemoveLabel\n    availabilitySaveLabel\n    availabilitySavedText\n    availabilitySaveFailedTemplate\n    availabilityEmptyText\n    availabilityNoGuildsText\n    availabilityGuilds {\n      slug\n      guildName\n      slots {\n        weekday\n        startMinute\n        endMinute\n      }\n    }\n    calendarFeed {\n      calendarSectionTitle\n      calendarHintText\n      calendarUrl\n      calendarCopyLabel\n      calendarCopiedText\n      calendarResetLabel\n      calendarResetDoneText\n    }\n    agentGrants {\n      agentSectionTitle\n      agentHintText\n      agentEmptyText\n      agentRevokeDoneText\n      grants {\n        id\n        clientName\n        name\n        scopesLabel\n        sourceLabel\n        tokenPrefix\n        createdText\n        lastUsedText\n        revokeLabel\n      }\n    }\n  }\n  gradPage {\n    gearMyLibTitle\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "90fb38a52b4e3686e783c2a81a649d09";
+(node as any).hash = "948eeea9a0b47d24d317575b27018222";
 
 export default node;
