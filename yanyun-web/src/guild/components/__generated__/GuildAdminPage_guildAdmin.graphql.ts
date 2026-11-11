@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<5d26edca15710d2e346439a6b5aba9f0>>
+ * @generated SignedSource<<20484818ea093697e450586235dc7f87>>
  * @lightSyntaxTransform
  */
 
@@ -9,7 +9,7 @@
 
 import { ReaderFragment } from 'relay-runtime';
 export type CustomDomainStatus = "ACTIVE" | "DISABLED" | "NONE" | "PENDING" | "%future added value";
-export type GroupingType = "ACTIVITY" | "RACE" | "TALENT" | "TOWER" | "%future added value";
+export type GroupingType = "ACTIVITY" | "EXPLORE" | "RACE" | "TALENT" | "TOWER" | "%future added value";
 export type GuildAdminCombatStatus = "FAILED" | "PARSED" | "%future added value";
 export type GuildAdminRecapStatus = "FAILED" | "READY" | "%future added value";
 export type LotterySource = "GROUPING" | "MEMBERS" | "%future added value";
@@ -194,6 +194,7 @@ export type GuildAdminPage_guildAdmin$data = {
   readonly adminTabToolsLabel: string;
   readonly adminTitle: string;
   readonly adminTypeActivityText: string;
+  readonly adminTypeExploreText: string;
   readonly adminTypeRaceText: string;
   readonly adminTypeTalentText: string;
   readonly adminTypeTowerText: string;
@@ -770,6 +771,7 @@ export type GuildAdminPage_guildAdmin$data = {
     }>;
     readonly weeks: ReadonlyArray<{
       readonly carsActivity: number;
+      readonly carsExplore: number;
       readonly carsRace: number;
       readonly carsTalent: number;
       readonly carsTotal: number;
@@ -3574,6 +3576,13 @@ return {
       "alias": null,
       "args": null,
       "kind": "ScalarField",
+      "name": "adminTypeExploreText",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
       "name": "adminStatusOpenText",
       "storageKey": null
     },
@@ -4270,6 +4279,13 @@ return {
                   "alias": null,
                   "args": null,
                   "kind": "ScalarField",
+                  "name": "carsExplore",
+                  "storageKey": null
+                },
+                {
+                  "alias": null,
+                  "args": null,
+                  "kind": "ScalarField",
                   "name": "carsTotal",
                   "storageKey": null
                 },
@@ -4900,6 +4916,6 @@ return {
 };
 })();
 
-(node as any).hash = "08874a2acab2a555210559d350924d6a";
+(node as any).hash = "d25480c83922aa141b945ea895888e04";
 
 export default node;
