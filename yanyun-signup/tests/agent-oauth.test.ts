@@ -295,4 +295,22 @@ describe('agent OAuth authorization server', () => {
   });
 });
 
+describe('worker dispatch', () => {
+  it('routes the OAuth + MCP paths into the Hono app, not the SPA fallback', async () => {
+    const worker = (await import('../src/worker.ts')).default;
+    const ctx = { waitUntil: () => {}, passThroughOnException: () => {} } as any;
+    const meta = await worker.fetch(
+      new Request('https://yanyun.app/.well-known/oauth-authorization-server'), env as any, ctx);
+    eq('metadata status', meta.status, 200);
+    const metaBody = await meta.json() as any;
+    eq('metadata issuer is the request origin', metaBody.issuer, 'https://yanyun.app');
+    const mcp = await worker.fetch(new Request('https://yanyun.app/mcp', {
+      method: 'POST', headers: { 'content-type': 'application/json' }, body: '{}',
+    }), env as any, ctx);
+    eq('MCP without a token is 401 (not the SPA)', mcp.status, 401);
+    check('MCP 401 carries the resource metadata pointer',
+      (mcp.headers.get('www-authenticate') || '').includes('/.well-known/oauth-protected-resource'));
+  });
+});
+
 afterAll(async () => { await mf.dispose(); });

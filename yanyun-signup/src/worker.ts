@@ -206,7 +206,7 @@ async function handleFetch(request: Request, env: Env, ctx: ExecutionContext) {
       return handleGuildLive(request, env, slug);
     }
 
-    if (path.startsWith('/api/') || path === '/graphql' || path === '/stripe/webhook' || /^\/guilds\/[^/]+\/avatar$/.test(path) || /^\/calendar\/[^/]+\.ics$/.test(path) || /^\/c\/[^/]+$/.test(path)) {
+    if (path.startsWith('/api/') || path === '/graphql' || path === '/stripe/webhook' || path.startsWith('/.well-known/') || path.startsWith('/oauth/') || path === '/mcp' || /^\/guilds\/[^/]+\/avatar$/.test(path) || /^\/calendar\/[^/]+\.ics$/.test(path) || /^\/c\/[^/]+$/.test(path)) {
       return app.fetch(request, env, ctx);
     }
 
