@@ -174,7 +174,7 @@ const TOOLS: ToolDef[] = [
       type: 'object',
       properties: {
         slug: { type: 'string', description: 'Guild slug, from list_my_guilds.' },
-        tab: { type: 'string', enum: ['ACTIVITY', 'TALENT', 'RACE', 'TOWER'], default: 'ACTIVITY' },
+        tab: { type: 'string', enum: ['ACTIVITY', 'TALENT', 'RACE', 'TOWER', 'EXPLORE'], default: 'ACTIVITY' },
         weekOffset: { type: 'integer', default: 0 },
       },
       required: ['slug'],
@@ -273,15 +273,16 @@ const TOOLS: ToolDef[] = [
   },
   {
     name: 'create_grouping', write: true, scopeAtom: 'create',
-    description: 'Create a NEW grouping （车队） in one of the member\'s guilds, led by the authorizing member (they become its creator/leader; the create form\'s rules apply unchanged — membership and write gates, start within 60 days). It cannot touch an existing grouping. Capacity is derived server-side, never an input: ACTIVITY and TOWER seat 10 with no dungeon; TALENT defaults to 5 and RACE to 10, or the chosen dungeon\'s size. For a co-op exploration run （联机探索） use type ACTIVITY without a dungeonId.',
+    description: 'Create a NEW grouping （车队） in one of the member\'s guilds, led by the authorizing member (they become its creator/leader; the create form\'s rules apply unchanged — membership and write gates, start within 60 days). It cannot touch an existing grouping. Capacity is derived server-side, never an input, with one exception: ACTIVITY and TOWER seat 10 with no dungeon; TALENT defaults to 5 and RACE to 10, or the chosen dungeon\'s size. EXPLORE is the co-op exploration type （联机探索）: a run of its own kind, not an ACTIVITY or TALENT run — use type EXPLORE for one. EXPLORE never takes a dungeon, and its seat count is the caller\'s choice: pass maxSlots 5 or 10 (default 10). maxSlots is EXPLORE-only; other types ignore it.',
     inputSchema: {
       type: 'object',
       properties: {
         guildSlug: { type: 'string', description: 'Guild slug, from list_my_guilds.' },
-        type: { type: 'string', enum: ['ACTIVITY', 'TALENT', 'RACE', 'TOWER'] },
+        type: { type: 'string', enum: ['ACTIVITY', 'TALENT', 'RACE', 'TOWER', 'EXPLORE'] },
         startsAt: { type: 'integer', description: 'Start time as epoch seconds.' },
         title: { type: 'string', description: 'Optional. Defaults to the platform pattern "{your guild nickname}的{type}车队".' },
-        dungeonId: { type: 'string', description: 'Optional dungeon id (TALENT / RACE only), from list_dex. Ignored for ACTIVITY / TOWER.' },
+        dungeonId: { type: 'string', description: 'Optional dungeon id (TALENT / RACE only), from list_dex. Ignored for ACTIVITY / TOWER / EXPLORE.' },
+        maxSlots: { type: 'integer', enum: [5, 10], description: 'EXPLORE only: the seat count, 5 or 10 (default 10). Ignored for every other type.' },
         weapon: { type: 'string', description: 'Optional school/build （流派）, e.g. 破竹·樽. When given, you take the leader seat exactly like the create form does; without it the grouping is created with no seat taken.' },
         customFields: {
           type: 'array',
@@ -449,7 +450,7 @@ async function auditAgentWrite(env: any, session: McpSession, groupingId: number
 
 /* ---------------- tool dispatch ---------------- */
 
-const TABS = ['ACTIVITY', 'TALENT', 'RACE', 'TOWER'] as const;
+const TABS = ['ACTIVITY', 'TALENT', 'RACE', 'TOWER', 'EXPLORE'] as const;
 
 async function callTool(env: any, session: McpSession, name: string, args: any): Promise<any> {
   const scopes = parseScopes(session.grant.scopes);
@@ -620,7 +621,7 @@ async function callTool(env: any, session: McpSession, name: string, args: any):
       const type = String(args?.type || '');
       const startsAt = Number(args?.startsAt);
       if (!guildSlug) return toolErr('guildSlug is required.');
-      if (!TAB_TO_TYPE[type]) return toolErr('type must be one of ACTIVITY, TALENT, RACE, TOWER.');
+      if (!TAB_TO_TYPE[type]) return toolErr('type must be one of ACTIVITY, TALENT, RACE, TOWER, EXPLORE.');
       if (!Number.isFinite(startsAt) || startsAt <= 0) return toolErr('startsAt (epoch seconds) is required.');
       const title = String(args?.title || '').trim()
         || await defaultGroupingTitle(env, session, guildSlug, type);
@@ -628,11 +629,18 @@ async function callTool(env: any, session: McpSession, name: string, args: any):
         slug: guildSlug, title, type, startsAt: String(Math.trunc(startsAt)),
       };
       // Mirror the create form: a dungeon is only meaningful for
-      // TALENT / RACE; ACTIVITY / TOWER never carry one. Capacity
-      // is NOT an input — createGrouping derives it from the type
-      // and the dungeon's size, exactly as for form-built cars.
+      // TALENT / RACE; ACTIVITY / TOWER / EXPLORE never carry one.
+      // Capacity is NOT an input for those types — createGrouping
+      // derives it from the type and the dungeon's size, exactly as
+      // for form-built cars. EXPLORE is the single exception: its
+      // seat count is the caller's choice of 5 or 10.
       if (type === 'TALENT' || type === 'RACE') {
         input.dungeonId = args?.dungeonId ? String(args.dungeonId) : null;
+      }
+      if (type === 'EXPLORE' && args?.maxSlots != null) {
+        const ms = Number(args.maxSlots);
+        if (ms !== 5 && ms !== 10) return toolErr('maxSlots for EXPLORE must be 5 or 10.');
+        input.maxSlots = ms;
       }
       // The leader seat, exactly as the form submits it: the
       // resolver names and stamps seat 0 from the creator's own

@@ -27,7 +27,7 @@ const escHtml = (str: any) => String(str ?? '')
 // later switch back to single-zone rendering; the earlier UTC
 // wall-clock format stays retired.)
 
-const CAR_TYPE_LABEL: Record<string, string> = { activity: '双十人本', talent: '天赋组队', race: '竞速报名', tower: '爬塔' };
+const CAR_TYPE_LABEL: Record<string, string> = { activity: '双十人本', talent: '天赋组队', race: '竞速报名', tower: '爬塔', explore: '联机探索' };
 
 export function hubOgTags() {
   return [

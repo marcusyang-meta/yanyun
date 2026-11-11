@@ -63,6 +63,7 @@ export type PlatformStringKey =
   | 'errors_titleRequired'
   | 'errors_badStartTime'
   | 'errors_startTimeTooFar'
+  | 'errors_badMaxSlots'
   | 'errors_groupingNotFound'
   | 'errors_officialEvent'
   | 'errors_noCreatorRecorded'
@@ -393,6 +394,7 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors_titleRequired',
   'errors_badStartTime',
   'errors_startTimeTooFar',
+  'errors_badMaxSlots',
   'errors_groupingNotFound',
   'errors_officialEvent',
   'errors_noCreatorRecorded',

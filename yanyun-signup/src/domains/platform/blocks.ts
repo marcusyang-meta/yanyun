@@ -127,9 +127,12 @@ export function groupByLocalDay(items: Array<{ ts: number } & Record<string, any
   return groups;
 }
 
-// events.type -> groupingType catalog short-name key
+// events.type -> groupingType catalog short-name key. 'explore' is
+// the co-op exploration grouping type: its badge/default-title short
+// is shortCoopExplore （联机探索）, not the officer-attendance
+// shortExplore （探索） the value used before the type existed.
 export const TYPE_SHORT_KEY: Record<string, string> = {
   activity: 'shortActivity', talent: 'shortTalent', race: 'shortRace', tower: 'shortTower',
-  gather: 'shortGather', explore: 'shortExplore',
+  gather: 'shortGather', explore: 'shortCoopExplore',
 };
 export const HEALER_SECT = '牵丝·霖';

@@ -35,10 +35,12 @@ export abstract class GroupingTypeFbtUtils {
   static tabTalent(fbs: FbsAPI) { return fbs("天赋组队", "Tab label for the squad list, used to switch to the talent squads tab."); }
   static tabRace(fbs: FbsAPI) { return fbs("竞速报名", "Tab label for the squad list, used to switch to the racing signup tab."); }
   static tabTower(fbs: FbsAPI) { return fbs("爬塔", "Tab label for the squad list, used to switch to the tower squads tab."); }
+  static tabExplore(fbs: FbsAPI) { return fbs("联机探索", "Tab label for the squad list, used to switch to the co-op exploration squads tab."); }
   static shortActivity(fbs: FbsAPI) { return fbs("双十", "Short label for the shuangshi squad type, used in compact squad type badges and default titles."); }
   static shortTalent(fbs: FbsAPI) { return fbs("天赋", "Short label for the talent squad type, used in compact squad type badges and default titles."); }
   static shortRace(fbs: FbsAPI) { return fbs("竞速", "Short label for the racing squad type, used in compact squad type badges and default titles."); }
   static shortTower(fbs: FbsAPI) { return fbs("爬塔", "Short label for the tower squad type, used in compact squad type badges and default titles."); }
+  static shortCoopExplore(fbs: FbsAPI) { return fbs("联机探索", "Short label for the co-op exploration squad type, used in compact squad type badges and default titles."); }
   static shortGather(fbs: FbsAPI) { return fbs("采集", "Short label for the gathering activity type, used in compact type badges in officer attendance views."); }
   static shortExplore(fbs: FbsAPI) { return fbs("探索", "Short label for the exploration activity type, used in compact type badges in officer attendance views."); }
 }
@@ -135,6 +137,9 @@ export abstract class GroupingFormFbtUtils {
   static hintTalent(fbs: FbsAPI) { return fbs("天赋默认 5 人，选副本后按副本人数", "Capacity hint for the squad form, used for talent squads to state the default size of five before a dungeon is chosen."); }
   static hintRace(fbs: FbsAPI) { return fbs("竞速默认 10 人，选副本后按副本人数", "Capacity hint for the squad form, used for racing squads to state the default size of ten before a dungeon is chosen."); }
   static hintTower(fbs: FbsAPI) { return fbs("爬塔固定 10 人，不选副本", "Capacity hint for the squad form, used for tower squads to state the fixed size of ten and that no dungeon is chosen."); }
+  static hintExplore(fbs: FbsAPI) { return fbs("联机探索不选副本，人数可选 5 或 10 人", "Capacity hint for the squad form, used for co-op exploration squads to state that no dungeon is chosen and the size is picked between five and ten."); }
+  static sizeLabel(fbs: FbsAPI) { return fbs("人数", "Field label for the squad form, used for the co-op exploration squad size selector."); }
+  static sizeOption(fbs: FbsAPI, p?: StringParams) { return fbs([fbs.param("n", pv(p, "n")), " 人"], "Option pattern for the squad size selector on the squad form, used to label a seat count, where {n} is the number of seats."); }
   static titleLabel(fbs: FbsAPI) { return fbs("标题", "Field label for the squad form, used for the squad title input."); }
   static titlePlaceholder(fbs: FbsAPI) { return fbs("如：周六晚双十来奶", "Placeholder text for the squad form, used in the title input with an example title."); }
   static startsLabel(fbs: FbsAPI) { return fbs("出发时间", "Field label for the squad form, used for the departure time selectors."); }

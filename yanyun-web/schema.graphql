@@ -6,6 +6,7 @@ enum GroupingTab {
   TALENT
   RACE
   TOWER
+  EXPLORE
 }
 
 enum GroupingType {
@@ -13,6 +14,7 @@ enum GroupingType {
   TALENT
   RACE
   TOWER
+  EXPLORE
 }
 
 enum DexTab {
@@ -317,10 +319,12 @@ type GroupingListPage {
   tabTalentLabel: String!
   tabRaceLabel: String!
   tabTowerLabel: String!
+  tabExploreLabel: String!
   typeShortActivity: String!
   typeShortTalent: String!
   typeShortRace: String!
   typeShortTower: String!
+  typeShortCoopExplore: String!
   typeShortGather: String!
   typeShortExplore: String!
   prevWeekLabel: String!
@@ -341,12 +345,16 @@ type GroupingListPage {
   formTypeTalentLabel: String!
   formTypeRaceLabel: String!
   formTypeTowerLabel: String!
+  formTypeExploreLabel: String!
   formCapacityTemplate: String!
   formHintActivity: String!
   formHintDungeonTemplate: String!
   formHintTalent: String!
   formHintRace: String!
   formHintTower: String!
+  formHintExplore: String!
+  formSizeLabel: String!
+  formSizeOptionTemplate: String!
   formTitleLabel: String!
   formTitlePlaceholder: String!
   formStartsLabel: String!
@@ -511,6 +519,7 @@ input GroupingTemplateInput {
   type: GroupingType!
   title: String!
   dungeonId: ID
+  maxSlots: Int
   startsInDays: Int!
   startHour: Int!
   startMinute: Int!
@@ -523,6 +532,7 @@ input CreateGroupingTemplateInput {
   type: GroupingType!
   title: String!
   dungeonId: ID
+  maxSlots: Int
   startsInDays: Int!
   startHour: Int!
   startMinute: Int!
@@ -638,6 +648,7 @@ type GroupingDetailPage {
   typeShortTalent: String!
   typeShortRace: String!
   typeShortTower: String!
+  typeShortCoopExplore: String!
   typeShortGather: String!
   typeShortExplore: String!
   seatEmptyJoinLabel: String!
@@ -679,12 +690,16 @@ type GroupingDetailPage {
   formTypeTalentLabel: String!
   formTypeRaceLabel: String!
   formTypeTowerLabel: String!
+  formTypeExploreLabel: String!
   formCapacityTemplate: String!
   formHintActivity: String!
   formHintDungeonTemplate: String!
   formHintTalent: String!
   formHintRace: String!
   formHintTower: String!
+  formHintExplore: String!
+  formSizeLabel: String!
+  formSizeOptionTemplate: String!
   formTitleLabel: String!
   formTitlePlaceholder: String!
   formStartsLabel: String!
@@ -1739,12 +1754,16 @@ type GuildSchedulePage {
   formTypeTalentLabel: String!
   formTypeRaceLabel: String!
   formTypeTowerLabel: String!
+  formTypeExploreLabel: String!
   formCapacityTemplate: String!
   formHintActivity: String!
   formHintDungeonTemplate: String!
   formHintTalent: String!
   formHintRace: String!
   formHintTower: String!
+  formHintExplore: String!
+  formSizeLabel: String!
+  formSizeOptionTemplate: String!
   formTitleLabel: String!
   formTitlePlaceholder: String!
   formStartsLabel: String!
@@ -1783,6 +1802,7 @@ type GuildSchedulePage {
   typeShortTalent: String!
   typeShortRace: String!
   typeShortTower: String!
+  typeShortCoopExplore: String!
   scheduleTitle: String!
   scheduleMyTitle: String!
   scheduleMyHint: String!
@@ -2068,6 +2088,7 @@ input CreateGroupingInput {
   type: GroupingType!
   startsAt: String!
   dungeonId: ID
+  maxSlots: Int
   seats: [SeatInput!]
   customFields: [CustomFieldInput!]
 }
@@ -3629,6 +3650,7 @@ type GuildAdminStatsWeek {
   carsTalent: Int!
   carsRace: Int!
   carsTower: Int!
+  carsExplore: Int!
   carsTotal: Int!
   completedCount: Int!
   totalSeats: Int!

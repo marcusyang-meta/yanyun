@@ -227,6 +227,7 @@ export class GuildAdminStatsWeekShell extends ShellBase {
   genCarsTalent(){ return this.data.carsTalent; }
   genCarsRace(){ return this.data.carsRace; }
   genCarsTower(){ return this.data.carsTower; }
+  genCarsExplore(){ return this.data.carsExplore; }
   genCarsTotal(){ return this.data.carsTotal; }
   genCompletedCount(){ return this.data.completedCount; }
   genTotalSeats(){ return this.data.totalSeats; }
@@ -1213,6 +1214,7 @@ export const guildAdminTypes = {
     carsTalent: (p: GuildAdminStatsWeekShell) => p.genCarsTalent(),
     carsRace: (p: GuildAdminStatsWeekShell) => p.genCarsRace(),
     carsTower: (p: GuildAdminStatsWeekShell) => p.genCarsTower(),
+    carsExplore: (p: GuildAdminStatsWeekShell) => p.genCarsExplore(),
     carsTotal: (p: GuildAdminStatsWeekShell) => p.genCarsTotal(),
     completedCount: (p: GuildAdminStatsWeekShell) => p.genCompletedCount(),
     totalSeats: (p: GuildAdminStatsWeekShell) => p.genTotalSeats(),
@@ -1309,7 +1311,7 @@ const auditActorOf = (ctx: Context) => (ctx.user
   ? { discordId: String(ctx.user.discordId), name: String(ctx.user.name || '') }
   : null);
 
-const ENUM_TO_TYPE: Record<string, string> = { ACTIVITY: 'activity', TALENT: 'talent', RACE: 'race', TOWER: 'tower' };
+const ENUM_TO_TYPE: Record<string, string> = { ACTIVITY: 'activity', TALENT: 'talent', RACE: 'race', TOWER: 'tower', EXPLORE: 'explore' };
 const WEBHOOK_RE = /^https:\/\/discord\.com\/api\/webhooks\/\d+\/[\w-]+$/;
 const DGID_RE = /^\d{5,25}$/;
 

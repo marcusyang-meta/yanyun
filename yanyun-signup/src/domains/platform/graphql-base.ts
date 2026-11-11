@@ -445,8 +445,8 @@ export const noIntrospectionPlugin = {
 export const s = (v: any, max: any = 200) => String(v ?? '').trim().slice(0, max);
 export const roleOf = (weapon: any) => (s(weapon, 40) === '牵丝·霖' ? '奶' : '输出');
 export const newUid = () => 'q' + Date.now().toString(36) + Math.random().toString(36).slice(2, 8);
-export const TAB_TO_TYPE: Record<string, string> = { ACTIVITY: 'activity', TALENT: 'talent', RACE: 'race', TOWER: 'tower' };
-export const TYPE_TO_ENUM: Record<string, string> = { activity: 'ACTIVITY', talent: 'TALENT', race: 'RACE', tower: 'TOWER' };
+export const TAB_TO_TYPE: Record<string, string> = { ACTIVITY: 'activity', TALENT: 'talent', RACE: 'race', TOWER: 'tower', EXPLORE: 'explore' };
+export const TYPE_TO_ENUM: Record<string, string> = { activity: 'ACTIVITY', talent: 'TALENT', race: 'RACE', tower: 'TOWER', explore: 'EXPLORE' };
 export const GUILD_TABS = ['双十人本', '天赋组队', '竞速报名', '攻略', '流派攻略'];
 
 export async function getGameVersion(db: any) {

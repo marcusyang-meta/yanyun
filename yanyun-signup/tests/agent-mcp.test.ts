@@ -393,6 +393,79 @@ describe('agent MCP resource server', () => {
     eq('no seat taken without a weapon', seats2?.n, 0);
     eq('agent.create audited twice', await auditActions('agent.create'), 2);
   });
+
+  it('creates EXPLORE groupings with the caller-chosen size; tools/list and llms agree', async () => {
+    const [ws, we] = weekWindowUtc(0);
+    const START = Math.min(Math.max(NOW + 3600, ws + 3600), we - 3600);
+
+    // The served tool description is the single source: it names
+    // EXPLORE as the co-op exploration type and carries no stale
+    // ACTIVITY/TALENT mapping for 联机探索.
+    const list = await (await rpc(grantD.accessToken, 'tools/list')).json() as any;
+    const create = list.result.tools.find((t: any) => t.name === 'create_grouping');
+    check('tools/list create description names EXPLORE', create.description.includes('type EXPLORE'), create.description);
+    check('tools/list create description drops the ACTIVITY mapping',
+      !create.description.includes('use type ACTIVITY'), create.description);
+    eq('create type enum', create.inputSchema.properties.type.enum,
+      ['ACTIVITY', 'TALENT', 'RACE', 'TOWER', 'EXPLORE']);
+    eq('list_groupings tab enum', list.result.tools.find((t: any) => t.name === 'list_groupings')
+      .inputSchema.properties.tab.enum, ['ACTIVITY', 'TALENT', 'RACE', 'TOWER', 'EXPLORE']);
+
+    // llms.txt renders from the same catalog: the create description
+    // appears there verbatim.
+    const { renderLlmsTxt } = await import('../src/domains/platform/agent-discovery-routes.ts');
+    const llms = renderLlmsTxt('https://yanyun.app');
+    check('llms carries the create_grouping description verbatim', llms.includes(create.description));
+    check('llms names EXPLORE for co-op exploration', llms.includes('EXPLORE'));
+
+    // EXPLORE with maxSlots 5 -> a five-seat explore car, no dungeon.
+    const five = toolJson(await callTool(grantD.accessToken, 'create_grouping', {
+      guildSlug: 'mcpguild', type: 'EXPLORE', startsAt: START, maxSlots: 5, weapon: '破竹·樽',
+    }));
+    eq('explore create ok', five.ok, true);
+    eq('explore type enum', five.grouping.type, 'EXPLORE');
+    const fiveRow = await db.prepare(
+      `SELECT type, max_slots, dungeon FROM events WHERE id = ?`).bind(Number(five.grouping.id)).first<any>();
+    eq('stored type is explore', fiveRow?.type, 'explore');
+    eq('stored max_slots is the chosen 5', fiveRow?.max_slots, 5);
+    eq('stored dungeon empty', fiveRow?.dungeon, '');
+
+    // EXPLORE without maxSlots -> the default 10, and the default
+    // title uses the explore short （联机探索）.
+    const ten = toolJson(await callTool(grantD.accessToken, 'create_grouping', {
+      guildSlug: 'mcpguild', type: 'EXPLORE', startsAt: START,
+    }));
+    eq('explore default create ok', ten.ok, true);
+    eq('explore default title', ten.grouping.title, '甲队员的联机探索车队');
+    const tenRow = await db.prepare(
+      `SELECT max_slots FROM events WHERE id = ?`).bind(Number(ten.grouping.id)).first<any>();
+    eq('stored max_slots defaults to 10', tenRow?.max_slots, 10);
+
+    // An invalid size is refused at the tool edge.
+    const bad = await callTool(grantD.accessToken, 'create_grouping', {
+      guildSlug: 'mcpguild', type: 'EXPLORE', startsAt: START, maxSlots: 7,
+    });
+    eq('explore maxSlots 7 refused', bad.isError, true);
+
+    // maxSlots never leaks into other types: ACTIVITY stays 10 even
+    // when the caller passes 5.
+    const act = toolJson(await callTool(grantD.accessToken, 'create_grouping', {
+      guildSlug: 'mcpguild', type: 'ACTIVITY', startsAt: START, maxSlots: 5, title: '对照双十',
+    }));
+    eq('activity create with maxSlots ok', act.ok, true);
+    const actRow = await db.prepare(
+      `SELECT max_slots FROM events WHERE id = ?`).bind(Number(act.grouping.id)).first<any>();
+    eq('activity capacity still derived as 10', actRow?.max_slots, 10);
+
+    // The EXPLORE tab lists the new explore cars (and only those).
+    const listedExplore = toolJson(await callTool(grantD.accessToken, 'list_groupings', { slug: 'mcpguild', tab: 'EXPLORE' }));
+    const ids = listedExplore.groupings.map((g: any) => String(g.id));
+    check('explore cars listed under the EXPLORE tab',
+      ids.includes(String(five.grouping.id)) && ids.includes(String(ten.grouping.id)), ids.join(','));
+    check('EXPLORE tab holds only explore cars',
+      listedExplore.groupings.every((g: any) => g.type === 'EXPLORE'));
+    eq('agent.create audited for each explore create', await auditActions('agent.create'), 5);
+  });
 });
 
 afterAll(async () => { await mf.dispose(); });

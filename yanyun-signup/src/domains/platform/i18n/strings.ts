@@ -276,6 +276,9 @@ export abstract class GroupingTypeFbtUtils {
 	static tabTower(fbs: FbsRuntime) {
 		return fbs._("爬塔", null, { hk: "4xMJtQ" });
 	}
+	static tabExplore(fbs: FbsRuntime) {
+		return fbs._("联机探索", null, { hk: "465XV8" });
+	}
 	static shortActivity(fbs: FbsRuntime) {
 		return fbs._("双十", null, { hk: "438asB" });
 	}
@@ -287,6 +290,9 @@ export abstract class GroupingTypeFbtUtils {
 	}
 	static shortTower(fbs: FbsRuntime) {
 		return fbs._("爬塔", null, { hk: "1ryCD" });
+	}
+	static shortCoopExplore(fbs: FbsRuntime) {
+		return fbs._("联机探索", null, { hk: "1TO6Ls" });
 	}
 	static shortGather(fbs: FbsRuntime) {
 		return fbs._("采集", null, { hk: "39V4fW" });
@@ -562,6 +568,15 @@ export abstract class GroupingFormFbtUtils {
 	}
 	static hintTower(fbs: FbsRuntime) {
 		return fbs._("爬塔固定 10 人，不选副本", null, { hk: "2PUEJY" });
+	}
+	static hintExplore(fbs: FbsRuntime) {
+		return fbs._("联机探索不选副本，人数可选 5 或 10 人", null, { hk: "3pIfiu" });
+	}
+	static sizeLabel(fbs: FbsRuntime) {
+		return fbs._("人数", null, { hk: "2p5BVA" });
+	}
+	static sizeOption(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("{n} 人", [fbs._param("n", pv(p, "n"))], { hk: "2sLK1O" });
 	}
 	static titleLabel(fbs: FbsRuntime) {
 		return fbs._("标题", null, { hk: "3buLUa" });
@@ -2064,6 +2079,9 @@ export abstract class ErrorsFbtUtils {
 	}
 	static startTimeTooFar(fbs: FbsRuntime) {
 		return fbs._("出发时间不能超过 60 天后", null, { hk: "3rOSP6" });
+	}
+	static badMaxSlots(fbs: FbsRuntime) {
+		return fbs._("联机探索人数只能选 5 或 10 人", null, { hk: "39i2Ho" });
 	}
 	static groupingNotFound(fbs: FbsRuntime) {
 		return fbs._("组队不存在", null, { hk: "2pu7yf" });
@@ -5553,10 +5571,12 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"groupingType_tabTalent": GroupingTypeFbtUtils.tabTalent,
 	"groupingType_tabRace": GroupingTypeFbtUtils.tabRace,
 	"groupingType_tabTower": GroupingTypeFbtUtils.tabTower,
+	"groupingType_tabExplore": GroupingTypeFbtUtils.tabExplore,
 	"groupingType_shortActivity": GroupingTypeFbtUtils.shortActivity,
 	"groupingType_shortTalent": GroupingTypeFbtUtils.shortTalent,
 	"groupingType_shortRace": GroupingTypeFbtUtils.shortRace,
 	"groupingType_shortTower": GroupingTypeFbtUtils.shortTower,
+	"groupingType_shortCoopExplore": GroupingTypeFbtUtils.shortCoopExplore,
 	"groupingType_shortGather": GroupingTypeFbtUtils.shortGather,
 	"groupingType_shortExplore": GroupingTypeFbtUtils.shortExplore,
 	"groupingList_weekShareImageLabel": GroupingListFbtUtils.weekShareImageLabel,
@@ -5644,6 +5664,9 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"groupingForm_hintTalent": GroupingFormFbtUtils.hintTalent,
 	"groupingForm_hintRace": GroupingFormFbtUtils.hintRace,
 	"groupingForm_hintTower": GroupingFormFbtUtils.hintTower,
+	"groupingForm_hintExplore": GroupingFormFbtUtils.hintExplore,
+	"groupingForm_sizeLabel": GroupingFormFbtUtils.sizeLabel,
+	"groupingForm_sizeOption": GroupingFormFbtUtils.sizeOption,
 	"groupingForm_titleLabel": GroupingFormFbtUtils.titleLabel,
 	"groupingForm_titlePlaceholder": GroupingFormFbtUtils.titlePlaceholder,
 	"groupingForm_startsLabel": GroupingFormFbtUtils.startsLabel,
@@ -6122,6 +6145,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors_titleRequired": ErrorsFbtUtils.titleRequired,
 	"errors_badStartTime": ErrorsFbtUtils.badStartTime,
 	"errors_startTimeTooFar": ErrorsFbtUtils.startTimeTooFar,
+	"errors_badMaxSlots": ErrorsFbtUtils.badMaxSlots,
 	"errors_groupingNotFound": ErrorsFbtUtils.groupingNotFound,
 	"errors_officialEvent": ErrorsFbtUtils.officialEvent,
 	"errors_noCreatorRecorded": ErrorsFbtUtils.noCreatorRecorded,

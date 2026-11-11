@@ -551,6 +551,10 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "Ascension de la tour",
       "zh-TW": "爬塔"
     },
+    "tabExplore": {
+      "zh-CN": "联机探索",
+      "en": "Co-op Exploration"
+    },
     "shortActivity": {
       "zh-CN": "双十",
       "en": "10-Man",
@@ -578,6 +582,10 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Torre",
       "fr": "Tour",
       "zh-TW": "爬塔"
+    },
+    "shortCoopExplore": {
+      "zh-CN": "联机探索",
+      "en": "Co-op"
     },
     "shortGather": {
       "zh-CN": "采集",
@@ -1095,6 +1103,18 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "La torre siempre es de 10 jugadores, sin mazmorra",
       "fr": "La tour est toujours à 10 joueurs, sans donjon",
       "zh-TW": "爬塔固定 10 人，不選副本"
+    },
+    "hintExplore": {
+      "zh-CN": "联机探索不选副本，人数可选 5 或 10 人",
+      "en": "Co-op exploration has no dungeon pick; choose 5 or 10 players"
+    },
+    "sizeLabel": {
+      "zh-CN": "人数",
+      "en": "Players"
+    },
+    "sizeOption": {
+      "zh-CN": "{n} 人",
+      "en": "{n} players"
     },
     "titleLabel": {
       "zh-CN": "标题",
@@ -4310,6 +4330,10 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "La hora de inicio no puede superar los 60 días",
       "fr": "L’heure de départ ne peut pas dépasser 60 jours",
       "zh-TW": "出發時間不能超過 60 天後"
+    },
+    "badMaxSlots": {
+      "zh-CN": "联机探索人数只能选 5 或 10 人",
+      "en": "Co-op exploration seats must be 5 or 10"
     },
     "groupingNotFound": {
       "zh-CN": "组队不存在",
