@@ -567,6 +567,7 @@ const ADMIN_TEXT_SPEC: [string, string][] = [
   ['adminTypeTalentText', 'groupingType_tabTalent'],
   ['adminTypeRaceText', 'groupingType_tabRace'],
   ['adminTypeTowerText', 'groupingType_tabTower'],
+  ['adminTypeExploreText', 'groupingType_tabExplore'],
   ['adminStatusOpenText', 'guildAdmin_statusOpen'],
   ['adminStatusClosedText', 'guildAdmin_statusClosed'],
   ['adminStatusCompletedText', 'guildAdmin_statusCompleted'],
