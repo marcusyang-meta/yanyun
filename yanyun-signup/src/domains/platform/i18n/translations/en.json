@@ -21202,6 +21202,78 @@
         }
       ],
       "types": []
+    },
+    "ItyAmdTYP+/3l2y06pkmvA==": {
+      "description": "Tab label for the squad list, used to switch to the co-op exploration squads tab.",
+      "id": "groupings/groupingType_tabExplore",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Co-op Exploration",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "3Q8U5eQRcMmaV0sy6oT5eg==": {
+      "description": "Short label for the co-op exploration squad type, used in compact squad type badges and default titles.",
+      "id": "groupings/groupingType_shortCoopExplore",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Co-op",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "7LgsbJYYLQaN8NOrtZqJtA==": {
+      "description": "Capacity hint for the squad form, used for co-op exploration squads to state that no dungeon is chosen and the size is picked between five and ten.",
+      "id": "groupings/groupingForm_hintExplore",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Co-op exploration has no dungeon pick; choose 5 or 10 players",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "dK5IubdNMeXtGLgqgmdKrA==": {
+      "description": "Field label for the squad form, used for the co-op exploration squad size selector.",
+      "id": "groupings/groupingForm_sizeLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Players",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "CRKRS6c5elDVyZSV+QXsJQ==": {
+      "description": "Option pattern for the squad size selector on the squad form, used to label a seat count, where {n} is the number of seats.",
+      "id": "groupings/groupingForm_sizeOption",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{n} players",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "t3ZCzkriEAMh8+mn8vVHwA==": {
+      "description": "Error message for squad forms, used when a co-op exploration squad is submitted with a seat count other than five or ten.",
+      "id": "platform/errors_badMaxSlots",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Co-op exploration seats must be 5 or 10",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

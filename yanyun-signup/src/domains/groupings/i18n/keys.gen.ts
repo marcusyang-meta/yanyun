@@ -5,10 +5,12 @@ export type GroupingsStringKey =
   | 'groupingType_tabTalent'
   | 'groupingType_tabRace'
   | 'groupingType_tabTower'
+  | 'groupingType_tabExplore'
   | 'groupingType_shortActivity'
   | 'groupingType_shortTalent'
   | 'groupingType_shortRace'
   | 'groupingType_shortTower'
+  | 'groupingType_shortCoopExplore'
   | 'groupingType_shortGather'
   | 'groupingType_shortExplore'
   | 'groupingList_weekShareImageLabel'
@@ -96,6 +98,9 @@ export type GroupingsStringKey =
   | 'groupingForm_hintTalent'
   | 'groupingForm_hintRace'
   | 'groupingForm_hintTower'
+  | 'groupingForm_hintExplore'
+  | 'groupingForm_sizeLabel'
+  | 'groupingForm_sizeOption'
   | 'groupingForm_titleLabel'
   | 'groupingForm_titlePlaceholder'
   | 'groupingForm_startsLabel'
@@ -373,10 +378,12 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingType_tabTalent',
   'groupingType_tabRace',
   'groupingType_tabTower',
+  'groupingType_tabExplore',
   'groupingType_shortActivity',
   'groupingType_shortTalent',
   'groupingType_shortRace',
   'groupingType_shortTower',
+  'groupingType_shortCoopExplore',
   'groupingType_shortGather',
   'groupingType_shortExplore',
   'groupingList_weekShareImageLabel',
@@ -464,6 +471,9 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingForm_hintTalent',
   'groupingForm_hintRace',
   'groupingForm_hintTower',
+  'groupingForm_hintExplore',
+  'groupingForm_sizeLabel',
+  'groupingForm_sizeOption',
   'groupingForm_titleLabel',
   'groupingForm_titlePlaceholder',
   'groupingForm_startsLabel',

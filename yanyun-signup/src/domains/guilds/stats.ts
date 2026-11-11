@@ -31,6 +31,7 @@ export interface GuildStatsWeek {
   carsTalent: number;
   carsRace: number;
   carsTower: number;
+  carsExplore: number;
   carsTotal: number;
   completedCount: number;
   totalSeats: number;
@@ -61,7 +62,7 @@ function round2(n: number): number { return Math.round(n * 100) / 100; }
 function emptyWeek(weekStartUtc: number, weekEndUtc: number, isCurrent: boolean): GuildStatsWeek {
   return {
     weekStartUtc, weekEndUtc, isCurrent,
-    carsActivity: 0, carsTalent: 0, carsRace: 0, carsTower: 0, carsTotal: 0,
+    carsActivity: 0, carsTalent: 0, carsRace: 0, carsTower: 0, carsExplore: 0, carsTotal: 0,
     completedCount: 0, totalSeats: 0, filledSeats: 0, fillRate: 0,
     participantCount: 0, participationCount: 0, perCapita: 0,
   };
@@ -98,6 +99,7 @@ export async function computeGuildStats(db: D1Database, slug: string): Promise<G
     else if (ev.type === 'talent') week.carsTalent += 1;
     else if (ev.type === 'race') week.carsRace += 1;
     else if (ev.type === 'tower') week.carsTower += 1;
+    else if (ev.type === 'explore') week.carsExplore += 1;
     if (ev.status === 'completed') week.completedCount += 1;
     week.totalSeats += ev.max_slots || 0;
     if (ev.creator_user_id) {

@@ -181,10 +181,19 @@ export function toGrouping(ctx: Context, ev: any) {
  * is shared verbatim with createGrouping, so a car built from a
  * template is field-identical to one built by hand: activity/tower
  * write no dungeon name and are always 10; talent/race with a dungeon
- * use the dungeon's size, without one the default (talent 5 / race 10). */
-export async function resolveGroupingShape(db: any, type: string, dungeonId: any): Promise<{ dungeonName: string; maxSlots: number }> {
+ * use the dungeon's size, without one the default (talent 5 / race 10).
+ * Explore （联机探索） never carries a dungeon either; its seat count
+ * is the one caller-chosen shape input in the system: the create /
+ * template inputs carry an optional maxSlots that the callers
+ * validate to 5 or 10 (badMaxSlots) before it reaches this function,
+ * defaulting to 10. Every other type ignores the value entirely. */
+export async function resolveGroupingShape(db: any, type: string, dungeonId: any, requestedSlots?: number): Promise<{ dungeonName: string; maxSlots: number }> {
   let maxSlots = type === 'talent' ? 5 : 10;
   let dungeonName = '';
+  if (type === 'explore') {
+    if (requestedSlots === 5 || requestedSlots === 10) maxSlots = requestedSlots;
+    return { dungeonName, maxSlots };
+  }
   if (type !== 'activity' && type !== 'tower' && dungeonId) {
     const d = await getDungeonNameSizeById(db, parseInt(dungeonId, 10) || 0);
     if (d) {
@@ -286,7 +295,15 @@ async function parseTemplateInput(db: any, input: any): Promise<any> {
   const title = s(input.title, 40);
   if (!title) return { error: 'titleRequired' };
   const type = TAB_TO_TYPE[input.type] || 'activity';
-  const { dungeonName, maxSlots } = await resolveGroupingShape(db, type, input.dungeonId);
+  // Explore-only seat choice (see resolveGroupingShape): an invalid
+  // value rejects the save instead of being silently reshaped.
+  let requestedSlots: number | undefined;
+  if (type === 'explore' && input.maxSlots != null) {
+    const ms = parseInt(input.maxSlots, 10);
+    if (ms !== 5 && ms !== 10) return { error: 'badMaxSlots' };
+    requestedSlots = ms;
+  }
+  const { dungeonName, maxSlots } = await resolveGroupingShape(db, type, input.dungeonId, requestedSlots);
   const daysAhead = Math.max(0, Math.min(60, parseInt(input.startsInDays, 10) || 0));
   const hour = parseInt(input.startHour, 10);
   const minute = parseInt(input.startMinute, 10);
@@ -462,6 +479,7 @@ export const LIST_TEXT_RESOLVERS = {
     ['tabTalentLabel', 'groupingType_tabTalent'],
     ['tabRaceLabel', 'groupingType_tabRace'],
     ['tabTowerLabel', 'groupingType_tabTower'],
+    ['tabExploreLabel', 'groupingType_tabExplore'],
     ...TYPE_SHORT_SPEC,
     ['prevWeekLabel', 'groupingList_prevWeek'],
     ['nextWeekLabel', 'groupingList_nextWeek'],
@@ -1068,9 +1086,18 @@ export const groupingsResolvers = {
       const now = Math.floor(Date.now() / 1000);
       if (!utc || utc < now - 3600) return gFail(ctx, 'badStartTime');
       if (utc > now + 60 * 86400) return gFail(ctx, 'startTimeTooFar');
+      // Explore-only seat choice (see resolveGroupingShape): an
+      // invalid value rejects the create instead of being silently
+      // reshaped; every other type ignores the input entirely.
+      let requestedSlots: number | undefined;
+      if (type === 'explore' && input.maxSlots != null) {
+        const ms = parseInt(String(input.maxSlots), 10);
+        if (ms !== 5 && ms !== 10) return gFail(ctx, 'badMaxSlots');
+        requestedSlots = ms;
+      }
       // Headcount rules live in resolveGroupingShape (shared with the
       // template mutations, so template-built cars match hand-built ones).
-      const { dungeonName, maxSlots } = await resolveGroupingShape(db, type, input.dungeonId);
+      const { dungeonName, maxSlots } = await resolveGroupingShape(db, type, input.dungeonId, requestedSlots);
       // F7: the car's custom signup fields are validated BEFORE the
       // car exists — an invalid field set rejects the whole create.
       const fieldParse = parseCustomFieldDefs(input.customFields);

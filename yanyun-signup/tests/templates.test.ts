@@ -435,6 +435,62 @@ describe('templates', () => {
     eq('再删 -> templateNotFound', r.data?.deleteGroupingTemplate?.errorCode, 'templateNotFound');
   });
 
+  /* ---------------- explore templates: caller-chosen size ---------------- */
+  it('explore templates', async () => {
+    const createMut = `mutation($input: CreateGroupingTemplateInput!) {
+      createGroupingTemplate(input: $input) {
+        ok errorCode
+        template { id name type title dungeonName maxSlots }
+      }
+    }`;
+    // EXPLORE: no dungeon ever (a passed dungeonId is ignored) and the
+    // seat count comes from the caller's maxSlots choice.
+    r = await gql(createMut, {
+      user: CREATOR,
+      variables: { input: { slug: 'tpltest', name: '探索五人', type: 'EXPLORE', title: '探索车', dungeonId: '7', maxSlots: 5, startsInDays: 1, startHour: 20, startMinute: 0 } },
+    });
+    eq('探索建模板 ok', r.data?.createGroupingTemplate?.ok, true);
+    eq('探索模板 type', r.data?.createGroupingTemplate?.template?.type, 'EXPLORE');
+    eq('探索模板无副本', r.data?.createGroupingTemplate?.template?.dungeonName, null);
+    eq('探索模板 maxSlots=5', r.data?.createGroupingTemplate?.template?.maxSlots, 5);
+    const exploreTplId = r.data?.createGroupingTemplate?.template?.id;
+
+    // No maxSlots -> the default 10.
+    r = await gql(createMut, {
+      user: CREATOR,
+      variables: { input: { slug: 'tpltest', name: '探索默认', type: 'EXPLORE', title: '探索车', startsInDays: 1, startHour: 20, startMinute: 0 } },
+    });
+    eq('探索模板缺省 ok', r.data?.createGroupingTemplate?.ok, true);
+    eq('探索模板缺省 10 席', r.data?.createGroupingTemplate?.template?.maxSlots, 10);
+
+    // Any other value rejects the save.
+    r = await gql(createMut, {
+      user: CREATOR,
+      variables: { input: { slug: 'tpltest', name: '探索八人', type: 'EXPLORE', title: '探索车', maxSlots: 8, startsInDays: 1, startHour: 20, startMinute: 0 } },
+    });
+    eq('探索模板 maxSlots=8 -> badMaxSlots', r.data?.createGroupingTemplate?.errorCode, 'badMaxSlots');
+
+    // Other types ignore maxSlots entirely: TALENT still derives from
+    // the chosen dungeon's size.
+    r = await gql(createMut, {
+      user: CREATOR,
+      variables: { input: { slug: 'tpltest', name: '天赋带人数', type: 'TALENT', title: '天赋车', dungeonId: '7', maxSlots: 10, startsInDays: 1, startHour: 20, startMinute: 0 } },
+    });
+    eq('天赋模板带 maxSlots ok', r.data?.createGroupingTemplate?.ok, true);
+    eq('天赋模板仍按副本 5 席', r.data?.createGroupingTemplate?.template?.maxSlots, 5);
+
+    // Update path follows the same rule: EXPLORE 5 -> 10 lands.
+    const updateMut = `mutation($id: ID!, $input: GroupingTemplateInput!) {
+      updateGroupingTemplate(id: $id, input: $input) { ok errorCode template { id maxSlots } }
+    }`;
+    r = await gql(updateMut, {
+      user: CREATOR,
+      variables: { id: exploreTplId, input: { name: '探索五人', type: 'EXPLORE', title: '探索车', maxSlots: 10, startsInDays: 1, startHour: 20, startMinute: 0 } },
+    });
+    eq('探索模板改 10 席 ok', r.data?.updateGroupingTemplate?.ok, true);
+    eq('探索模板改后 10 席', r.data?.updateGroupingTemplate?.template?.maxSlots, 10);
+  });
+
   /* ---------------- detail page templateSave composition ---------------- */
   it('detail page templateSave composition', async () => {
     const detailQ = `{ groupingDetailPage(slug: "tpltest", id: "401") { templateSave { buttonLabel dialogTitle submitLabel } } }`;

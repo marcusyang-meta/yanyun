@@ -233,9 +233,10 @@ export class GuildSchedulePageShell extends ShellBase {
 export const SCHEDULE_TEXT_RESOLVERS = {
   ...defineTextGens(GuildSchedulePageShell, [
     ...FORM_TEXT_SPEC,
-    // Only the four form type shorts: this page's SDL carries no
-    // gather/explore shorts (those live on the list/detail pages).
-    ...TYPE_SHORT_SPEC.filter(([field]) => ['typeShortActivity', 'typeShortTalent', 'typeShortRace', 'typeShortTower'].includes(field)),
+    // Only the five form type shorts: this page's SDL carries no
+    // gather/explore attendance shorts (those live on the list/detail
+    // pages); the co-op exploration short is a form type short.
+    ...TYPE_SHORT_SPEC.filter(([field]) => ['typeShortActivity', 'typeShortTalent', 'typeShortRace', 'typeShortTower', 'typeShortCoopExplore'].includes(field)),
     ...SCHEDULE_TEXT_SPEC,
   ] as any),
   weekdayNames: (p: any) => p.genWeekdayNames(),

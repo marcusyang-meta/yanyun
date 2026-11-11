@@ -10,6 +10,7 @@ enum GroupingTab {
   TALENT    # 天赋组队
   RACE      # 竞速报名
   TOWER     # 爬塔
+  EXPLORE   # 联机探索
 }
 
 enum GroupingType {
@@ -17,6 +18,7 @@ enum GroupingType {
   TALENT
   RACE
   TOWER
+  EXPLORE
 }
 
 enum DexTab {
@@ -365,10 +367,12 @@ type GroupingListPage {
   tabTalentLabel: String!
   tabRaceLabel: String!
   tabTowerLabel: String!
+  tabExploreLabel: String!
   typeShortActivity: String!
   typeShortTalent: String!
   typeShortRace: String!
   typeShortTower: String!
+  typeShortCoopExplore: String!
   typeShortGather: String!
   typeShortExplore: String!
   prevWeekLabel: String!
@@ -394,12 +398,16 @@ type GroupingListPage {
   formTypeTalentLabel: String!
   formTypeRaceLabel: String!
   formTypeTowerLabel: String!
+  formTypeExploreLabel: String!
   formCapacityTemplate: String!
   formHintActivity: String!
   formHintDungeonTemplate: String!
   formHintTalent: String!
   formHintRace: String!
   formHintTower: String!
+  formHintExplore: String!
+  formSizeLabel: String!
+  formSizeOptionTemplate: String!
   formTitleLabel: String!
   formTitlePlaceholder: String!
   formStartsLabel: String!
@@ -596,6 +604,9 @@ input GroupingTemplateInput {
   type: GroupingType!
   title: String!
   dungeonId: ID
+  # 联机探索 (EXPLORE) 专属: 模板人数, 只接受 5 或 10, 缺省 10;
+  # 其他类型忽略本字段 (容量按类型/副本推导, 与 CreateGroupingInput 同口径)。
+  maxSlots: Int
   startsInDays: Int!
   startHour: Int!
   startMinute: Int!
@@ -608,6 +619,8 @@ input CreateGroupingTemplateInput {
   type: GroupingType!
   title: String!
   dungeonId: ID
+  # 联机探索 (EXPLORE) 专属: 模板人数, 只接受 5 或 10, 缺省 10 (同 GroupingTemplateInput)。
+  maxSlots: Int
   startsInDays: Int!
   startHour: Int!
   startMinute: Int!
@@ -799,6 +812,7 @@ type GroupingDetailPage {
   typeShortTalent: String!
   typeShortRace: String!
   typeShortTower: String!
+  typeShortCoopExplore: String!
   typeShortGather: String!
   typeShortExplore: String!
   # 座位文案
@@ -844,12 +858,16 @@ type GroupingDetailPage {
   formTypeTalentLabel: String!
   formTypeRaceLabel: String!
   formTypeTowerLabel: String!
+  formTypeExploreLabel: String!
   formCapacityTemplate: String!
   formHintActivity: String!
   formHintDungeonTemplate: String!
   formHintTalent: String!
   formHintRace: String!
   formHintTower: String!
+  formHintExplore: String!
+  formSizeLabel: String!
+  formSizeOptionTemplate: String!
   formTitleLabel: String!
   formTitlePlaceholder: String!
   formStartsLabel: String!
@@ -2118,12 +2136,16 @@ type GuildSchedulePage {
   formTypeTalentLabel: String!
   formTypeRaceLabel: String!
   formTypeTowerLabel: String!
+  formTypeExploreLabel: String!
   formCapacityTemplate: String!
   formHintActivity: String!
   formHintDungeonTemplate: String!
   formHintTalent: String!
   formHintRace: String!
   formHintTower: String!
+  formHintExplore: String!
+  formSizeLabel: String!
+  formSizeOptionTemplate: String!
   formTitleLabel: String!
   formTitlePlaceholder: String!
   formStartsLabel: String!
@@ -2162,6 +2184,7 @@ type GuildSchedulePage {
   typeShortTalent: String!
   typeShortRace: String!
   typeShortTower: String!
+  typeShortCoopExplore: String!
   # 排期页文案
   scheduleTitle: String!
   scheduleMyTitle: String!
@@ -2360,6 +2383,9 @@ input CreateGroupingInput {
   type: GroupingType!
   startsAt: String!
   dungeonId: ID
+  # 联机探索 (EXPLORE) 专属: 建车时可选人数, 只接受 5 或 10, 缺省 10;
+  # 其他类型的容量仍由服务端按类型/副本推导, 本字段被忽略。
+  maxSlots: Int
   seats: [SeatInput!]
   # 自定义报名表字段: 直接定义, 或由客户端从所选模板带入 (模板字段
   # 在建车时被复制为本车自己的字段行, 之后与模板互不影响)
@@ -4394,6 +4420,7 @@ type GuildAdminStatsWeek {
   carsTalent: Int!
   carsRace: Int!
   carsTower: Int!
+  carsExplore: Int!
   carsTotal: Int!
   completedCount: Int!
   totalSeats: Int!
