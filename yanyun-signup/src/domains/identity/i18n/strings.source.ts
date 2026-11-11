@@ -168,6 +168,7 @@ export abstract class AgentFbtUtils {
   static consentScopeTitle(fbs: FbsAPI) { return fbs("同意后，该 Agent 将能够：", "Lead-in text for the agent OAuth consent page, used above the list of things the authorized agent can do."); }
   static consentScopeRead(fbs: FbsAPI) { return fbs("查看你能看到的百业车队、名册与图鉴，并使用调律、毕业率计算", "Scope bullet for the agent OAuth consent page, used to describe the read tier: viewing groupings, rosters and the compendium, and using the tuning and graduation calculators."); }
   static consentScopeSignup(fbs: FbsAPI) { return fbs("以你的身份报名、退报、调整就位状态——只能操作你自己的座位，不能代他人报名，也不能管理车队", "Scope bullet for the agent OAuth consent page, used to describe the signup tier: signing up, withdrawing and toggling ready state as the member, limited to the member's own seats."); }
+  static consentScopeCreate(fbs: FbsAPI) { return fbs("以你的身份创建由你带队的车队——只能新建你自己的车，不能编辑、合并、解散或完成他人的车队", "Scope bullet for the agent OAuth consent page, used to describe the create tier: creating new squads led by the member; existing squads of other members cannot be edited or managed."); }
   static consentApprove(fbs: FbsAPI) { return fbs("同意授权", "Button label for the agent OAuth consent page, used to approve the authorization request."); }
   static consentDeny(fbs: FbsAPI) { return fbs("拒绝", "Button label for the agent OAuth consent page, used to deny the authorization request."); }
   static consentErrorTitle(fbs: FbsAPI) { return fbs("授权请求无效", "Title text for the agent OAuth error page, used when an authorization request is malformed or expired."); }
@@ -177,6 +178,8 @@ export abstract class AgentFbtUtils {
   static emptyText(fbs: FbsAPI) { return fbs("还没有授权任何 Agent。", "Empty-state text for the agent grants section in personal settings, used when the member has no active agent grants."); }
   static scopesReadLabel(fbs: FbsAPI) { return fbs("只读", "Scope label for the agent grants section in personal settings, used for a grant that can only read."); }
   static scopesSignupLabel(fbs: FbsAPI) { return fbs("只读 + 报名", "Scope label for the agent grants section in personal settings, used for a grant that can read and sign up."); }
+  static scopesCreateLabel(fbs: FbsAPI) { return fbs("只读 + 建车", "Scope label for the agent grants section in personal settings, used for a grant that can read and create squads."); }
+  static scopesSignupCreateLabel(fbs: FbsAPI) { return fbs("只读 + 报名 + 建车", "Scope label for the agent grants section in personal settings, used for a grant that can read, sign up and create squads."); }
   static sourceOauthLabel(fbs: FbsAPI) { return fbs("OAuth 授权", "Source label for the agent grants section in personal settings, used for grants issued through the OAuth authorization flow."); }
   static createdTemplate(fbs: FbsAPI, p?: StringParams) { return fbs(["授权于 ", fbs.param("date", pv(p, "date"))], "Created line for the agent grants section in personal settings, used to show when a grant was authorized, where {date} is the formatted authorization date."); }
   static lastUsedTemplate(fbs: FbsAPI, p?: StringParams) { return fbs(["最近使用：", fbs.param("date", pv(p, "date"))], "Last-used line for the agent grants section in personal settings, used to show when a grant was last used, where {date} is the formatted date."); }

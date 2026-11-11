@@ -52,6 +52,7 @@ export const GUILD_AUDIT_ACTIONS = [
   'agent.join',
   'agent.leave',
   'agent.ready',
+  'agent.create',
   'signup.remove',
   'result.add',
   'result.delete',

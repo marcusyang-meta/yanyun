@@ -8580,6 +8580,10 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "经 Agent 调整就位",
       "en": "Ready state changed via agent"
     },
+    "actionAgentCreate": {
+      "zh-CN": "经 Agent 建车",
+      "en": "Created via agent"
+    },
     "actionSignupRemove": {
       "zh-CN": "移除报名",
       "en": "Remove signup",
@@ -9669,6 +9673,10 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "以你的身份报名、退报、调整就位状态——只能操作你自己的座位，不能代他人报名，也不能管理车队",
       "en": "Sign you up, withdraw you, and toggle your ready state — it can only touch your own seats, cannot sign up other members, and cannot manage groupings"
     },
+    "consentScopeCreate": {
+      "zh-CN": "以你的身份创建由你带队的车队——只能新建你自己的车，不能编辑、合并、解散或完成他人的车队",
+      "en": "Create new squads led by you — you can only create your own squads; you cannot edit, merge, disband, or complete other members' squads"
+    },
     "consentApprove": {
       "zh-CN": "同意授权",
       "en": "Approve"
@@ -9704,6 +9712,14 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     "scopesSignupLabel": {
       "zh-CN": "只读 + 报名",
       "en": "Read + sign-up"
+    },
+    "scopesCreateLabel": {
+      "zh-CN": "只读 + 建车",
+      "en": "Read + create"
+    },
+    "scopesSignupCreateLabel": {
+      "zh-CN": "只读 + 报名 + 建车",
+      "en": "Read + sign-up + create"
     },
     "sourceOauthLabel": {
       "zh-CN": "OAuth 授权",

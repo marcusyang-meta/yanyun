@@ -83,6 +83,7 @@ export const AUDIT_ACTION_LABEL_FIELD: Record<string, string> = {
   'agent.join': 'actionAgentJoin',
   'agent.leave': 'actionAgentLeave',
   'agent.ready': 'actionAgentReady',
+  'agent.create': 'actionAgentCreate',
   'signup.remove': 'actionSignupRemove',
   'result.add': 'actionResultAdd',
   'result.delete': 'actionResultDelete',

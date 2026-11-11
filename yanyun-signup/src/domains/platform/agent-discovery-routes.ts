@@ -57,7 +57,7 @@ export function agentDiscovery(origin: string): AgentDiscoveryInfo {
       registrationEndpoint: `${origin}/oauth/register`,
       codeChallengeMethods: ['S256'],
     },
-    scopes: ['read', 'signup'],
+    scopes: ['read', 'signup', 'create'],
     tools: MCP_TOOL_CATALOG,
   };
 }
@@ -117,7 +117,7 @@ Discovery chain (each step is the standard mechanism):
 
 Registration (RFC 7591 dynamic client registration):
 
-- \`POST ${d.auth.registrationEndpoint}\` with a JSON body: \`{ "client_name": "<client name>", "redirect_uris": ["<uri>", ...], "scope": "read signup" }\`.
+- \`POST ${d.auth.registrationEndpoint}\` with a JSON body: \`{ "client_name": "<client name>", "redirect_uris": ["<uri>", ...], "scope": "read signup" }\`. The scope may name a canonical combination of the atoms below (e.g. \`"read create"\`, \`"read signup create"\`); the registered set caps what an authorization may ask for.
 - \`redirect_uris\` takes 1–10 absolute URIs: \`https\` only, except \`http\` on loopback hosts (\`127.0.0.1\`, \`localhost\`, \`[::1]\`).
 - The 201 response carries \`client_id\`. Register once per client and reuse the \`client_id\`; registration is rate-limited (20 per hour per IP).
 
@@ -134,12 +134,14 @@ Token exchange and refresh (\`POST ${d.auth.tokenEndpoint}\`, form-encoded, \`to
 
 ## Scopes
 
-Two tiers exist; a grant holds one of exactly two scope strings:
+Scopes are composable atoms on a \`read\` base; a grant holds one canonical string (atoms in read / signup / create order):
 
-- \`read\` — the read tools below. \`tools/list\` under this grant lists read tools only, and calling a write tool returns the tool error "This grant is read-only; the signup scope was not authorized."
-- \`read signup\` — read plus the write tools, which then also appear in \`tools/list\`.
+- \`read\` — the read tools below. \`tools/list\` under this grant lists read tools only, and calling a signup write tool returns the tool error "This grant is read-only; the signup scope was not authorized."
+- \`read signup\` — read plus the own-seat write tools (\`join_grouping\`, \`leave_grouping\`, \`set_ready\`), which then also appear in \`tools/list\`.
+- \`read create\` — read plus \`create_grouping\`.
+- \`read signup create\` — every tool.
 
-Ask for \`read signup\` at registration and authorization time when the member wants the agent to sign them up; asking for \`signup\` implies \`read\`.
+Ask for the atoms the member wants at registration and authorization time: \`signup\` lets the agent sign the member up to existing groupings and manage their own seats; \`create\` lets it create NEW groupings led by the member. Asking for either implies \`read\`. Grants minted before the \`create\` atom existed do not gain it — the member must authorize again to add it.
 
 ## Identity and membership
 
@@ -154,9 +156,9 @@ ${toolLines}
 
 Write-tool constraints:
 
-- Write tools act on the authorizing member's own seats only. \`join_grouping\` cannot name a different member — proxy signup is impossible on this surface — and \`leave_grouping\` / \`set_ready\` only ever touch seat rows the server resolved from the member's own identity.
-- There is no management tool: agents cannot create, edit, merge, disband or complete groupings, and cannot manage guilds.
-- Agent writes are recorded in the guild's audit log (\`agent.join\`, \`agent.leave\`, \`agent.ready\`), visible to guild administrators.
+- The own-seat write tools act on the authorizing member's own seats only. \`join_grouping\` cannot name a different member — proxy signup is impossible on this surface — and \`leave_grouping\` / \`set_ready\` only ever touch seat rows the server resolved from the member's own identity.
+- There is no management tool for EXISTING groupings: agents cannot edit, merge, disband or complete a grouping, and cannot manage guilds. The one creation exception is \`create_grouping\`, which creates a NEW grouping whose creator/leader is the authorizing member — it cannot touch an existing one, and its input carries no creator or identity field to steer.
+- Agent writes are recorded in the guild's audit log (\`agent.join\`, \`agent.leave\`, \`agent.ready\`, \`agent.create\`), visible to guild administrators.
 
 ## Rate limits
 

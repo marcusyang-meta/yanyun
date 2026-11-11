@@ -107,7 +107,7 @@ function authorizationServerMetadata(origin: string) {
     authorization_endpoint: `${origin}/oauth/authorize`,
     token_endpoint: `${origin}/oauth/token`,
     registration_endpoint: `${origin}/oauth/register`,
-    scopes_supported: ['read', 'signup'],
+    scopes_supported: ['read', 'signup', 'create'],
     response_types_supported: ['code'],
     grant_types_supported: ['authorization_code', 'refresh_token'],
     token_endpoint_auth_methods_supported: ['none'],
@@ -126,7 +126,7 @@ function protectedResourceMetadata(origin: string) {
   return {
     resource: `${origin}/mcp`,
     authorization_servers: [origin],
-    scopes_supported: ['read', 'signup'],
+    scopes_supported: ['read', 'signup', 'create'],
     bearer_methods_supported: ['header'],
   };
 }
@@ -169,7 +169,7 @@ oauthRoutes.post('/oauth/register', async (c) => {
   }
   const scopes = canonicalAgentScopes(typeof body?.scope === 'string' ? body.scope : null);
   if (scopes === null) {
-    return oauthError('invalid_client_metadata', 'scope must stay within the read / signup tiers.');
+    return oauthError('invalid_client_metadata', 'scope must stay within the read / signup / create atoms.');
   }
   const clientName = String(body?.client_name || '').slice(0, 100);
   const client = await registerOAuthClient(c.env.DB, {
@@ -276,6 +276,7 @@ oauthRoutes.get('/oauth/authorize', async (c) => {
     st: facts.state,
   }, 600);
   const wantsSignup = parseScopes(facts.scopes).has('signup');
+  const wantsCreate = parseScopes(facts.scopes).has('create');
   const body = `
 <p>${esc(t('agent_consentIntro', { clientName: client?.client_name || facts.clientId }))}</p>
 <p style="opacity:.85">${esc(t('agent_consentIdentity', { name: user.name }))}</p>
@@ -283,6 +284,7 @@ oauthRoutes.get('/oauth/authorize', async (c) => {
 <ul style="text-align:left;line-height:1.7;margin:0 0 8px;padding-left:20px">
 <li>${esc(t('agent_consentScopeRead'))}</li>
 ${wantsSignup ? `<li>${esc(t('agent_consentScopeSignup'))}</li>` : ''}
+${wantsCreate ? `<li>${esc(t('agent_consentScopeCreate'))}</li>` : ''}
 </ul>
 <form method="post" action="/oauth/authorize" style="margin-top:20px;display:flex;gap:12px;justify-content:center">
 <input type="hidden" name="req" value="${esc(blob)}">

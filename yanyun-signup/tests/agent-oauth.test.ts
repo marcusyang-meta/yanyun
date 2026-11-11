@@ -163,9 +163,11 @@ describe('agent OAuth authorization server', () => {
     check('authorize endpoint named', String(meta.authorization_endpoint).endsWith('/oauth/authorize'));
     check('registration endpoint named', String(meta.registration_endpoint).endsWith('/oauth/register'));
     eq('only S256 PKCE', meta.code_challenge_methods_supported, ['S256']);
+    eq('scope atoms advertised', meta.scopes_supported, ['read', 'signup', 'create']);
     const prm = await (await app.request('/.well-known/oauth-protected-resource', {}, env)).json() as any;
     check('resource is /mcp', String(prm.resource).endsWith('/mcp'));
     eq('authorization server points at self', prm.authorization_servers, [meta.issuer]);
+    eq('resource metadata scope atoms match', prm.scopes_supported, ['read', 'signup', 'create']);
   });
 
   it('registers a public client dynamically', async () => {
@@ -323,6 +325,97 @@ describe('agent OAuth authorization server', () => {
     eq('refresh token dead after revocation', deadRefresh, null);
   });
 
+  it('composes the create atom: canonical sets, consent bullet, labels, narrowing', async () => {
+    // Canonicalization: pre-create strings are byte-identical, the
+    // create atom composes after signup, anything else is refused.
+    eq('empty means read', svc.canonicalAgentScopes(''), 'read');
+    eq('read stays read', svc.canonicalAgentScopes('read'), 'read');
+    eq('signup tier unchanged', svc.canonicalAgentScopes('signup'), 'read signup');
+    eq('signup tier unchanged (explicit)', svc.canonicalAgentScopes('read signup'), 'read signup');
+    eq('create implies read', svc.canonicalAgentScopes('create'), 'read create');
+    eq('full set composes in canonical order', svc.canonicalAgentScopes('create signup'), 'read signup create');
+    eq('unknown atom refused', svc.canonicalAgentScopes('read admin'), null);
+    eq('AGENT_SCOPE_SETS enumerates exactly the canonical sets', [...svc.AGENT_SCOPE_SETS],
+      ['read', 'read signup', 'read create', 'read signup create']);
+
+    // A client registered WITH the create atom can be authorized
+    // for it; the consent page names exactly the requested tiers.
+    const reg = await app.request('/oauth/register', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify({ client_name: 'CreateClient', redirect_uris: [REDIRECT], scope: 'read signup create' }),
+    }, env);
+    eq('create-capable registration succeeds', reg.status, 201);
+    const cid2 = (await reg.json() as any).client_id;
+    const cookie = await sessionCookie(UID1, '授权测试员');
+    const consentHtml = async (scope: string) => {
+      const challenge = await pkceChallenge('v-create-' + scope.replace(/\s/g, '-'));
+      const q = new URLSearchParams({
+        response_type: 'code', client_id: cid2, redirect_uri: REDIRECT,
+        scope, code_challenge: challenge, code_challenge_method: 'S256',
+      });
+      const res = await app.request(`/oauth/authorize?${q}`, { headers: { cookie } }, env);
+      eq(`consent renders for scope "${scope}"`, res.status, 200);
+      return res.text();
+    };
+    const createHtml = await consentHtml('read create');
+    check('consent page carries the create bullet', createHtml.includes('以你的身份创建由你带队的车队'));
+    check('create-only consent omits the signup bullet', !createHtml.includes('以你的身份报名、退报'));
+    const readHtml = await consentHtml('read');
+    check('read consent omits the create bullet', !readHtml.includes('以你的身份创建由你带队的车队'));
+
+    // Approve a create grant end-to-end through the new client.
+    const verifier = 'verifier-create-0123456789-abcdefghijklmnop';
+    const challenge = await pkceChallenge(verifier);
+    const q = new URLSearchParams({
+      response_type: 'code', client_id: cid2, redirect_uri: REDIRECT,
+      scope: 'read create', state: 'st-c', code_challenge: challenge, code_challenge_method: 'S256',
+    });
+    const getRes = await app.request(`/oauth/authorize?${q}`, { headers: { cookie } }, env);
+    const blob = /name="req" value="([^"]+)"/.exec(await getRes.text())?.[1] || '';
+    check('create consent blob present', blob.length > 10);
+    const postRes = await app.request('/oauth/authorize', {
+      method: 'POST',
+      headers: { cookie, 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ req: blob, decision: 'approve' }),
+    }, env);
+    eq('create consent approval redirects', postRes.status, 302);
+    const code = new URL(postRes.headers.get('location') || '').searchParams.get('code') || '';
+    const tokRes = await app.request('/oauth/token', {
+      method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code', code, client_id: cid2,
+        redirect_uri: REDIRECT, code_verifier: verifier,
+      }),
+    }, env);
+    eq('create grant exchanges', tokRes.status, 200);
+    eq('issued scope is the create set', (await tokRes.json() as any).scope, 'read create');
+
+    // Refresh narrowing across the new atom, at the data layer.
+    const full = await svc.issueAgentTokens(db, { userId: UID1, clientId: cid2, clientName: 'CreateClient', scopes: 'read signup create' });
+    const narrowed = await svc.rotateAgentTokens(db, full.refreshToken, cid2, 'read create');
+    check('narrowing to read create succeeds', !!narrowed);
+    eq('narrowed scope stored', narrowed?.grant.scopes, 'read create');
+    const widenBack = await svc.rotateAgentTokens(db, narrowed!.refreshToken, cid2, 'read signup create');
+    eq('widening back is refused', widenBack, null);
+
+    // Settings scope labels for the new sets.
+    const gql = async (user: any, query: string) => {
+      const res = await yoga.fetch(new Request('http://test/graphql', {
+        method: 'POST', headers: { 'content-type': 'application/json' },
+        body: JSON.stringify({ query }),
+      }), { env: { DB: db }, request: new Request('http://test/graphql'), user, locale: 'zh-CN', tz: 'Asia/Shanghai' } as any);
+      return res.json() as Promise<any>;
+    };
+    const gCreate = await svc.issueAgentTokens(db, { userId: UID2, clientId: cid2, clientName: 'CreateClient', scopes: 'read create' });
+    const gFull = await svc.issueAgentTokens(db, { userId: UID2, clientId: cid2, clientName: 'CreateClient', scopes: 'read signup create' });
+    const list = await gql(
+      { userId: UID2, discordId: '9002', name: '未验证成员', guilds: [] },
+      `{ settingsPage { agentGrants { grants { id scopesLabel } } } }`);
+    const byId = new Map(list.data.settingsPage.agentGrants.grants.map((g: any) => [Number(g.id), g.scopesLabel]));
+    eq('create set label', byId.get(gCreate.grant.id), '只读 + 建车');
+    eq('full set label', byId.get(gFull.grant.id), '只读 + 报名 + 建车');
+  });
+
   it('first consent right after the login round trip succeeds while the grant row still reads pre-login', async () => {
     // Regression (production acceptance, 2026-11-10): the browser
     // came back from the Discord round trip, the consent page
@@ -424,7 +517,7 @@ describe('agent discovery signposts', () => {
       check(`llms.txt carries ${needle}`, text.includes(needle));
     }
     eq('llms.txt tool section is generated from the served catalog',
-      MCP_TOOL_CATALOG.length, 11);
+      MCP_TOOL_CATALOG.length, 12);
     for (const t of MCP_TOOL_CATALOG) {
       check(`llms.txt lists tool ${t.name} as ${t.write ? 'write' : 'read'}`,
         text.includes(`\`${t.name}\` (${t.write ? 'write' : 'read'})`));
@@ -443,7 +536,7 @@ describe('agent discovery signposts', () => {
       'https://yanyun.app/.well-known/oauth-protected-resource');
     eq('pointer authorization-server metadata', pj.auth?.authorization_server_metadata,
       'https://yanyun.app/.well-known/oauth-authorization-server');
-    eq('pointer scopes', pj.scopes, ['read', 'signup']);
+    eq('pointer scopes', pj.scopes, ['read', 'signup', 'create']);
     eq('pointer documentation points at the llms.txt', pj.documentation,
       'https://yanyun.app/llms.txt');
   });

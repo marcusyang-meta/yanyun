@@ -110,6 +110,7 @@ export type IdentityStringKey =
   | 'agent_consentScopeTitle'
   | 'agent_consentScopeRead'
   | 'agent_consentScopeSignup'
+  | 'agent_consentScopeCreate'
   | 'agent_consentApprove'
   | 'agent_consentDeny'
   | 'agent_consentErrorTitle'
@@ -119,6 +120,8 @@ export type IdentityStringKey =
   | 'agent_emptyText'
   | 'agent_scopesReadLabel'
   | 'agent_scopesSignupLabel'
+  | 'agent_scopesCreateLabel'
+  | 'agent_scopesSignupCreateLabel'
   | 'agent_sourceOauthLabel'
   | 'agent_createdTemplate'
   | 'agent_lastUsedTemplate'
@@ -236,6 +239,7 @@ export const IDENTITY_STRING_KEYS: readonly IdentityStringKey[] = [
   'agent_consentScopeTitle',
   'agent_consentScopeRead',
   'agent_consentScopeSignup',
+  'agent_consentScopeCreate',
   'agent_consentApprove',
   'agent_consentDeny',
   'agent_consentErrorTitle',
@@ -245,6 +249,8 @@ export const IDENTITY_STRING_KEYS: readonly IdentityStringKey[] = [
   'agent_emptyText',
   'agent_scopesReadLabel',
   'agent_scopesSignupLabel',
+  'agent_scopesCreateLabel',
+  'agent_scopesSignupCreateLabel',
   'agent_sourceOauthLabel',
   'agent_createdTemplate',
   'agent_lastUsedTemplate',
