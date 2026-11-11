@@ -324,6 +324,7 @@ export const ListPageTextQuery = graphql`
       tabTalentLabel
       tabRaceLabel
       tabTowerLabel
+      tabExploreLabel
       sealText
       statusOpenLabel
       weekHeaderTemplate
@@ -335,12 +336,16 @@ export const ListPageTextQuery = graphql`
       formTypeTalentLabel
       formTypeRaceLabel
       formTypeTowerLabel
+      formTypeExploreLabel
       formCapacityTemplate
       formHintActivity
       formHintDungeonTemplate
       formHintTalent
       formHintRace
       formHintTower
+      formHintExplore
+      formSizeLabel
+      formSizeOptionTemplate
       formTitleLabel
       formTitlePlaceholder
       formStartsLabel
@@ -379,6 +384,7 @@ export const ListPageTextQuery = graphql`
       typeShortTalent
       typeShortRace
       typeShortTower
+      typeShortCoopExplore
       templateSectionTitle
       templateNameLabel
       templateNamePlaceholder
@@ -436,6 +442,7 @@ export const DetailPageTextQuery = graphql`
         title
         type
         startsAt
+        maxSlots
         customFields {
           id
           label
@@ -537,12 +544,16 @@ export const DetailPageTextQuery = graphql`
       formTypeTalentLabel
       formTypeRaceLabel
       formTypeTowerLabel
+      formTypeExploreLabel
       formCapacityTemplate
       formHintActivity
       formHintDungeonTemplate
       formHintTalent
       formHintRace
       formHintTower
+      formHintExplore
+      formSizeLabel
+      formSizeOptionTemplate
       formTitleLabel
       formTitlePlaceholder
       formStartsLabel
@@ -572,6 +583,7 @@ export const DetailPageTextQuery = graphql`
       typeShortTalent
       typeShortRace
       typeShortTower
+      typeShortCoopExplore
     }
   }
 `;
@@ -880,12 +892,16 @@ export const SchedulePageQuery = graphql`
       formTypeTalentLabel
       formTypeRaceLabel
       formTypeTowerLabel
+      formTypeExploreLabel
       formCapacityTemplate
       formHintActivity
       formHintDungeonTemplate
       formHintTalent
       formHintRace
       formHintTower
+      formHintExplore
+      formSizeLabel
+      formSizeOptionTemplate
       formTitleLabel
       formTitlePlaceholder
       formStartsLabel
@@ -924,6 +940,7 @@ export const SchedulePageQuery = graphql`
       typeShortTalent
       typeShortRace
       typeShortTower
+      typeShortCoopExplore
       scheduleTitle
       scheduleMyTitle
       scheduleSlotRangeTemplate
@@ -2071,6 +2088,7 @@ export const GuildAdminQuery = graphql`
           adminTypeTalentText
           adminTypeRaceText
           adminTypeTowerText
+          adminTypeExploreText
           name
           announcement
           slogan
@@ -2267,6 +2285,7 @@ export const GuildAdminQuery = graphql`
               carsTalent
               carsRace
               carsTower
+              carsExplore
               carsTotal
               completedCount
               totalSeats

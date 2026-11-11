@@ -359,9 +359,11 @@ export type CustomFieldInput = {
 export async function createGrouping(input: {
   slug: string;
   title: string;
-  type: 'ACTIVITY' | 'TALENT' | 'RACE' | 'TOWER';
+  type: 'ACTIVITY' | 'TALENT' | 'RACE' | 'TOWER' | 'EXPLORE';
   startsAt: string;
   dungeonId?: string | null;
+  // EXPLORE only: the chosen seat count (5 or 10); other types omit it.
+  maxSlots?: number;
   seats?: { nickname: string; weapon: string }[];
   customFields?: CustomFieldInput[];
 }): Promise<GroupingPayload> {
@@ -385,9 +387,11 @@ export type TemplatePayload = {
 
 export type GroupingTemplateInput = {
   name: string;
-  type: 'ACTIVITY' | 'TALENT' | 'RACE' | 'TOWER';
+  type: 'ACTIVITY' | 'TALENT' | 'RACE' | 'TOWER' | 'EXPLORE';
   title: string;
   dungeonId?: string | null;
+  // EXPLORE only: the template's seat count (5 or 10); other types omit it.
+  maxSlots?: number;
   startsInDays: number;
   startHour: number;
   startMinute: number;

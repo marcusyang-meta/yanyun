@@ -37,8 +37,8 @@ import type { documentsGroupingListBlocksQuery } from '../__generated__/document
 // Refresh (WS ping / pull) refetches over the network into the store via
 // the same imperative path; mounted queries re-render from store
 // updates without flashing the Suspense fallback.
-const TAB_KEYS = ['ACTIVITY', 'TALENT', 'RACE', 'TOWER'] as const;
-const TAB_FALLBACK_LABELS = ['双十人本', '天赋组队', '竞速报名', '爬塔'];
+const TAB_KEYS = ['ACTIVITY', 'TALENT', 'RACE', 'TOWER', 'EXPLORE'] as const;
+const TAB_FALLBACK_LABELS = ['双十人本', '天赋组队', '竞速报名', '爬塔', '联机探索'];
 
 type TabKey = (typeof TAB_KEYS)[number];
 type Props = { slug: string; name: string; nick: string; gameVersion?: string; avatarUrl?: string };
@@ -343,7 +343,7 @@ function AdminEntryButton({ slug }: { slug: string }) {
 }
 
 // Type filter: Web's .yy-fchip ghost-chip row (not a full-width segmented control);
-// labels tabActivityLabel/tabTalentLabel/tabRaceLabel/tabTowerLabel come from the list shell.
+// labels tabActivityLabel/tabTalentLabel/tabRaceLabel/tabTowerLabel/tabExploreLabel come from the list shell.
 function ChipsRow({ labels, tab, onChange }: { labels: string[]; tab: TabKey; onChange: (t: TabKey) => void }) {
   return (
     <View style={s.chips}>
@@ -375,6 +375,7 @@ function TypeChips({ slug, tab, onChange }: { slug: string; tab: TabKey; onChang
     page?.tabTalentLabel ?? TAB_FALLBACK_LABELS[1],
     page?.tabRaceLabel ?? TAB_FALLBACK_LABELS[2],
     page?.tabTowerLabel ?? TAB_FALLBACK_LABELS[3],
+    page?.tabExploreLabel ?? TAB_FALLBACK_LABELS[4],
   ];
   return <ChipsRow labels={labels} tab={tab} onChange={onChange} />;
 }

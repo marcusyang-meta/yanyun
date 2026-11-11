@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<72b67cfa3eb5eb37bd8e78a7aa0e3924>>
+ * @generated SignedSource<<bbaad0244fa84c87a248508d3245b391>>
  * @lightSyntaxTransform
  */
 
@@ -9,7 +9,7 @@
 
 import { ConcreteRequest } from 'relay-runtime';
 import { FragmentRefs } from "relay-runtime";
-export type GroupingTab = "ACTIVITY" | "RACE" | "TALENT" | "TOWER" | "%future added value";
+export type GroupingTab = "ACTIVITY" | "EXPLORE" | "RACE" | "TALENT" | "TOWER" | "%future added value";
 export type documentsGroupingListBlocksQuery$variables = {
   blocksVersion?: number | null | undefined;
   slug: string;
