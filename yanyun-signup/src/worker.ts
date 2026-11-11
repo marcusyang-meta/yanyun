@@ -24,6 +24,7 @@ import { guildAvatarRoutes } from './domains/guilds/avatar-routes.ts';
 import { shortLinkRoutes } from './domains/groupings/shortlink-routes.ts';
 import { calendarFeedRoutes } from './domains/identity/calendar-routes.ts';
 import { oauthRoutes } from './domains/identity/oauth-server-routes.ts';
+import { mcpRoutes } from './domains/platform/mcp-routes.ts';
 import { combatReportRoutes } from './domains/groupings/combat-routes.ts';
 
 /* Hono app */
@@ -54,7 +55,11 @@ app.route('/', calendarFeedRoutes);
  * /oauth/authorize (behind the Discord login + platform consent
  * page) and /oauth/token. The MCP resource server itself mounts
  * with the agent-native tool surface. */
-app.route('/', oauthRoutes); // personal calendar subscription /calendar/<token>.ics (token-authenticated, read-only)
+app.route('/', oauthRoutes);
+/* MCP resource server (agent-native): POST /mcp executes pinned
+ * GraphQL documents against the same yoga instance under the
+ * token grant's identity; see domains/platform/mcp-routes.ts. */
+app.route('/', mcpRoutes); // personal calendar subscription /calendar/<token>.ics (token-authenticated, read-only)
 app.route('/', combatReportRoutes); // combat report imports POST /api/groupings/:id/combat-reports (session + tier gate)
 
 app.all('/graphql', async (c: any) => {

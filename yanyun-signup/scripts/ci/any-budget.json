@@ -222,5 +222,9 @@
   "src/domains/identity/oauth-server-routes.ts": {
     "max": 9,
     "reason": "OAuth 2.1 wire payloads (registration JSON, authorize query, token form bodies) parsed at the HTTP edge and narrowed by the endpoint validators; route env bindings follow the route-file convention"
+  },
+  "src/domains/platform/mcp-routes.ts": {
+    "max": 28,
+    "reason": "MCP JSON-RPC wire payloads and GraphQL result values at the transport edge, narrowed by the tool validators before use; the pinned-document results are re-shaped into tool output in this file"
   }
 }
