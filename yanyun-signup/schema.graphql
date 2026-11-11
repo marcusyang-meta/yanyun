@@ -3360,6 +3360,7 @@ type GuildAdmin {
   adminTypeTalentText: String!
   adminTypeRaceText: String!
   adminTypeTowerText: String!
+  adminTypeExploreText: String!
   adminStatusOpenText: String!
   adminStatusClosedText: String!
   adminStatusCompletedText: String!
