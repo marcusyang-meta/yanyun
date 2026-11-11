@@ -61,7 +61,7 @@ const env = { DB: db, SESSION_SECRET: SECRET };
 const app = new Hono();
 app.route('/', oauthRoutes);
 
-const UID1 = 2030100001, UID2 = 2030100002;
+const UID1 = 2030100001, UID2 = 2030100002, UID3 = 2030100003;
 const NOW = Math.floor(Date.now() / 1000);
 await db.batch([
   db.prepare(`INSERT INTO users (id, discord_id, username, avatar, guilds_json, guilds_checked_at, fresh_auth_at)
@@ -72,11 +72,39 @@ await db.batch([
     VALUES (${UID1}, 'R1', 'identify guilds guilds.members.read', 'ok', ${NOW}, ${NOW})`),
   db.prepare(`INSERT INTO user_oauth (user_id, refresh_token, scope, refresh_state, last_refresh_at, updated_at)
     VALUES (${UID2}, 'R2', 'identify guilds guilds.members.read', 'ok', ${NOW}, ${NOW})`),
+  // UID3's stored grant reads PRE-login (needs_relogin, scope from
+  // before guilds.members.read existed) and is never repaired in
+  // this file: it stands in for what a D1 read can still observe
+  // in the moments after the login callback upserted the fresh
+  // grant — the state behind the 2026-11-10 first-consent failure.
+  db.prepare(`INSERT INTO users (id, discord_id, username, avatar, guilds_json, guilds_checked_at)
+    VALUES (${UID3}, '9003', '往返测试员', 'av3', '[]', ${NOW})`),
+  db.prepare(`INSERT INTO user_oauth (user_id, refresh_token, scope, refresh_state, last_refresh_at, updated_at)
+    VALUES (${UID3}, 'R3-stale', 'identify guilds', 'needs_relogin', ${NOW}, ${NOW})`),
 ]);
 
 async function sessionCookie(userId: number, name: string): Promise<string> {
   const jwt = await signJwt(SECRET, { sub: userId, name, guilds: [] }, 3600);
   return `yy_session=${jwt}`;
+}
+
+/* A session JWT with a caller-chosen iat (signJwt always stamps
+ * now): the negative control needs a session that was NOT minted
+ * by a just-completed login round trip. */
+async function backdatedSessionCookie(userId: number, name: string, iatSec: number): Promise<string> {
+  const b64u = (bytes: Uint8Array) => {
+    let bin = '';
+    for (const b of bytes) bin += String.fromCharCode(b);
+    return btoa(bin).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  };
+  const enc = new TextEncoder();
+  const head = b64u(enc.encode(JSON.stringify({ alg: 'HS256', typ: 'JWT' })));
+  const body = b64u(enc.encode(JSON.stringify({
+    sub: String(userId), name, guilds: [], iat: iatSec, exp: Math.floor(Date.now() / 1000) + 3600,
+  })));
+  const key = await crypto.subtle.importKey('raw', enc.encode(SECRET), { name: 'HMAC', hash: 'SHA-256' }, false, ['sign']);
+  const sig = await crypto.subtle.sign('HMAC', key, enc.encode(`${head}.${body}`));
+  return `yy_session=${head}.${body}.${b64u(new Uint8Array(sig))}`;
 }
 
 async function pkceChallenge(verifier: string): Promise<string> {
@@ -292,6 +320,62 @@ describe('agent OAuth authorization server', () => {
     eq('access token dead after revocation', await svc.verifyAgentAccessToken(db, accessToken), null);
     const deadRefresh = await svc.rotateAgentTokens(db, refreshToken, clientId, null);
     eq('refresh token dead after revocation', deadRefresh, null);
+  });
+
+  it('first consent right after the login round trip succeeds while the grant row still reads pre-login', async () => {
+    // Regression (production acceptance, 2026-11-10): the browser
+    // came back from the Discord round trip, the consent page
+    // rendered, and the FIRST approval click answered "login
+    // session expired" — the checked session read was still
+    // observing UID3's pre-login grant row (needs_relogin). A full
+    // retry minutes later worked. UID3's row stays stale for this
+    // whole test; only the session is fresh, exactly like the
+    // moments after the callback mints it.
+    const cookie = await sessionCookie(UID3, '往返测试员');
+    const challenge = await pkceChallenge('verifier-roundtrip-0123456789-abcdefghij');
+    const q = new URLSearchParams({
+      response_type: 'code', client_id: clientId, redirect_uri: REDIRECT,
+      scope: 'read signup', state: 'st-rt', code_challenge: challenge, code_challenge_method: 'S256',
+    });
+    const getRes = await app.request(`/oauth/authorize?${q}`, { headers: { cookie } }, env);
+    eq('consent renders for the just-logged-in session', getRes.status, 200);
+    const html = await getRes.text();
+    const blob = /name="req" value="([^"]+)"/.exec(html)?.[1] || '';
+    check('consent blob present', blob.length > 10);
+    const postRes = await app.request('/oauth/authorize', {
+      method: 'POST',
+      headers: { cookie, 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ req: blob, decision: 'approve' }),
+    }, env);
+    eq('first approval click succeeds (no retry needed)', postRes.status, 302);
+    const code = new URL(postRes.headers.get('location') || '').searchParams.get('code') || '';
+    check('code issued on the first attempt', code.length > 10);
+    const okRes = await exchangeCode(code, 'verifier-roundtrip-0123456789-abcdefghij');
+    eq('round-trip code exchanges', okRes.status, 200);
+  });
+
+  it('an older session whose grant reads incomplete stays voided at the ceremony', async () => {
+    // Negative control: the freshness window must not become a
+    // general bypass of the grant gate — a session minted an hour
+    // ago (NOT by a just-completed round trip) with UID3's stale
+    // grant row is treated exactly as before the fix.
+    const staleCookie = await backdatedSessionCookie(UID3, '往返测试员', Math.floor(Date.now() / 1000) - 3600);
+    const challenge = await pkceChallenge('verifier-stale-0123456789-abcdefghijklmn');
+    const q = new URLSearchParams({
+      response_type: 'code', client_id: clientId, redirect_uri: REDIRECT,
+      scope: 'read', code_challenge: challenge, code_challenge_method: 'S256',
+    });
+    const getRes = await app.request(`/oauth/authorize?${q}`, { headers: { cookie: staleCookie } }, env);
+    eq('old session with incomplete grant bounces to login', getRes.status, 302);
+    check('bounce target is the Discord login',
+      (getRes.headers.get('location') || '').includes('/auth/discord/login?returnTo='));
+    const postRes = await app.request('/oauth/authorize', {
+      method: 'POST',
+      headers: { cookie: staleCookie, 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ req: 'irrelevant', decision: 'approve' }),
+    }, env);
+    eq('old session approval refused', postRes.status, 400);
+    check('refusal is the login-expired page', (await postRes.text()).includes('登录状态已失效'));
   });
 });
 

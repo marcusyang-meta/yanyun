@@ -19,7 +19,7 @@
  * every use and die with the grant's revocation (settings page).
  */
 import { Hono } from 'hono';
-import { getSessionUserChecked, getUserLocalePref, signJwt, verifyJwt } from './auth.ts';
+import { getSessionUser, getUserLocalePref, hasCompleteDiscordGrant, signJwt, verifyJwt } from './auth.ts';
 import {
   canonicalAgentScopes,
   clientRedirectUriAllowed,
@@ -63,6 +63,37 @@ function oauthError(error: string, description: string, status = 400) {
 async function consentLocale(c: any, userId: number): Promise<string> {
   const pref = await getUserLocalePref(c.env, userId).catch(() => null);
   return negotiateLocale(pref || (c.req.header('accept-language') || '').split(',')[0]);
+}
+
+/* Session resolution for the authorize ceremony ONLY. The checked
+ * session read (getSessionUserChecked) voids a session whose
+ * stored Discord grant reads incomplete — but that grant verdict
+ * is a D1 read of the user_oauth row, and right after the Discord
+ * login round trip it can still observe the PRE-login row
+ * (needs_relogin, or a scope stored before guilds.members.read
+ * was granted) before the callback's upsert becomes visible to
+ * the read. Production acceptance (2026-11-10) hit exactly that:
+ * the consent page rendered, the FIRST approval click answered
+ * "login session expired", and a full retry minutes later — reads
+ * converged by then — sailed through.
+ *
+ * The login callback mints the session JWT in the same request
+ * that upserts the grant row, so a JWT issued inside the ceremony
+ * window is itself proof the round trip just completed: trust it
+ * and skip the grant read. Older sessions keep the checked
+ * behavior byte-for-byte. Nothing downstream weakens: every MCP
+ * call re-checks the grant before resolving the viewer
+ * (platform/mcp-routes), so a grant that is genuinely dead still
+ * yields only tokens the resource server refuses. */
+const CEREMONY_FRESH_SEC = 600;
+
+async function getAuthorizeSessionUser(request: any, env: any) {
+  const user = await getSessionUser(request, env);
+  if (!user) return null;
+  const nowSec = Math.floor(Date.now() / 1000);
+  if (user.iat && nowSec - user.iat <= CEREMONY_FRESH_SEC) return user;
+  const ok = await hasCompleteDiscordGrant(env, user.userId);
+  return ok ? user : null;
 }
 
 /* ---------------- discovery metadata ---------------- */
@@ -218,7 +249,7 @@ oauthRoutes.get('/oauth/authorize', async (c) => {
     return redirectWithParams(checked.redirectUri, { error: checked.redirectError, state: checked.state });
   }
   const { facts } = checked;
-  const { user } = await getSessionUserChecked(c.req.raw, c.env);
+  const user = await getAuthorizeSessionUser(c.req.raw, c.env);
   if (!user) {
     // Behind the existing Discord login: whoever completes it IS
     // the identity this grant will belong to. returnTo is a
@@ -262,7 +293,7 @@ oauthRoutes.post('/oauth/authorize', async (c) => {
   const form = await c.req.parseBody().catch(() => null);
   const blob = String((form as any)?.req || '');
   const decision = String((form as any)?.decision || '');
-  const { user } = await getSessionUserChecked(c.req.raw, c.env);
+  const user = await getAuthorizeSessionUser(c.req.raw, c.env);
   if (!user) return htmlPage('授权请求无效', '<p>登录状态已失效，请回到你的 Agent 重新发起。</p>', 400);
   const payload = blob ? await verifyJwt(c.env.SESSION_SECRET, blob).catch(() => null) : null;
   if (!payload || payload.kind !== 'oauth-consent' || Number(payload.uid) !== user.userId) {
