@@ -87,7 +87,10 @@ async function consentLocale(c: any, userId: number): Promise<string> {
  * yields only tokens the resource server refuses. */
 const CEREMONY_FRESH_SEC = 600;
 
-async function getAuthorizeSessionUser(request: any, env: any) {
+async function getAuthorizeSessionUser(
+  request: Parameters<typeof getSessionUser>[0],
+  env: Parameters<typeof getSessionUser>[1],
+) {
   const user = await getSessionUser(request, env);
   if (!user) return null;
   const nowSec = Math.floor(Date.now() / 1000);
