@@ -320,6 +320,7 @@ export const ListPageTextQuery = graphql`
       weekShareText
       weekShareUrl
       weekShareImageFailed
+      tabAllLabel
       tabActivityLabel
       tabTalentLabel
       tabRaceLabel
