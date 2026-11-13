@@ -11,6 +11,7 @@ import { toast } from './Toast.react.tsx';
 import GroupingForm from './GroupingForm.react.tsx';
 
 const TABS = [
+  { key: 'ALL' },
   { key: 'ACTIVITY' },
   { key: 'TALENT' },
   { key: 'RACE' },
@@ -34,6 +35,7 @@ const GroupingListQueryNode = graphql`
               ... on SchedulingAdviceLocked { lockedTitle lockedBody }
               ... on SchedulingCrossCarAdvice { title conflicts { discordId text } moves { carId text entry { displayName } } }
             }
+            tabAllLabel
             tabActivityLabel
             tabTalentLabel
             tabRaceLabel
@@ -190,6 +192,7 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect, weekOffset, onWeek
   const page: any = (data as any)?.viewer?.guild?.groupings ?? {};
   const all: any[] = page?.groupings ?? [];
   const tabLabel: Record<string, string> = {
+    ALL: page.tabAllLabel,
     ACTIVITY: page.tabActivityLabel, TALENT: page.tabTalentLabel, RACE: page.tabRaceLabel, TOWER: page.tabTowerLabel,
     EXPLORE: page.tabExploreLabel,
   };
@@ -359,7 +362,7 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect, weekOffset, onWeek
 }
 
 export function GroupingListRoute({ slug, defaultNickname }: { slug: string; defaultNickname?: string }) {
-  const [tab, setTab] = useState<TabKey>('ACTIVITY');
+  const [tab, setTab] = useState<TabKey>('ALL');
   const [weekOffset, setWeekOffset] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const navigate = useNavigate();
@@ -454,7 +457,9 @@ export function GroupingListRoute({ slug, defaultNickname }: { slug: string; def
           slug={slug}
           mode="create"
           text={formText}
-          defaultType={tab}
+          // ALL is a list view, not a grouping type: creating from it
+          // keeps the historical default type (ACTIVITY).
+          defaultType={tab === 'ALL' ? 'ACTIVITY' : tab}
           defaultNickname={defaultNickname}
           templates={pageText.groupingTemplates ?? []}
           onTemplatesChanged={refreshAllTabs}

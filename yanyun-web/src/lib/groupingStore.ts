@@ -13,7 +13,7 @@ import { parseStartsAt } from './format';
  * throw into the mutation's own completion callback.
  */
 
-const TABS = ['ACTIVITY', 'TALENT', 'RACE', 'TOWER'] as const;
+const TABS = ['ALL', 'ACTIVITY', 'TALENT', 'RACE', 'TOWER', 'EXPLORE'] as const;
 
 function guildRecord(store: any, slug: string): any {
   try {
