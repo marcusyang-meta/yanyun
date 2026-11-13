@@ -431,7 +431,12 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
         updater: (store) => {
           const payload = store.getRootField('createGrouping');
           const g = payload && payload.getLinkedRecord('grouping');
-          if (g) appendGroupingToList(store, slug, submittedType, g);
+          if (g) {
+            appendGroupingToList(store, slug, submittedType, g);
+            // The ALL view lists every type: the new record belongs
+            // there too (append is a no-op when that list is unloaded).
+            appendGroupingToList(store, slug, 'ALL', g);
+          }
         },
         onCompleted: (res) => {
           if (res.createGrouping?.ok) { toast(text.formToastPosted); onDone(); }

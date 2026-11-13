@@ -2,6 +2,7 @@
 # Do not edit: extensions are merged into base types on purpose (see script).
 
 enum GroupingTab {
+  ALL
   ACTIVITY
   TALENT
   RACE
@@ -315,6 +316,7 @@ type GroupingListPage {
   groupingTemplates: [GroupingTemplate!]!
   currentVersion: String!
   blocks(blocksVersion: Int, weekOffset: Int): [Block!]!
+  tabAllLabel: String!
   tabActivityLabel: String!
   tabTalentLabel: String!
   tabRaceLabel: String!
