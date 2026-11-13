@@ -25,7 +25,7 @@ import {
   getTenantRow, getTenantRowById, getGuildIdBySlug, getTenantSlug, listTenantSlugs, listTenantsDirectory, insertTenant,
 } from '../guilds/index.ts';
 import {
-  getEventRow, getEventTenant, getEventTenantCreator, listEventsByTenantType,
+  getEventRow, getEventTenant, getEventTenantCreator, listEventsByTenantType, listEventsByTenant,
   insertEvent, updateEventFields, setEventStatus, deleteEventCascade,
   capturedTzOrNull,
 } from './index.ts';
@@ -414,10 +414,15 @@ export class GroupingListPageShell extends ShellBase {
   }
   async genGroupings(){
     return this.memo('groupings', async () => {
-      const type = TAB_TO_TYPE[this.data.tab] || 'activity';
       // completed, like draft, appears in no list: a completed grouping opens only via a direct detail link. closed stays listed (it merely closed signups) — a separate state from completed.
       const gid = await getGuildIdBySlug(this.db, s(this.data.slug, 40));
-      const results = gid == null ? [] : await listEventsByTenantType(this.db, gid, type);
+      // The ALL tab is a view over every type, not a type of its own: it
+      // reads the unfiltered tenant list. TAB_TO_TYPE deliberately has
+      // no ALL entry, so create paths (which resolve a real type through
+      // it) can never mint an "all" grouping.
+      const results = gid == null ? [] : this.data.tab === 'ALL'
+        ? await listEventsByTenant(this.db, gid)
+        : await listEventsByTenantType(this.db, gid, TAB_TO_TYPE[this.data.tab] || 'activity');
       return results.map((ev: any) => new GroupingShell(this.ctx, ev));
     });
   }
@@ -475,6 +480,7 @@ export const TEMPLATE_TEXT_SPEC = [
 ];
 export const LIST_TEXT_RESOLVERS = {
   ...defineTextGens(GroupingListPageShell, [
+    ['tabAllLabel', 'groupingType_tabAll'],
     ['tabActivityLabel', 'groupingType_tabActivity'],
     ['tabTalentLabel', 'groupingType_tabTalent'],
     ['tabRaceLabel', 'groupingType_tabRace'],

@@ -217,6 +217,15 @@ export async function listEventsByTenantType(d1: D1Database, tenant: number, typ
   return rows || [];
 }
 
+/* GraphQL list page, ALL tab: the same recruiting list as
+ * listEventsByTenantType but across every type in the guild (same
+ * status exclusion and ordering; clients group by start time). */
+export async function listEventsByTenant(d1: D1Database, tenant: number): Promise<EventRow[]> {
+  const db = createDb(d1);
+  const rows = await db.all<EventRow>(sql`SELECT * FROM ${events} WHERE ${col('tenant')} = ${tenant} AND ${col('status')} NOT IN ('draft', 'completed') ORDER BY CASE ${col('status')} WHEN 'open' THEN 0 ELSE 1 END, COALESCE(${col('starts_at_utc')}, 9999999999) ASC, ${col('id')} DESC`);
+  return rows || [];
+}
+
 /* OG guild card: this week's recruiting activity count (completed/draft excluded). */
 export async function countActivityEventsInWindow(
   d1: D1Database, tenant: number, fromUtc: number, toUtc: number,

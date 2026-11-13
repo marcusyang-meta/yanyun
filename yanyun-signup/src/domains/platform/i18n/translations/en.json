@@ -21274,6 +21274,18 @@
         }
       ],
       "types": []
+    },
+    "PyAyx6qQ2/kuLT6wtADKkA==": {
+      "description": "Tab label for the squad list, used to switch to the all-types squads tab.",
+      "id": "groupings/groupingType_tabAll",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "All",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

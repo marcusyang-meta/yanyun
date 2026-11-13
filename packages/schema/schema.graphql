@@ -6,6 +6,7 @@
 # ============ 枚举 ============
 
 enum GroupingTab {
+  ALL       # 全部 (list view only: every type; never a grouping's own type)
   ACTIVITY  # 双十人本
   TALENT    # 天赋组队
   RACE      # 竞速报名
@@ -363,6 +364,7 @@ type GroupingListPage {
   # 周一 05:00 北京时间)。组合即权限: 观看者拿到的对象就是他能看的全部。
   blocks(blocksVersion: Int, weekOffset: Int): [Block!]!
   # UI 文案: 全部由本页 shell 的 gen 方法按请求 locale 生成 (未选中不生成)
+  tabAllLabel: String!
   tabActivityLabel: String!
   tabTalentLabel: String!
   tabRaceLabel: String!

@@ -31,6 +31,7 @@ function pv(p: StringParams | undefined, name: string): string {
 }
 
 export abstract class GroupingTypeFbtUtils {
+  static tabAll(fbs: FbsAPI) { return fbs("全部", "Tab label for the squad list, used to switch to the all-types squads tab."); }
   static tabActivity(fbs: FbsAPI) { return fbs("双十人本", "Tab label for the squad list, used to switch to the ten-player dungeon (shuangshi) squads tab."); }
   static tabTalent(fbs: FbsAPI) { return fbs("天赋组队", "Tab label for the squad list, used to switch to the talent squads tab."); }
   static tabRace(fbs: FbsAPI) { return fbs("竞速报名", "Tab label for the squad list, used to switch to the racing signup tab."); }
