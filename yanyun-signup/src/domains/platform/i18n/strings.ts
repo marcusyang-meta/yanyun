@@ -264,6 +264,9 @@ export abstract class GuildHomeFbtUtils {
 	}
 }
 export abstract class GroupingTypeFbtUtils {
+	static tabAll(fbs: FbsRuntime) {
+		return fbs._("全部", null, { hk: "28go7r" });
+	}
 	static tabActivity(fbs: FbsRuntime) {
 		return fbs._("双十人本", null, { hk: "2jK8uC" });
 	}
@@ -5567,6 +5570,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildHome_tabSchedule": GuildHomeFbtUtils.tabSchedule,
 	"guildHome_tabMarket": GuildHomeFbtUtils.tabMarket,
 	"guildHome_tabAllies": GuildHomeFbtUtils.tabAllies,
+	"groupingType_tabAll": GroupingTypeFbtUtils.tabAll,
 	"groupingType_tabActivity": GroupingTypeFbtUtils.tabActivity,
 	"groupingType_tabTalent": GroupingTypeFbtUtils.tabTalent,
 	"groupingType_tabRace": GroupingTypeFbtUtils.tabRace,

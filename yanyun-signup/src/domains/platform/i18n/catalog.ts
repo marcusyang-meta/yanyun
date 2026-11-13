@@ -523,6 +523,10 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     }
   },
   "groupingType": {
+    "tabAll": {
+      "zh-CN": "全部",
+      "en": "All"
+    },
     "tabActivity": {
       "zh-CN": "双十人本",
       "en": "10-Man Raids",
