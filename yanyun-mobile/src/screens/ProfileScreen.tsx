@@ -7,7 +7,7 @@ import { fetchQuery } from 'relay-runtime';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import * as Clipboard from 'expo-clipboard';
-import { fonts, theme } from '../theme';
+import { fonts, resolveThemeVariant, theme, type ThemeVariant } from '../theme';
 import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
 import { ProfilePageQuery } from '../documents';
 import GearLibraryDialog from './GearLibraryDialog';
@@ -18,6 +18,7 @@ import {
   requestAccountDeletionRemote,
   resetCalendarFeedRemote,
   updateMyLocale,
+  updateMyTheme,
 } from '../api';
 import { reauthWithDiscord } from '../auth';
 import { emitLocaleChanged, writePrefMirror } from '../locale';
@@ -57,7 +58,7 @@ export default function ProfileScreen() {
 
 function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset: number }) {
   const router = useRouter();
-  const { user, signOut } = useSession();
+  const { user, signOut, setThemePref } = useSession();
   const data = useLazyLoadQuery<documentsProfilePageQuery>(
     ProfilePageQuery, {}, { fetchPolicy: 'store-or-network' },
   );
@@ -70,6 +71,15 @@ function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset
   const [loggingOut, setLoggingOut] = useState(false);
   const [gearOpen, setGearOpen] = useState(false);
   const [availOpen, setAvailOpen] = useState(false);
+  // Theme picker state (same override pattern as the locale picker):
+  // a local pick applies immediately — including to the session theme,
+  // so every chrome surface re-renders in the new variant at once —
+  // and yields once the server value catches up; on failure it drops
+  // and the session theme reverts to the server value.
+  const [themePicked, setThemePicked] = useState<ThemeVariant | null>(null);
+  const [themeInFlight, setThemeInFlight] = useState(false);
+  const [themeError, setThemeError] = useState('');
+  const [themeSaved, setThemeSaved] = useState(false);
 
   /* ---- My Data (account export / deletion) ---- */
   const environment = useRelayEnvironment();
@@ -209,6 +219,10 @@ function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset
     } finally { setAcctBusy(false); }
   };
 
+  const serverTheme: ThemeVariant = resolveThemeVariant(page?.themePref);
+  const currentTheme: ThemeVariant =
+    themePicked !== null && themePicked !== serverTheme ? themePicked : serverTheme;
+
   const serverCurrent: string = page?.localePref ?? 'AUTO';
   // The local override applies only while it differs from the server value;
   // once the server catches up it yields automatically (render-phase
@@ -247,6 +261,41 @@ function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset
       setPicked(null);
       setError(viewer?.commonUnknownErrorText || '');
     } finally { setInFlight(false); }
+  };
+
+  const themeOptions: { value: ThemeVariant; label: string }[] = [
+    { value: 'classic', label: page.settingsThemeClassicLabel },
+    { value: 'glass', label: page.settingsThemeGlassLabel },
+  ];
+
+  const chooseTheme = async (value: ThemeVariant) => {
+    if (themeInFlight || value === currentTheme) return;
+    setThemePicked(value);
+    setThemeError('');
+    setThemeSaved(false);
+    setThemeInFlight(true);
+    // Apply immediately: the whole app's chrome follows the session theme.
+    setThemePref(value);
+    try {
+      const payload = await updateMyTheme(value);
+      if (payload?.ok) {
+        setThemePref(resolveThemeVariant(payload.themePref ?? value));
+        setThemeSaved(true);
+        setTimeout(() => setThemeSaved(false), 2500);
+        // Refetch this page so the server themePref catches up and the
+        // local pick override yields (same store write-back as
+        // refetchSelf, minus its fresh-auth clock reset).
+        fetchQuery(environment, ProfilePageQuery, {}).toPromise().catch(() => {});
+      } else {
+        setThemePicked(null);
+        setThemePref(serverTheme);
+        setThemeError(payload?.error || viewer?.commonUnknownErrorText || '');
+      }
+    } catch {
+      setThemePicked(null);
+      setThemePref(serverTheme);
+      setThemeError(viewer?.commonUnknownErrorText || '');
+    } finally { setThemeInFlight(false); }
   };
 
   const doSignOut = async () => {
@@ -310,6 +359,34 @@ function ProfileInner({ topInset, bottomInset }: { topInset: number; bottomInset
       </View>
       {saved && <Text style={s.saved}>✓ {page.settingsSavedText}</Text>}
       {!!error && <Text style={s.error}>{error}</Text>}
+
+      {/* Theme picker: same shape as the language picker above; the
+          choice is the account chrome theme (classic / glass), stored
+          server-side and applied app-wide via the session theme the
+          moment it is picked. All copy is the settingsPage shell's
+          settingsTheme* fields. */}
+      <View style={s.gearZone}>
+        <Text style={s.langLabel}>{page.settingsThemeLabel}</Text>
+        <Text style={s.langHint}>{page.settingsThemeHint}</Text>
+        <View style={s.options}>
+          {themeOptions.map((opt) => {
+            const active = opt.value === currentTheme;
+            return (
+              <Pressable
+                key={opt.value}
+                style={[s.option, active && s.optionOn]}
+                onPress={() => void chooseTheme(opt.value)}
+                disabled={themeInFlight}
+              >
+                <Text style={[s.optionText, active && s.optionTextOn]}>{opt.label}</Text>
+                {active && <Text style={s.optionDot}>●</Text>}
+              </Pressable>
+            );
+          })}
+        </View>
+        {themeSaved && <Text style={s.saved}>✓ {page.settingsSavedText}</Text>}
+        {!!themeError && <Text style={s.error}>{themeError}</Text>}
+      </View>
 
       {/* Entry to the gear library dialog page: the library and my builds
           open as a page-level Modal over this page (GearLibraryDialog),

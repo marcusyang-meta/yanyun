@@ -4,6 +4,8 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLazyLoadQuery, useMutation } from 'react-relay';
 import { fonts, theme } from '../theme';
 import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
+import { ChromeBackdrop } from '../components/ui';
+import { useChrome } from '../useChrome';
 import { AvailabilityPageQuery, SetMyAvailabilityMutation } from '../documents';
 import { fill } from '../gear/bits';
 import type { documentsAvailabilityPageQuery } from '../__generated__/documentsAvailabilityPageQuery.graphql';
@@ -71,9 +73,14 @@ function localToUtc(slot: LocalSlot): UtcSlot {
 export default function AvailabilityDialog({ onClose }: { onClose: () => void }) {
   const insets = useSafeAreaInsets();
   const [epoch, setEpoch] = useState(0);
+  // Full-screen sheet shell: classic keeps the opaque page background;
+  // glass makes the root transparent so the sheet BlurView + translucent
+  // sheet fill show the page behind, frosted.
+  const { isGlass } = useChrome();
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
-      <View style={s.root}>
+      <View style={[s.root, isGlass && { backgroundColor: 'transparent' }]}>
+        <ChromeBackdrop kind="sheet" />
         <AsyncBoundary key={epoch} onRetry={() => setEpoch((e) => e + 1)}>
           <Suspense fallback={<LoadingView />}>
             <AvailabilityInner topInset={insets.top} bottomInset={insets.bottom} onClose={onClose} />

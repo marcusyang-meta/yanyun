@@ -4,6 +4,7 @@ import { getToken, setToken } from './storage';
 import { logout as authLogout } from './auth';
 import { ensurePushRegistration, unregisterCurrentPushToken } from './push';
 import { emitLocaleChanged, initLocaleMirror, onLocaleChanged, readPrefMirror, writePrefMirror } from './locale';
+import { resolveThemeVariant, type ThemeVariant } from './theme';
 
 type SessionState = {
   ready: boolean;
@@ -11,12 +12,19 @@ type SessionState = {
   guilds: GuildItem[];
   homeRecruit: HomeRecruitData | null;
   text: SiteText;
+  // Account chrome theme (Viewer.myThemePref, resolved server-side;
+  // 'classic' until a viewer load says otherwise, and for anonymous).
+  themePref: ThemeVariant;
+  // Immediate local application after Profile saves a new theme; the
+  // next viewer refresh reconciles with the server value regardless.
+  setThemePref: (v: ThemeVariant) => void;
   refresh: () => Promise<void>;
   signOut: () => Promise<void>;
 };
 
 const Ctx = createContext<SessionState>({
   ready: false, user: null, guilds: [], homeRecruit: null, text: {},
+  themePref: 'classic', setThemePref: () => {},
   refresh: async () => {}, signOut: async () => {},
 });
 
@@ -28,6 +36,8 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
   const [guilds, setGuilds] = useState<GuildItem[]>([]);
   const [homeRecruit, setHomeRecruit] = useState<HomeRecruitData | null>(null);
   const [text, setText] = useState<SiteText>({});
+  const [themePref, setThemePrefState] = useState<ThemeVariant>('classic');
+  const setThemePref = useCallback((v: ThemeVariant) => setThemePrefState(v), []);
 
   const refresh = useCallback(async () => {
     const token = await getToken();
@@ -36,7 +46,12 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
       // Site copy is fetched even when signed out: the login page's title/card
       // copy shares Web's source (viewer copy fields), and the anonymous
       // viewer supplies the same fields -- the login page never invents copy.
-      try { setText((await fetchViewer()).text); } catch { /* Fall back to built-in copy when unavailable */ }
+      try {
+        const v = await fetchViewer();
+        setText(v.text);
+        // Anonymous viewers resolve to classic on the server already.
+        setThemePrefState(resolveThemeVariant(v.themePref));
+      } catch { /* Fall back to built-in copy when unavailable */ }
       return;
     }
     try {
@@ -49,6 +64,9 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
         return;
       }
       setUser(v.user); setGuilds(v.guilds); setHomeRecruit(v.homeRecruit);
+      // Theme reconciliation: the server-stored account preference is
+      // the truth (same pattern as localePref below).
+      setThemePrefState(resolveThemeVariant(v.themePref));
       // Valid session -> silently sync the app push token (skips internally when permission/platform is unsupported)
       void ensurePushRegistration();
       // Locale reconciliation: server storage is the truth; when the local
@@ -81,11 +99,13 @@ export function SessionProvider({ children }: { children: React.ReactNode }) {
     await unregisterCurrentPushToken();
     await authLogout();
     setUser(null); setGuilds([]); setHomeRecruit(null);
+    // Signed out = anonymous, whose effective theme is classic.
+    setThemePrefState('classic');
   }, []);
 
   const value = useMemo(
-    () => ({ ready, user, guilds, homeRecruit, text, refresh, signOut }),
-    [ready, user, guilds, homeRecruit, text, refresh, signOut],
+    () => ({ ready, user, guilds, homeRecruit, text, themePref, setThemePref, refresh, signOut }),
+    [ready, user, guilds, homeRecruit, text, themePref, setThemePref, refresh, signOut],
   );
   return <Ctx.Provider value={value}>{children}</Ctx.Provider>;
 }

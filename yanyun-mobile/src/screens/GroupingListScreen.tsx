@@ -6,7 +6,7 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchQuery, useLazyLoadQuery, useRelayEnvironment } from 'react-relay';
 import { fonts, theme } from '../theme';
-import { Backdrop, GoldFill, GuildHeader, SiteChrome, TabFill } from '../components/ui';
+import { Backdrop, ChromeSurface, GoldFill, GuildHeader, SiteChrome, TabFill } from '../components/ui';
 import { BLOCKS_VERSION } from '../config';
 import { GroupingListBlocksQuery, ListPageTextQuery } from '../documents';
 import { CreateGroupingFormMount } from '../components/GroupingForm';
@@ -130,7 +130,7 @@ export default function GroupingListScreen({ slug, name, nick, gameVersion, avat
 
       {sectionLabels && (
         <View style={s.tabsZone}>
-          <View style={s.tabs}>
+          <ChromeSurface kind="tabs" radius={999} contentStyle={s.tabs}>
             {sectionLabels.map(([key, label]) => {
               const on = section === key;
               return (
@@ -140,7 +140,7 @@ export default function GroupingListScreen({ slug, name, nick, gameVersion, avat
                 </Pressable>
               );
             })}
-          </View>
+          </ChromeSurface>
         </View>
       )}
 
@@ -348,7 +348,7 @@ function AdminEntryButton({ slug }: { slug: string }) {
 // labels tabAllLabel/tabActivityLabel/tabTalentLabel/tabRaceLabel/tabTowerLabel/tabExploreLabel come from the list shell.
 function ChipsRow({ labels, tab, onChange }: { labels: string[]; tab: TabKey; onChange: (t: TabKey) => void }) {
   return (
-    <View style={s.chips}>
+    <ChromeSurface kind="bar" bareClassic radius={999} glassPadding={8} contentStyle={s.chips}>
       {TAB_KEYS.map((key, i) => {
         const on = tab === key;
         return (
@@ -361,7 +361,7 @@ function ChipsRow({ labels, tab, onChange }: { labels: string[]; tab: TabKey; on
           </Pressable>
         );
       })}
-    </View>
+    </ChromeSurface>
   );
 }
 
@@ -470,10 +470,9 @@ const s = StyleSheet.create({
   // Section pills mirror Web .yy-tabs (narrow values): container padding 4/gap 4, tabs 9/16 at 15px;
   // active = gold gradient + bright gold text 600 + inner border; left-aligned hug width, below the guild header
   tabsZone: { paddingHorizontal: 20, marginTop: 20, flexDirection: 'row' },
-  tabs: {
-    flexDirection: 'row', gap: 4, padding: 4,
-    backgroundColor: theme.tabsBg, borderWidth: 1, borderColor: theme.border, borderRadius: 999,
-  },
+  // Fill / border / radius are supplied by ChromeSurface (classic
+  // chrome tokens carry exactly the old tabsBg / border / pill values).
+  tabs: { flexDirection: 'row', gap: 4, padding: 4 },
   tab: { position: 'relative', overflow: 'hidden', borderRadius: 999, paddingVertical: 9, paddingHorizontal: 16 },
   tabOn: { borderWidth: 1, borderColor: 'rgba(60,42,12,.55)' },
   tabText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 15 },

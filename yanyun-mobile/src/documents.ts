@@ -7,6 +7,7 @@ export const ViewerQuery = graphql`
   query documentsViewerQuery {
     viewer {
       myLocalePref
+      myThemePref
       commonUnknownErrorText
       commonRenderErrorTemplate
       commonRenderErrorHint
@@ -735,10 +736,15 @@ export const ProfilePageQuery = graphql`
       settingsLangEsLabel
       settingsLangFrLabel
       settingsSavedText
+      settingsThemeLabel
+      settingsThemeHint
+      settingsThemeClassicLabel
+      settingsThemeGlassLabel
       feedbackEntryLabel
       availabilityTitle
       localePref
       effectiveLocale
+      themePref
       accountSectionTitle
       accountExportLabel
       accountExportHint
@@ -1029,6 +1035,17 @@ export const UpdateMyLocaleMutation = graphql`
       error
       localePref
       effectiveLocale
+    }
+  }
+`;
+
+export const UpdateMyThemeMutation = graphql`
+  mutation documentsUpdateMyThemeMutation($theme: String!) {
+    updateMyTheme(theme: $theme) {
+      ok
+      error
+      errorCode
+      themePref
     }
   }
 `;
