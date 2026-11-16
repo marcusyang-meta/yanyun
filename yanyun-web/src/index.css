@@ -13,6 +13,43 @@
   --card-bg: linear-gradient(160deg, rgba(201,163,92,.07), rgba(0,0,0,.25));
   --font-brush: 'Ma Shan Zheng', 'Noto Serif SC', serif;
   --font-serif: 'Noto Serif SC', serif;
+  /* Chrome (control-layer) variables, mirrored from the generated
+     @yanyun/theme tokens.css (tokens.json is the single source; the
+     values below are that file's output verbatim). :root carries the
+     classic theme; [data-theme="glass"] — set on <html> from the
+     account theme preference, see lib/theme.ts — swaps in the Liquid
+     Glass chrome values. Content-layer variables above never change
+     between themes. --chrome-blur / --chrome-radius are unitless
+     numbers (the RN side consumes the same tokens), so CSS lengths
+     are derived with calc(var(--chrome-…) * 1px). */
+  --chrome-bar-fill: rgba(12,11,9,.94);
+  --chrome-tabs-fill: rgba(201,163,92,.06);
+  --chrome-sheet-fill: #14120e;
+  --chrome-border: rgba(201,163,92,.22);
+  --chrome-sheet-border: rgba(201,163,92,.4);
+  --chrome-highlight: rgba(0,0,0,0);
+  --chrome-blur: 0;
+  --chrome-radius: 12;
+}
+:root[data-theme="glass"] {
+  --chrome-bar-fill: rgba(18,15,11,.55);
+  --chrome-tabs-fill: rgba(18,15,11,.45);
+  --chrome-sheet-fill: rgba(20,17,12,.68);
+  --chrome-border: rgba(0,0,0,.55);
+  --chrome-sheet-border: rgba(0,0,0,.6);
+  --chrome-highlight: rgba(236,210,143,.35);
+  --chrome-blur: 20;
+  --chrome-radius: 22;
+}
+/* Reduced transparency: glass chrome falls back to the opaque classic
+ * sheet surface so text over chrome stays legible. */
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-theme="glass"] {
+    --chrome-bar-fill: #14120e;
+    --chrome-tabs-fill: #14120e;
+    --chrome-sheet-fill: #14120e;
+    --chrome-blur: 0;
+  }
 }
 
 * { box-sizing: border-box; }
@@ -139,10 +176,21 @@ body {
 }
 .yy-modal-panel {
   position: relative; width: 100%; max-width: 520px; max-height: 85vh; overflow-y: auto;
-  background: #14120e; border: 1px solid rgba(201, 163, 92, .4); border-top: 2px solid #c9a35c;
+  /* Chrome wiring: the classic sheet fill / sheet border equal the
+     shipped values exactly, so they now read from the chrome vars;
+     blur and the inset top highlight are no-ops under classic
+     (0 / transparent) and only appear under glass. The 2px gold top
+     accent and the 16px radius have no chrome-token equivalent at
+     their classic values and stay literal; glass overrides the
+     radius below. */
+  background: var(--chrome-sheet-fill); border: 1px solid var(--chrome-sheet-border); border-top: 2px solid #c9a35c;
   border-radius: 16px; padding: 20px 20px 32px; box-sizing: border-box;
+  backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
+  -webkit-backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
+  box-shadow: inset 0 1px 0 var(--chrome-highlight);
   transition: max-width .3s ease;
 }
+:root[data-theme="glass"] .yy-modal-panel { border-radius: calc(var(--chrome-radius) * 1px); }
 /* A dialog PAGE may widen the one shared panel (settings host: the gear
  * library page needs the old /gear page's content width). The shell never
  * remounts between pages — only the width animates. */
@@ -150,6 +198,10 @@ body {
 @media (max-width: 640px) {
   .yy-modal-overlay { align-items: flex-end; padding: 0; }
   .yy-modal-panel { border-radius: 20px 20px 0 0; border-bottom: none; }
+  /* Glass keeps the bottom-sheet shape: only the top corners take the
+     chrome radius. Same specificity as the desktop glass rule, later
+     in the file, so it wins at this width. */
+  :root[data-theme="glass"] .yy-modal-panel { border-radius: calc(var(--chrome-radius) * 1px) calc(var(--chrome-radius) * 1px) 0 0; }
 }
 
 /* ---------- push page (移动端全屏推页) ----------
@@ -162,9 +214,17 @@ body {
 .yy-push-header {
   position: sticky; top: 0; z-index: 1;
   display: flex; align-items: center; gap: 6px;
-  padding: 12px 16px; background: rgba(12, 11, 9, .94);
+  /* Chrome wiring: the classic fill equals --chrome-bar-fill exactly.
+     The bottom border (.25) has no exact token match (chrome border
+     is .22), so it stays literal under classic and only glass swaps
+     it below. Blur / highlight are classic no-ops via the vars. */
+  padding: 12px 16px; background: var(--chrome-bar-fill);
   border-bottom: 1px solid rgba(201, 163, 92, .25);
+  backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
+  -webkit-backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
+  box-shadow: inset 0 1px 0 var(--chrome-highlight);
 }
+:root[data-theme="glass"] .yy-push-header { border-bottom-color: var(--chrome-border); }
 
 /* ---------- cards ---------- */
 .yy-card {
@@ -217,10 +277,17 @@ body {
   display: inline-flex;
   gap: 4px;
   padding: 4px;
-  background: rgba(201,163,92,.06);
-  border: 1px solid var(--border);
+  /* Chrome wiring: classic fill / border equal the shipped values
+     exactly (tabsFill / chrome border), so they read from the chrome
+     vars; blur / highlight are classic no-ops. The 999px pill radius
+     is this capsule's shape in both themes and stays literal. */
+  background: var(--chrome-tabs-fill);
+  border: 1px solid var(--chrome-border);
   border-radius: 999px;
   position: relative;
+  backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
+  -webkit-backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
+  box-shadow: inset 0 1px 0 var(--chrome-highlight);
 }
 .yy-tab {
   font-family: var(--font-serif);
@@ -263,6 +330,17 @@ body {
   border-color: var(--gold);
   background: rgba(201,163,92,.10);
   font-weight: 600;
+}
+/* Grouping-list filter capsules under glass: the classic chip is a
+   transparent ghost chip whose border (.32, the chipBorder token)
+   matches no chrome value, so classic stays literal; glass only
+   darkens the edge and adds the blur / highlight treatment. The
+   active chip keeps its gold state in both themes (:not(.active)). */
+:root[data-theme="glass"] .yy-fchip:not(.active) {
+  border-color: var(--chrome-border);
+  backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
+  -webkit-backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
+  box-shadow: inset 0 1px 0 var(--chrome-highlight);
 }
 
 /* ---------- skeleton shimmer ---------- */
@@ -439,6 +517,18 @@ body {
   border-radius: 999px;
   padding: 5px 10px 5px 12px;
 }
+/* The hero user-bar pill under glass: its classic values (fill .5,
+   blur 8px, border .25) are a translucent-over-image treatment that
+   matches no chrome token, so classic above stays literal; glass
+   swaps the whole pill to the bar chrome. The pill radius is its
+   shape in both themes and is not overridden. */
+:root[data-theme="glass"] .yy-hero-userbar {
+  background: var(--chrome-bar-fill);
+  border-color: var(--chrome-border);
+  backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
+  -webkit-backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
+  box-shadow: inset 0 1px 0 var(--chrome-highlight);
+}
 /* UserBar avatar wrap: carries the settings onClick so the avatar can
    be the settings entry on small screens, where the name and buttons
    hide. At desktop widths it must stay inert — the bar's own buttons
@@ -515,12 +605,25 @@ body {
   left: 0; right: 0; bottom: 0;
   max-height: 85vh;
   overflow-y: auto;
-  background: var(--ink-2);
+  /* Chrome wiring: --ink-2 IS the classic sheet fill, so the fill now
+     reads from the chrome var with the identical classic value. The
+     top border (var(--border), .22) and the 20px top radius match no
+     chrome value at their classic values (sheetBorder is .4), so
+     they stay literal under classic and only glass swaps them below.
+     Blur / highlight are classic no-ops via the vars. */
+  background: var(--chrome-sheet-fill);
   border-top: 1px solid var(--border);
   border-radius: 20px 20px 0 0;
   padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
   z-index: 51;
   animation: yy-sheet-up .35s cubic-bezier(.22,.9,.28,1) both;
+  backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
+  -webkit-backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
+  box-shadow: inset 0 1px 0 var(--chrome-highlight);
+}
+:root[data-theme="glass"] .yy-sheet {
+  border-top-color: var(--chrome-sheet-border);
+  border-radius: calc(var(--chrome-radius) * 1px) calc(var(--chrome-radius) * 1px) 0 0;
 }
 
 /* ---------- toast ---------- */

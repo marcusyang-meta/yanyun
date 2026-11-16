@@ -4,6 +4,19 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- First-frame theme: apply the local mirror of the account theme
+         preference (lib/theme.ts, key yy_theme_pref) to <html> before
+         the stylesheet paints, so a glass user never sees a classic
+         flash. The server value reconciles over this in AppRoot; any
+         value other than 'glass' (including no mirror) is classic,
+         which is the absence of the attribute. -->
+    <script>
+      try {
+        if (window.localStorage.getItem('yy_theme_pref') === 'glass') {
+          document.documentElement.dataset.theme = 'glass';
+        }
+      } catch (e) { /* no mirror access (private mode): classic default */ }
+    </script>
     <title>燕云百业 · 百业集结</title>
   </head>
   <body>

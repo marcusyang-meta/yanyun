@@ -1,0 +1,106 @@
+// Frontend mirror of the account UI theme preference (chrome variant).
+// The truth lives on the server: users.theme_pref (account-level,
+// 'classic' | 'glass', NULL = classic), delivered via GraphQL
+// viewer.myThemePref / settingsPage.themePref and written through
+// updateMyTheme. Unlike the locale preference there is no "automatic"
+// state: the effective theme is always one of the two values, and
+// 'classic' is the default for anonymous viewers and members without a
+// stored choice alike.
+//
+// The theme reaches the page as a single attribute on the root element:
+// data-theme="glass" swaps the --chrome-* CSS variables to the Liquid
+// Glass values (packages/theme tokens.css, mirrored in index.css);
+// classic is the absence of the attribute, so the :root classic values
+// apply. Only control-layer chrome consumes those variables — content
+// surfaces never read them, so a theme switch cannot move content.
+//
+// The localStorage mirror exists only to avoid a first-frame flash: an
+// inline script in index.html (and applyMirroredTheme in main.tsx)
+// applies the mirrored theme before the first paint, and AppRoot then
+// reconciles the mirror against the server value, which always wins.
+export type ThemePref = 'classic' | 'glass';
+
+export const SUPPORTED_THEMES: readonly ThemePref[] = ['classic', 'glass'];
+
+const PREF_KEY = 'yy_theme_pref';
+
+// Any value that is not exactly 'glass' resolves to 'classic': stored
+// values can be dirty (older builds, manual edits) and the shipped
+// default must win over an unknown string, never the other way round.
+export function resolveThemePref(value: unknown): ThemePref {
+  return value === 'glass' ? 'glass' : 'classic';
+}
+
+export function isThemePref(value: unknown): value is ThemePref {
+  return value === 'classic' || value === 'glass';
+}
+
+// Minimal storage / root seams so the mirror and dataset logic can be
+// unit-tested in plain Node without a DOM; production callers omit them
+// and get window.localStorage / document.documentElement.
+export interface ThemeStorage {
+  getItem(key: string): string | null;
+  setItem(key: string, value: string): void;
+  removeItem(key: string): void;
+}
+export interface ThemeRoot {
+  dataset: Record<string, string | undefined>;
+}
+
+function defaultStorage(): ThemeStorage | null {
+  try {
+    return typeof window !== 'undefined' ? window.localStorage : null;
+  } catch { return null; }
+}
+
+function defaultRoot(): ThemeRoot | null {
+  return typeof document !== 'undefined' ? (document.documentElement as unknown as ThemeRoot) : null;
+}
+
+export function readThemeMirror(storage: ThemeStorage | null = defaultStorage()): ThemePref | null {
+  try {
+    const v = storage?.getItem(PREF_KEY) ?? null;
+    return isThemePref(v) ? v : null;
+  } catch { return null; }
+}
+
+export function writeThemeMirror(theme: ThemePref, storage: ThemeStorage | null = defaultStorage()) {
+  try {
+    storage?.setItem(PREF_KEY, theme);
+  } catch { /* if the write fails (e.g. private mode), ignore it — the server is still the truth */ }
+}
+
+// Apply a theme to the root element: 'glass' sets data-theme="glass";
+// 'classic' removes the attribute entirely so the classic :root values
+// (and no glass override) apply. Returns the effective theme applied.
+export function applyTheme(value: unknown, root: ThemeRoot | null = defaultRoot()): ThemePref {
+  const theme = resolveThemePref(value);
+  if (root) {
+    if (theme === 'glass') root.dataset.theme = 'glass';
+    else delete root.dataset.theme;
+  }
+  return theme;
+}
+
+// First-frame entry: apply the mirrored theme (classic when no mirror
+// exists, which also clears any stale attribute). Called from main.tsx
+// before the app renders; index.html runs the same logic inline even
+// earlier, before the stylesheet paints.
+export function applyMirroredTheme(
+  root: ThemeRoot | null = defaultRoot(),
+  storage: ThemeStorage | null = defaultStorage(),
+): ThemePref {
+  return applyTheme(readThemeMirror(storage) ?? 'classic', root);
+}
+
+// Reconciliation / settings-save entry: the server's effective theme is
+// the truth, so apply it and align the local mirror to it in one step.
+export function syncThemeFromServer(
+  value: unknown,
+  root: ThemeRoot | null = defaultRoot(),
+  storage: ThemeStorage | null = defaultStorage(),
+): ThemePref {
+  const theme = applyTheme(value, root);
+  writeThemeMirror(theme, storage);
+  return theme;
+}

@@ -4,6 +4,7 @@ import { graphql, useLazyLoadQuery, useMutation, useRelayEnvironment } from 'rea
 import { fetchQuery } from 'relay-runtime';
 import { theme } from '../lib/format';
 import { writePrefMirror, emitLocaleChanged } from '../lib/locale';
+import { applyTheme, resolveThemePref, writeThemeMirror, type ThemePref } from '../lib/theme';
 import { useIsMobile } from '../lib/useIsMobile';
 import type { ViewerUser } from '../lib/user';
 import GearLibrary from '../guild/components/GearLibrary.react.tsx';
@@ -22,7 +23,9 @@ import { ToastHost } from '../guild/components/Toast.react.tsx';
 // open, pop to go back). A page never spawns another dialog, and moving
 // between pages never closes or replaces this one:
 //   - root page: Discord identity + language preference (stored
-//     server-side in users.locale_pref) + the My Data account section;
+//     server-side in users.locale_pref) + theme preference (stored
+//     server-side in users.theme_pref; chrome variant only, applied
+//     via lib/theme.ts) + the My Data account section;
 //   - feedback page, pushed by the feedback entry row;
 //   - gear library page, pushed by the gear entry row: the complete
 //     GearLibrary in profile mode. The panel widens for this page
@@ -75,6 +78,10 @@ const SettingsDialogQueryNode = graphql`
       settingsLangEsLabel
       settingsLangFrLabel
       settingsSavedText
+      settingsThemeLabel
+      settingsThemeHint
+      settingsThemeClassicLabel
+      settingsThemeGlassLabel
       feedbackEntryLabel
       feedbackTitle
       feedbackCategoryLabel
@@ -87,6 +94,7 @@ const SettingsDialogQueryNode = graphql`
       feedbackSuccessText
       localePref
       effectiveLocale
+      themePref
       accountSectionTitle
       accountExportLabel
       accountExportHint
@@ -231,6 +239,17 @@ const SettingsUpdateMutationNode = graphql`
   }
 `;
 
+const SettingsUpdateThemeMutationNode = graphql`
+  mutation SettingsDialogUpdateThemeMutation($theme: String!) {
+    updateMyTheme(theme: $theme) {
+      ok
+      error
+      errorCode
+      themePref
+    }
+  }
+`;
+
 const SettingsFeedbackMutationNode = graphql`
   mutation SettingsDialogFeedbackMutation($category: FeedbackCategory!, $text: String!) {
     submitFeedback(category: $category, text: $text) {
@@ -367,6 +386,7 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage, logoutTe
   const isMobile = useIsMobile();
   const environment = useRelayEnvironment();
   const [commit, inFlight] = useMutation<any>(SettingsUpdateMutationNode);
+  const [commitTheme, themeInFlight] = useMutation<any>(SettingsUpdateThemeMutationNode);
   const [commitExport, exportInFlight] = useMutation<any>(SettingsExportMutationNode);
   const [commitRequestDeletion, requestInFlight] = useMutation<any>(SettingsRequestDeletionMutationNode);
   const [commitCancelDeletion, cancelInFlight] = useMutation<any>(SettingsCancelDeletionMutationNode);
@@ -754,6 +774,62 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage, logoutTe
     });
   };
 
+  /* Theme preference (root page section under the language picker):
+   * same selection-state pattern as the locale picker — the control's
+   * value is the local pick override ?? the query's themePref, and the
+   * override drops once the server value matches it. Unlike locale, a
+   * pick also applies immediately (root data-theme + local mirror, see
+   * lib/theme.ts): the chrome — including this dialog's own shell —
+   * switches in place behind the dialog. On save failure the override
+   * drops and the applied theme rolls back to the server truth. There
+   * is no refetch on success: no copy depends on the theme. */
+  const [themePicked, setThemePicked] = useState<ThemePref | null>(null);
+  const [themeError, setThemeError] = useState('');
+  const [themeSaved, setThemeSaved] = useState(false);
+  const serverTheme: ThemePref = resolveThemePref(page.themePref);
+  useEffect(() => {
+    if (themePicked !== null && themePicked === serverTheme) setThemePicked(null);
+  }, [themePicked, serverTheme]);
+  const currentTheme: ThemePref = themePicked ?? serverTheme;
+
+  const themeOptions: { value: ThemePref; label: string }[] = [
+    { value: 'classic', label: page.settingsThemeClassicLabel },
+    { value: 'glass', label: page.settingsThemeGlassLabel },
+  ];
+
+  const chooseTheme = (value: ThemePref) => {
+    if (themeInFlight || value === currentTheme) return;
+    setThemePicked(value);
+    setThemeError('');
+    setThemeSaved(false);
+    applyTheme(value);
+    writeThemeMirror(value);
+    commitTheme({
+      variables: { theme: value },
+      onCompleted: (resp: any) => {
+        const payload = resp?.updateMyTheme;
+        if (payload?.ok) {
+          const effective = resolveThemePref(payload.themePref);
+          applyTheme(effective);
+          writeThemeMirror(effective);
+          setThemeSaved(true);
+          setTimeout(() => setThemeSaved(false), 2500);
+        } else {
+          setThemePicked(null);
+          applyTheme(serverTheme);
+          writeThemeMirror(serverTheme);
+          setThemeError(payload?.error || viewer.commonUnknownErrorText || '');
+        }
+      },
+      onError: () => {
+        setThemePicked(null);
+        applyTheme(serverTheme);
+        writeThemeMirror(serverTheme);
+        setThemeError(viewer.commonUnknownErrorText || '');
+      },
+    });
+  };
+
   const mainBody = (
     <>
       {user && (
@@ -806,6 +882,45 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage, logoutTe
       {error && (
         <div style={{ color: '#e58d7f', fontSize: 13, marginTop: 14 }}>{error}</div>
       )}
+      {/* Theme section: same shape as the language picker above (label
+          + hint + one radio row per option, saved feedback via the
+          shared settingsSavedText). All copy is backend-delivered;
+          the option values are the theme ids themselves. */}
+      <div style={{ borderTop: '1px solid rgba(201,163,92,.22)', marginTop: 24, paddingTop: 18 }}>
+        <div style={{ color: theme.paper, fontSize: 16, marginBottom: 6 }}>{page.settingsThemeLabel}</div>
+        <div style={{ color: theme.muted, fontSize: 13, lineHeight: 1.7, marginBottom: 16 }}>{page.settingsThemeHint}</div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }} role="radiogroup">
+          {themeOptions.map((opt) => {
+            const active = opt.value === currentTheme;
+            return (
+              <button
+                key={opt.value}
+                role="radio"
+                aria-checked={active}
+                data-theme-option={opt.value}
+                onClick={() => chooseTheme(opt.value)}
+                disabled={themeInFlight}
+                style={{
+                  display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                  textAlign: 'left', padding: '11px 16px', borderRadius: 10, cursor: 'pointer',
+                  background: active ? 'rgba(201,163,92,.14)' : 'rgba(255,255,255,.02)',
+                  border: `1px solid ${active ? theme.gold : 'rgba(201,163,92,.25)'}`,
+                  color: active ? theme.goldHi : theme.paper, fontSize: 14.5,
+                }}
+              >
+                <span>{opt.label}</span>
+                {active && <span style={{ color: theme.gold, fontSize: 13 }}>●</span>}
+              </button>
+            );
+          })}
+        </div>
+        {themeSaved && (
+          <div style={{ color: '#7fb069', fontSize: 13, marginTop: 14 }}>✓ {page.settingsSavedText}</div>
+        )}
+        {themeError && (
+          <div style={{ color: '#e58d7f', fontSize: 13, marginTop: 14 }}>{themeError}</div>
+        )}
+      </div>
       <div style={{ borderTop: '1px solid rgba(201,163,92,.22)', marginTop: 24, paddingTop: 18 }}>
         <button
           data-gear-entry

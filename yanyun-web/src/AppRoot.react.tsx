@@ -18,6 +18,7 @@ import SiteFooter from './lib/SiteFooter.react.tsx';
 import { hostGuildSlug } from './lib/hostGuild';
 import { GuildFooterContext, type FooterOverride } from './lib/guildChrome';
 import { readPrefMirror, writePrefMirror, emitLocaleChanged, lastSentLocaleTag } from './lib/locale';
+import { syncThemeFromServer } from './lib/theme';
 import { canonicalLocaleOf } from './lib/format';
 import SiteBackdrop from './lib/SiteBackdrop.react.tsx';
 
@@ -65,6 +66,7 @@ const AppViewerQueryNode = graphql`
       userBarSettingsLabel
       myLocalePref
       myEffectiveLocale
+      myThemePref
       pickerMyGuildsLabel
       pickerMyGuildsEnLabel
       pickerEmptyTitle
@@ -207,6 +209,16 @@ export default function AppRoot({ queries }: {
       emitLocaleChanged();
     }
   }, [viewer.myLocalePref, viewer.myEffectiveLocale]);
+
+  // Theme reconciliation: same pattern as the locale mirror above —
+  // the server's effective theme (myThemePref, 'classic' for anonymous
+  // viewers and unset preferences) is the truth, so the root element's
+  // data-theme and the local mirror both align to it. The mirror was
+  // already applied before first paint (index.html / main.tsx), so a
+  // matching server value changes nothing on screen.
+  useEffect(() => {
+    syncThemeFromServer(viewer.myThemePref);
+  }, [viewer.myThemePref]);
 
   return (
     <>
