@@ -4,7 +4,7 @@ import { graphql, useLazyLoadQuery, useMutation, useRelayEnvironment } from 'rea
 import { fetchQuery } from 'relay-runtime';
 import { theme } from '../lib/format';
 import { writePrefMirror, emitLocaleChanged } from '../lib/locale';
-import { applyTheme, resolveThemePref, writeThemeMirror, type ThemePref } from '../lib/theme';
+import { applyTheme, resolveThemePref, writeThemeMirror, writeThemeBackToStore, type ThemePref } from '../lib/theme';
 import { useIsMobile } from '../lib/useIsMobile';
 import type { ViewerUser } from '../lib/user';
 import GearLibrary from '../guild/components/GearLibrary.react.tsx';
@@ -781,8 +781,12 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage, logoutTe
    * pick also applies immediately (root data-theme + local mirror, see
    * lib/theme.ts): the chrome — including this dialog's own shell —
    * switches in place behind the dialog. On save failure the override
-   * drops and the applied theme rolls back to the server truth. There
-   * is no refetch on success: no copy depends on the theme. */
+   * drops and the applied theme rolls back to the server truth. On
+   * success the mutation's updater writes the confirmed theme back
+   * into the store's two read paths (writeThemeBackToStore): the
+   * payload record alone never reaches Viewer.myThemePref /
+   * SettingsPage.themePref, and without the write-back their stale
+   * snapshots outvote the pick for the rest of the session. */
   const [themePicked, setThemePicked] = useState<ThemePref | null>(null);
   const [themeError, setThemeError] = useState('');
   const [themeSaved, setThemeSaved] = useState(false);
@@ -806,6 +810,7 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage, logoutTe
     writeThemeMirror(value);
     commitTheme({
       variables: { theme: value },
+      updater: (store: any, data: any) => { writeThemeBackToStore(store, data); },
       onCompleted: (resp: any) => {
         const payload = resp?.updateMyTheme;
         if (payload?.ok) {

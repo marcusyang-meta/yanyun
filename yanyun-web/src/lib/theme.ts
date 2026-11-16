@@ -93,6 +93,44 @@ export function applyMirroredTheme(
   return applyTheme(readThemeMirror(storage) ?? 'classic', root);
 }
 
+// Minimal structural seams over Relay's RecordSourceSelectorProxy /
+// RecordProxy, so the store write-back below can be unit-tested with a
+// fake store in plain Node; production passes the real proxies.
+export interface ThemeStoreRecord {
+  getLinkedRecord(field: string): ThemeStoreRecord | null | undefined;
+  setValue(value: unknown, field: string): unknown;
+}
+export interface ThemeStore {
+  getRoot(): ThemeStoreRecord;
+}
+
+// Store write-back for a committed updateMyTheme mutation (the Relay
+// updater SettingsDialog passes alongside the mutation). The payload is
+// the server's CONFIRMED effective theme; both read paths must move to
+// it in the same store publish:
+//   - Viewer.myThemePref — AppRoot's reconciliation source;
+//   - SettingsPage.themePref — the settings dialog's own server value.
+// Without this, their records keep the pre-mutation snapshot for the
+// rest of the session (the mutation's payload is a different record
+// type and normalizes nowhere near them): a dialog reopen is served
+// the stale value store-or-network, and the next AppRoot
+// reconciliation pass reimposes it over the member's pick — dataset
+// and mirror included. That was the shipped defect: the server had
+// persisted the pick all along, the client kept voting it down.
+// A non-ok payload writes nothing (the pick rolls back instead).
+// Returns the effective theme written, or null when nothing was.
+export function writeThemeBackToStore(store: ThemeStore, data: unknown): ThemePref | null {
+  const payload = (data as { updateMyTheme?: { ok?: unknown; themePref?: unknown } } | null | undefined)?.updateMyTheme;
+  if (!payload || payload.ok !== true) return null;
+  const theme = resolveThemePref(payload.themePref);
+  const root = store.getRoot();
+  const viewerRec = root.getLinkedRecord('viewer');
+  if (viewerRec) viewerRec.setValue(theme, 'myThemePref');
+  const pageRec = root.getLinkedRecord('settingsPage');
+  if (pageRec) pageRec.setValue(theme, 'themePref');
+  return theme;
+}
+
 // Reconciliation / settings-save entry: the server's effective theme is
 // the truth, so apply it and align the local mirror to it in one step.
 export function syncThemeFromServer(
