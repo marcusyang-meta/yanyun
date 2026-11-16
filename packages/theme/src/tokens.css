@@ -20,4 +20,30 @@
   --card-bg: linear-gradient(160deg, rgba(201,163,92,.07), rgba(0,0,0,.25));
   --font-brush: 'Ma Shan Zheng', 'Noto Serif SC', serif;
   --font-serif: 'Noto Serif SC', serif;
+  --chrome-bar-fill: rgba(12,11,9,.94);
+  --chrome-tabs-fill: rgba(201,163,92,.06);
+  --chrome-sheet-fill: #14120e;
+  --chrome-border: rgba(201,163,92,.22);
+  --chrome-sheet-border: rgba(201,163,92,.4);
+  --chrome-highlight: rgba(0,0,0,0);
+  --chrome-blur: 0;
+  --chrome-radius: 12;
+}
+:root[data-theme="glass"] {
+  --chrome-bar-fill: rgba(18,15,11,.55);
+  --chrome-tabs-fill: rgba(18,15,11,.45);
+  --chrome-sheet-fill: rgba(20,17,12,.68);
+  --chrome-border: rgba(0,0,0,.55);
+  --chrome-sheet-border: rgba(0,0,0,.6);
+  --chrome-highlight: rgba(236,210,143,.35);
+  --chrome-blur: 20;
+  --chrome-radius: 22;
+}
+@media (prefers-reduced-transparency: reduce) {
+  :root[data-theme="glass"] {
+    --chrome-bar-fill: #14120e;
+    --chrome-tabs-fill: #14120e;
+    --chrome-sheet-fill: #14120e;
+    --chrome-blur: 0;
+  }
 }
