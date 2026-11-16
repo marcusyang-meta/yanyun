@@ -153,6 +153,32 @@ export async function setUserLocalePref(d1: D1Database, userId: number, pref: st
   );
 }
 
+/* ---------- UI theme preference (account-level, users.theme_pref) ----------
+ * 'classic' | 'glass'; NULL = no choice stored. The effective theme
+ * resolves through resolveThemePref: anything that is not a supported
+ * stored value (NULL, dirty data) is 'classic', the shipped default.
+ * Only control-layer chrome consumes the effective value. */
+export const SUPPORTED_THEMES = ['classic', 'glass'];
+
+export function resolveThemePref(stored: string | null | undefined): string {
+  return stored != null && SUPPORTED_THEMES.includes(stored) ? stored : 'classic';
+}
+
+export async function getUserThemePref(d1: D1Database, userId: number): Promise<string | null> {
+  const db = createDb(d1);
+  const row = await db.get<{ theme_pref: string | null }>(
+    sql`SELECT ${col('theme_pref')} FROM ${users} WHERE ${col('id')} = ${userId}`,
+  );
+  return row?.theme_pref ?? null;
+}
+
+export async function setUserThemePref(d1: D1Database, userId: number, pref: string | null): Promise<void> {
+  const db = createDb(d1);
+  await db.run(
+    sql`UPDATE ${users} SET ${col('theme_pref')} = ${pref} WHERE ${col('id')} = ${userId}`,
+  );
+}
+
 /* ---------- member timezone capture (migration 0040) ----------
  * users.last_tz holds the IANA zone of the member's most recent
  * signed-in request (the x-tz header, validated by the caller — the

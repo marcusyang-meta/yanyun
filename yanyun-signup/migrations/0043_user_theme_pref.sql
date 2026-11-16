@@ -1,0 +1,20 @@
+-- 0043: users.theme_pref — the member's chosen UI theme (chrome
+-- variant), account-level like locale_pref (0036-era column, same
+-- shape). Values: 'classic' (the shipped ink-and-gold chrome) or
+-- 'glass' (iOS 27 style Liquid Glass control layer). NULL means "no
+-- choice stored" and resolves to 'classic' everywhere — the classic
+-- theme is the default and existing members see no change.
+--
+-- Why account-level: the preference must follow the member across
+-- web and mobile (marcus ruling 2026-11-16: the glass adaptation is a
+-- user-selectable theme, never a replacement of the classic look).
+-- Only the chrome (control layer: bars, tab rows, tab bar, floating
+-- action bars, sheet/dialog shells) reads it; content surfaces (car
+-- cards, seat grids, the dex, OG) render identically under both.
+-- Reads validate against the supported set; a dirty stored value
+-- resolves to 'classic'.
+--
+-- Shape: TEXT, nullable, no default — pure expand, one nullable
+-- column, nothing else changes; the previous release never reads it
+-- and is unaffected.
+ALTER TABLE users ADD COLUMN theme_pref TEXT;

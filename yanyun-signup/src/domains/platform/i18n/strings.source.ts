@@ -100,6 +100,7 @@ export abstract class ErrorsFbtUtils {
   static loginRequired(fbs: FbsAPI) { return fbs("请先登录 Discord 后再操作", "Error message for signed-out users, used when an operation requires a signed-in Discord account."); }
   static loginRequiredShort(fbs: FbsAPI) { return fbs("请先登录 Discord", "Error message for signed-out users, used as the short variant of the login-required error where space is tight."); }
   static localeUnsupported(fbs: FbsAPI) { return fbs("不支持的语言", "Error message for language settings, used when an unsupported interface language is submitted."); }
+  static themeUnsupported(fbs: FbsAPI) { return fbs("不支持的主题", "Error message for theme settings, used when an unsupported UI theme is submitted."); }
   static pushTokenInvalid(fbs: FbsAPI) { return fbs("推送令牌无效", "Error message for push registration, used when a submitted push token is invalid."); }
   static guildUnboundWrite(fbs: FbsAPI) { return fbs("该百业尚未绑定 Discord 服务器，写功能已锁定", "Error message for unbound guilds, used on a write to a guild that has not bound a Discord server yet, where writes stay locked until binding."); }
   static memberOnly(fbs: FbsAPI) { return fbs("只有该百业 Discord 服务器的成员可以操作", "Error message for member-only writes, used when a non-member of the guild's Discord server attempts a member-only operation."); }

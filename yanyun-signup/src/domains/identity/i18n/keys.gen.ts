@@ -24,6 +24,10 @@ export type IdentityStringKey =
   | 'settings_langEs'
   | 'settings_langFr'
   | 'settings_savedText'
+  | 'settings_themeLabel'
+  | 'settings_themeHint'
+  | 'settings_themeClassicLabel'
+  | 'settings_themeGlassLabel'
   | 'settings_calendarSectionTitle'
   | 'settings_calendarHint'
   | 'settings_calendarCopyLabel'
@@ -153,6 +157,10 @@ export const IDENTITY_STRING_KEYS: readonly IdentityStringKey[] = [
   'settings_langEs',
   'settings_langFr',
   'settings_savedText',
+  'settings_themeLabel',
+  'settings_themeHint',
+  'settings_themeClassicLabel',
+  'settings_themeGlassLabel',
   'settings_calendarSectionTitle',
   'settings_calendarHint',
   'settings_calendarCopyLabel',

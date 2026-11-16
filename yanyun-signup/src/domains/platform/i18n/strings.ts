@@ -118,6 +118,18 @@ export abstract class SettingsFbtUtils {
 	static savedText(fbs: FbsRuntime) {
 		return fbs._("已保存", null, { hk: "2leaVp" });
 	}
+	static themeLabel(fbs: FbsRuntime) {
+		return fbs._("主题", null, { hk: "3zasnN" });
+	}
+	static themeHint(fbs: FbsRuntime) {
+		return fbs._("只改变顶栏、页签与弹窗等界面框架的质感，内容本身不变；保存在你的账号里，网页与手机同步生效。", null, { hk: "4rMiJ8" });
+	}
+	static themeClassicLabel(fbs: FbsRuntime) {
+		return fbs._("经典", null, { hk: "3up6za" });
+	}
+	static themeGlassLabel(fbs: FbsRuntime) {
+		return fbs._("玻璃", null, { hk: "4iODFR" });
+	}
 	static calendarSectionTitle(fbs: FbsRuntime) {
 		return fbs._("日历订阅", null, { hk: "m7S6c" });
 	}
@@ -2058,6 +2070,9 @@ export abstract class ErrorsFbtUtils {
 	}
 	static localeUnsupported(fbs: FbsRuntime) {
 		return fbs._("不支持的语言", null, { hk: "1pYDD7" });
+	}
+	static themeUnsupported(fbs: FbsRuntime) {
+		return fbs._("不支持的主题", null, { hk: "4z0BbE" });
 	}
 	static pushTokenInvalid(fbs: FbsRuntime) {
 		return fbs._("推送令牌无效", null, { hk: "4i11th" });
@@ -5524,6 +5539,10 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"settings_langEs": SettingsFbtUtils.langEs,
 	"settings_langFr": SettingsFbtUtils.langFr,
 	"settings_savedText": SettingsFbtUtils.savedText,
+	"settings_themeLabel": SettingsFbtUtils.themeLabel,
+	"settings_themeHint": SettingsFbtUtils.themeHint,
+	"settings_themeClassicLabel": SettingsFbtUtils.themeClassicLabel,
+	"settings_themeGlassLabel": SettingsFbtUtils.themeGlassLabel,
 	"settings_calendarSectionTitle": SettingsFbtUtils.calendarSectionTitle,
 	"settings_calendarHint": SettingsFbtUtils.calendarHint,
 	"settings_calendarCopyLabel": SettingsFbtUtils.calendarCopyLabel,
@@ -6141,6 +6160,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors_loginRequired": ErrorsFbtUtils.loginRequired,
 	"errors_loginRequiredShort": ErrorsFbtUtils.loginRequiredShort,
 	"errors_localeUnsupported": ErrorsFbtUtils.localeUnsupported,
+	"errors_themeUnsupported": ErrorsFbtUtils.themeUnsupported,
 	"errors_pushTokenInvalid": ErrorsFbtUtils.pushTokenInvalid,
 	"errors_guildUnboundWrite": ErrorsFbtUtils.guildUnboundWrite,
 	"errors_memberOnly": ErrorsFbtUtils.memberOnly,

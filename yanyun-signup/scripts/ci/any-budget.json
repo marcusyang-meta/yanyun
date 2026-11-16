@@ -88,12 +88,12 @@
     "reason": "repository row handling at the data edge"
   },
   "src/domains/identity/auth.ts": {
-    "max": 36,
-    "reason": "Discord OAuth payloads and JWT claims at the external boundary; narrowed immediately after parsing"
+    "max": 39,
+    "reason": "Discord OAuth payloads and JWT claims at the external boundary; narrowed immediately after parsing; +3 for the theme-preference wrappers (getUserThemePref/setUserThemePref), in this file's established (env: any, pref: any) account-preference pattern (2026-11-16)"
   },
   "src/domains/identity/graphql.ts": {
-    "max": 89,
-    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context). Raised for the account self-service surface (settingsPage account fields + export/deletion payload shells), written in this file's established resolver style + recruit line: the Viewer.guildRecruit resolver in the same pattern + availability relocation: the SettingsAvailabilityGuild shell and the two settingsPage availability resolvers in the same pattern + network line: the Viewer.fillMarket / Viewer.guildAllies resolvers and shell gens in the same pattern + platform-admin line (hub overhaul, 2026-10-28): the Viewer.platformAdmin resolver delegating to the platform domain, in the same parent/args pattern + name-lock line (2026-11-01): +2 for the identityNameForDiscordId / resolveUniqueNameOwner resolvers (their db params only, in this file's established db: any pattern; all other params typed string) + roster-only line (2026-11-02): +1 for the resolveSeatName resolver (its db param only, same pattern; the game-roster stage reuses the guilds roster repository's typed rows) + calendar subscription line (2026-11-06): +8 for the settingsPage calendarFeed resolver, the CalendarFeedSettings url resolver, the ResetCalendarFeedPayload resolvers and the resetCalendarFeedToken mutation, in this file's established resolver style + agent-native line (2026-11-10): +3 for the revokeAgentGrant mutation and the settingsPage agentGrants wiring, in this file's established resolver style (the new AgentGrant/AgentGrantsSettings data resolvers are fully typed)"
+    "max": 97,
+    "reason": "resolver parent/args values: shell instances and computed result objects; the context parameter is fully typed (Context). Raised for the account self-service surface (settingsPage account fields + export/deletion payload shells), written in this file's established resolver style + recruit line: the Viewer.guildRecruit resolver in the same pattern + availability relocation: the SettingsAvailabilityGuild shell and the two settingsPage availability resolvers in the same pattern + network line: the Viewer.fillMarket / Viewer.guildAllies resolvers and shell gens in the same pattern + platform-admin line (hub overhaul, 2026-10-28): the Viewer.platformAdmin resolver delegating to the platform domain, in the same parent/args pattern + name-lock line (2026-11-01): +2 for the identityNameForDiscordId / resolveUniqueNameOwner resolvers (their db params only, in this file's established db: any pattern; all other params typed string) + roster-only line (2026-11-02): +1 for the resolveSeatName resolver (its db param only, same pattern; the game-roster stage reuses the guilds roster repository's typed rows) + calendar subscription line (2026-11-06): +8 for the settingsPage calendarFeed resolver, the CalendarFeedSettings url resolver, the ResetCalendarFeedPayload resolvers and the resetCalendarFeedToken mutation, in this file's established resolver style + agent-native line (2026-11-10): +3 for the revokeAgentGrant mutation and the settingsPage agentGrants wiring, in this file's established resolver style (the new AgentGrant/AgentGrantsSettings data resolvers are fully typed) + theme line (2026-11-16): +8 for the updateMyTheme mutation and the SettingsPage.themePref / Viewer.myThemePref / UpdateThemePayload resolvers, in this file's established resolver style"
   },
   "src/domains/platform/blocks.ts": {
     "max": 10,
@@ -108,8 +108,8 @@
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
   },
   "src/domains/platform/graphql-base.ts": {
-    "max": 76,
-    "reason": "framework internals: dynamic prototype generation (defineTextGens) and shell source records (ShellBase.data); +6 for the shared grouping-manage verdict/gate signatures (db/user/request params, same shape as getGuildAdminAccess); +1 for the TemplatePayloadShell failure helper (tFail, same shape as gFail/dFail); +2 for the platform-admin lane env params on the same verdict/gate signatures (2026-11-07 ruling: platform admins manage groupings in every guild)"
+    "max": 78,
+    "reason": "framework internals: dynamic prototype generation (defineTextGens) and shell source records (ShellBase.data); +6 for the shared grouping-manage verdict/gate signatures (db/user/request params, same shape as getGuildAdminAccess); +1 for the TemplatePayloadShell failure helper (tFail, same shape as gFail/dFail); +2 for the platform-admin lane env params on the same verdict/gate signatures (2026-11-07 ruling: platform admins manage groupings in every guild); +2 for the UpdateThemePayloadShell failure helper (thFail, same shape as uFail) (2026-11-16)"
   },
   "src/domains/platform/graphql.ts": {
     "max": 162,
