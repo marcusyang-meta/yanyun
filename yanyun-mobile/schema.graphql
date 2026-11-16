@@ -1242,6 +1242,10 @@ type SettingsPage {
   settingsLangEsLabel: String!
   settingsLangFrLabel: String!
   settingsSavedText: String!
+  settingsThemeLabel: String!
+  settingsThemeHint: String!
+  settingsThemeClassicLabel: String!
+  settingsThemeGlassLabel: String!
   feedbackEntryLabel: String!
   feedbackTitle: String!
   feedbackCategoryLabel: String!
@@ -1254,6 +1258,7 @@ type SettingsPage {
   feedbackSuccessText: String!
   localePref: String
   effectiveLocale: String!
+  themePref: String!
   accountSectionTitle: String!
   accountExportLabel: String!
   accountExportHint: String!
@@ -1368,6 +1373,13 @@ type UpdateLocalePayload {
   errorCode: String
   localePref: String
   effectiveLocale: String!
+}
+
+type UpdateThemePayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  themePref: String!
 }
 
 type ExportMyDataPayload {
@@ -1944,6 +1956,7 @@ type Mutation {
   revokeAgentGrant(id: ID!): RevokeAgentGrantPayload!
   submitFeedback(category: FeedbackCategory!, text: String!): SubmitFeedbackPayload!
   updateMyLocale(locale: String): UpdateLocalePayload!
+  updateMyTheme(theme: String!): UpdateThemePayload!
   exportMyData: ExportMyDataPayload!
   requestAccountDeletion(typedUsername: String!): AccountDeletionPayload!
   cancelAccountDeletion: AccountDeletionPayload!
@@ -2578,6 +2591,7 @@ type Viewer {
   userBarSettingsLabel: String!
   myLocalePref: String
   myEffectiveLocale: String!
+  myThemePref: String!
   pickerMyGuildsLabel: String!
   pickerMyGuildsEnLabel: String!
   pickerEmptyTitle: String!

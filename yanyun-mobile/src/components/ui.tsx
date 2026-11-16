@@ -1,9 +1,11 @@
 import React from 'react';
-import { Image, Pressable, StyleSheet, Text, useWindowDimensions, View } from 'react-native';
+import { Image, Pressable, StyleSheet, Text, useWindowDimensions, View, type StyleProp, type ViewStyle } from 'react-native';
+import { BlurView } from 'expo-blur';
 import { LinearGradient } from 'expo-linear-gradient';
 import { router } from 'expo-router';
 import { fonts, theme } from '../theme';
 import { useSession } from '../session';
+import { useChrome } from '../useChrome';
 
 const HERO = require('../../assets/hero.jpg');
 
@@ -45,6 +47,115 @@ export function TabFill() {
       style={StyleSheet.absoluteFill}
       pointerEvents="none"
     />
+  );
+}
+
+// Chrome theme surfaces (user-selectable glass theme): the shared
+// primitives every control-layer bar / tab row / sheet shell renders
+// through. Classic renders exactly the caller's classic values (the
+// chrome tokens' classic variant is sampled from the shipped chrome);
+// glass renders a real expo-blur BlurView under a translucent fill,
+// with the token's dark border and a gold specular highlight line
+// inset at the top edge, at the caller's radius bumped to at least
+// the glass radius. Reduce Transparency resolves to classic inside
+// useChrome, so glass layers simply never render then. Content-layer
+// surfaces (cards, badges, seat grids, dex) never use these.
+export type ChromeKind = 'bar' | 'tabs' | 'sheet';
+
+function chromeFill(kind: ChromeKind, chrome: ReturnType<typeof useChrome>['chrome']): string {
+  return kind === 'tabs' ? chrome.tabsFill : kind === 'sheet' ? chrome.sheetFill : chrome.barFill;
+}
+
+function chromeBorder(kind: ChromeKind, chrome: ReturnType<typeof useChrome>['chrome']): string {
+  return kind === 'sheet' ? chrome.sheetBorder : chrome.border;
+}
+
+// Absolute glass layers for a chrome container (the container itself
+// owns geometry / border / overflow). Renders nothing outside glass.
+export function ChromeBackdrop({ kind }: { kind: ChromeKind }) {
+  const { chrome, blurIntensity, isGlass } = useChrome();
+  if (!isGlass) return null;
+  return (
+    <>
+      <BlurView
+        intensity={blurIntensity}
+        tint="dark"
+        blurMethod="dimezisBlurViewSdk31Plus"
+        style={StyleSheet.absoluteFill}
+        pointerEvents="none"
+      />
+      <View
+        style={[StyleSheet.absoluteFill, { backgroundColor: chromeFill(kind, chrome) }]}
+        pointerEvents="none"
+      />
+      {/* Specular highlight: a gold hairline inset from the top edge */}
+      <View
+        style={{
+          position: 'absolute', top: 0, left: 16, right: 16, height: 1,
+          backgroundColor: chrome.highlight,
+        }}
+        pointerEvents="none"
+      />
+    </>
+  );
+}
+
+// A chrome container: `style` carries geometry (size / margins /
+// radius), `contentStyle` carries the inner layout (padding / row).
+// In classic both land on one plain view, so a caller's classic
+// geometry + layout compose exactly as a hand-written view did;
+// `bareClassic` skips even the classic fill/border for surfaces that
+// are transparent in classic (header rows over the backdrop) and only
+// gain a surface under glass. `radius` sets the corner radius in
+// classic and is raised to at least the glass token radius in glass.
+export function ChromeSurface({
+  kind, style, contentStyle, radius, bareClassic = false, glassPadding, children,
+}: {
+  kind: ChromeKind;
+  style?: StyleProp<ViewStyle>;
+  contentStyle?: StyleProp<ViewStyle>;
+  radius?: number;
+  bareClassic?: boolean;
+  glassPadding?: number;
+  children: React.ReactNode;
+}) {
+  const { chrome, isGlass } = useChrome();
+  if (!isGlass) {
+    if (bareClassic) return <View style={contentStyle}>{children}</View>;
+    return (
+      <View
+        style={[
+          {
+            backgroundColor: chromeFill(kind, chrome),
+            borderWidth: 1,
+            borderColor: chromeBorder(kind, chrome),
+            ...(radius !== undefined ? { borderRadius: radius } : null),
+          },
+          style,
+          contentStyle,
+        ]}
+      >
+        {children}
+      </View>
+    );
+  }
+  return (
+    <View
+      style={[
+        {
+          borderWidth: 1,
+          borderColor: chromeBorder(kind, chrome),
+          overflow: 'hidden',
+          ...(radius !== undefined ? { borderRadius: Math.max(radius, chrome.radius) } : null),
+        },
+        style,
+      ]}
+    >
+      <ChromeBackdrop kind={kind} />
+      <View style={[contentStyle, glassPadding !== undefined ? { padding: glassPadding } : null]}>
+        {children}
+      </View>
+    </View>
   );
 }
 
@@ -160,14 +271,20 @@ export function UserBar({ displayName }: { displayName?: string | null }) {
 export function SiteChrome({ displayName, backLabel }: { displayName?: string | null; backLabel?: string | null }) {
   const { text } = useSession();
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}>
+    <ChromeSurface
+      kind="bar"
+      bareClassic
+      radius={22}
+      glassPadding={10}
+      contentStyle={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}
+    >
       <Pressable onPress={() => router.navigate('/')} hitSlop={8} style={{ flexShrink: 1 }}>
         <Text numberOfLines={1} style={{ color: theme.muted, fontSize: 13, letterSpacing: 1, fontFamily: fonts.serif }}>
           {backLabel ?? `← ${text.siteTitle ?? '百业集结'}`}
         </Text>
       </Pressable>
       <UserBar displayName={displayName} />
-    </View>
+    </ChromeSurface>
   );
 }
 

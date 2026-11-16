@@ -8,7 +8,8 @@ import * as Sharing from 'expo-sharing';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchQuery, useLazyLoadQuery, useRelayEnvironment } from 'react-relay';
 import { fonts, theme, SECTS } from '../theme';
-import { Backdrop, GoldFill, GuildHeader, SiteChrome } from '../components/ui';
+import { Backdrop, ChromeBackdrop, ChromeSurface, GoldFill, GuildHeader, SiteChrome } from '../components/ui';
+import { useChrome } from '../useChrome';
 import { BLOCKS_VERSION } from '../config';
 import { DetailPageTextQuery, GroupingDetailBlocksQuery, GuildRosterQuery } from '../documents';
 import { EditGroupingFormMount, WheelColumn } from '../components/GroupingForm';
@@ -262,7 +263,8 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
     })();
   }, [shareImageUrl, shareImageBusy, shareUrl, shareImageLabel, page, data.viewer]);
   return (
-    <View style={s.headerRow}>
+    <>
+    <ChromeSurface kind="bar" bareClassic radius={22} glassPadding={10} contentStyle={s.headerRow}>
       <BackLink label={page?.detailBackToListLabel ?? '‹ 返回车队列表'} />
       {/* Action entries wrap onto extra lines instead of running off
           the right edge: this row used to be a single no-wrap row next
@@ -301,6 +303,7 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
           </Pressable>
         ) : null}
       </View>
+    </ChromeSurface>
       {showTplSave && page?.templateSave && (
         <SaveTemplateModal
           page={page}
@@ -329,7 +332,38 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
       {showNudge && page?.nudgeCopy && (
         <NudgeModal page={page} onClose={() => setShowNudge(false)} />
       )}
-    </View>
+    </>
+  );
+}
+
+// Sheet shell shared by every dialog on this screen (save-template /
+// merge / nudge / clone / join): the panel's fill, border and radius
+// come from the chrome tokens — classic keeps the shipped panel
+// values exactly (ink-2 fill, .4 gold border, 2px gold top edge,
+// radius 14); glass swaps in the translucent sheet fill over a real
+// BlurView (ChromeBackdrop), the dark sheet border and the larger
+// glass radius, with the gold top edge replaced by the backdrop's
+// inset highlight.
+function SheetPanel({ children }: { children: React.ReactNode }) {
+  const { chrome, isGlass } = useChrome();
+  return (
+    <Pressable
+      style={[
+        s.panel,
+        {
+          backgroundColor: chrome.sheetFill,
+          borderColor: chrome.sheetBorder,
+          borderRadius: Math.max(14, chrome.radius),
+          ...(isGlass
+            ? { overflow: 'hidden' as const, borderTopWidth: 1 }
+            : { borderTopWidth: 2, borderTopColor: theme.gold }),
+        },
+      ]}
+      onPress={() => {}}
+    >
+      <ChromeBackdrop kind="sheet" />
+      {children}
+    </Pressable>
   );
 }
 
@@ -370,7 +404,7 @@ function SaveTemplateModal({
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={s.overlay} onPress={onClose}>
-        <Pressable style={s.panel} onPress={() => {}}>
+        <SheetPanel>
           <Text style={s.formTitle}>{ts.dialogTitle}</Text>
           <Text style={s.label}>{ts.nameLabel}</Text>
           <TextInput
@@ -389,7 +423,7 @@ function SaveTemplateModal({
               <Text style={s.submitText}>{ts.submitLabel}</Text>
             </Pressable>
           </View>
-        </Pressable>
+        </SheetPanel>
       </Pressable>
     </Modal>
   );
@@ -441,7 +475,7 @@ function MergeModal({
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={s.overlay} onPress={onClose}>
-        <Pressable style={s.panel} onPress={() => {}}>
+        <SheetPanel>
           {!pick ? (
             <>
               <Text style={s.formTitle}>{mg.dialogTitle}</Text>
@@ -479,7 +513,7 @@ function MergeModal({
               </View>
             </>
           )}
-        </Pressable>
+        </SheetPanel>
       </Pressable>
     </Modal>
   );
@@ -508,7 +542,7 @@ function NudgeModal({
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={s.overlay} onPress={onClose}>
-        <Pressable style={s.panel} onPress={() => {}}>
+        <SheetPanel>
           <Text style={s.formTitle}>{nc.dialogTitle}</Text>
           <Text style={s.label}>{nc.hintText}</Text>
           {nc.text ? (
@@ -530,7 +564,7 @@ function NudgeModal({
               </Pressable>
             ) : null}
           </View>
-        </Pressable>
+        </SheetPanel>
       </Pressable>
     </Modal>
   );
@@ -615,7 +649,7 @@ function CloneGroupingModal({
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={s.overlay} onPress={onClose}>
-        <Pressable style={s.panel} onPress={() => {}}>
+        <SheetPanel>
           <Text style={s.formTitle}>{ca.dialogTitle}</Text>
           <Text style={s.label}>{page.formTitleLabel ?? ''}</Text>
           <TextInput
@@ -677,7 +711,7 @@ function CloneGroupingModal({
               <Text style={s.submitText}>{page.formSubmitCreateLabel ?? ''}</Text>
             </Pressable>
           </View>
-        </Pressable>
+        </SheetPanel>
       </Pressable>
     </Modal>
   );
@@ -761,7 +795,7 @@ function JoinModal({
   return (
     <Modal visible transparent animationType="fade" onRequestClose={onClose}>
       <Pressable style={s.overlay} onPress={onClose}>
-        <Pressable style={s.panel} onPress={() => {}}>
+        <SheetPanel>
           <ScrollView showsVerticalScrollIndicator={false} keyboardShouldPersistTaps="handled">
           <Text style={s.formTitle}>
             {page?.seatModalTitleTemplate ? fill(page.seatModalTitleTemplate, { n: seat + 1 }) : `报名 · ${seat + 1} 号位`}
@@ -872,7 +906,7 @@ function JoinModal({
             </Pressable>
           </View>
           </ScrollView>
-        </Pressable>
+        </SheetPanel>
       </Pressable>
     </Modal>
   );
@@ -974,11 +1008,11 @@ const s = StyleSheet.create({
     flex: 1, backgroundColor: 'rgba(6,5,4,.72)',
     alignItems: 'center', justifyContent: 'center', padding: 20,
   },
+  // Fill / border / top edge / radius are supplied by SheetPanel from
+  // the chrome tokens (classic values are exactly the ones removed here).
   panel: {
-    width: '100%', maxWidth: 420, maxHeight: '88%', backgroundColor: theme.ink2,
-    borderWidth: 1, borderColor: 'rgba(201,163,92,.4)',
-    borderTopWidth: 2, borderTopColor: theme.gold,
-    borderRadius: 14, padding: 24,
+    width: '100%', maxWidth: 420, maxHeight: '88%',
+    borderWidth: 1, borderRadius: 14, padding: 24,
   },
   formTitle: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 18, marginBottom: 4 },
   formSub: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12, marginBottom: 16 },

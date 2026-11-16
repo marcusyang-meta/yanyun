@@ -5,7 +5,7 @@
 // registered via useFonts in _layout: MaShanZheng (calligraphy display)
 // and NotoSerifSC (serif body, weights 400/600/700/900 in one family,
 // picked via fontWeight).
-import { colors, fonts as tokenFonts, gradients, radius, space } from '@yanyun/theme';
+import { chrome as chromeTokens, colors, fonts as tokenFonts, gradients, radius, space } from '@yanyun/theme';
 
 export const fonts = {
   brush: tokenFonts.brushFamily,
@@ -39,6 +39,45 @@ export const theme = {
 };
 
 export { space, radius };
+
+// User-selectable chrome theme (marcus ruling 2026-11-16: the iOS 27
+// glass look is an optional theme, never a replacement; classic is the
+// default). Only control-layer chrome (bars / tab rows / sheets) reads
+// the variant; content surfaces keep the shared tokens above in both
+// variants. The account preference arrives as Viewer.myThemePref /
+// SettingsPage.themePref ('classic' | 'glass'); anything else — unset,
+// anonymous, or a dirty stored value — resolves to classic, mirroring
+// the backend's resolveThemePref.
+export type ThemeVariant = 'classic' | 'glass';
+export type ChromeTokens = (typeof chromeTokens)[ThemeVariant];
+export const chromeVariants = chromeTokens;
+
+export function resolveThemeVariant(value: unknown): ThemeVariant {
+  return value === 'glass' ? 'glass' : 'classic';
+}
+
+// Reduce Transparency (system accessibility setting): glass chrome
+// falls back to the opaque classic chrome, same intent as the Web
+// tokens' prefers-reduced-transparency fallback.
+export function effectiveThemeVariant(variant: ThemeVariant, reduceTransparency: boolean): ThemeVariant {
+  return reduceTransparency ? 'classic' : variant;
+}
+
+export function chromeFor(variant: ThemeVariant, reduceTransparency = false): ChromeTokens {
+  return chromeTokens[effectiveThemeVariant(variant, reduceTransparency)];
+}
+
+// The token blur is a CSS-style blur radius (glass: 20); expo-blur's
+// intensity is a 1..100 scale, so the radius maps linearly (x3, capped)
+// onto it: glass 20 -> 60. Classic carries blur 0 -> no BlurView at all.
+export function blurIntensityFor(chrome: ChromeTokens): number {
+  if (!chrome.blur) return 0;
+  return Math.min(100, Math.max(1, chrome.blur * 3));
+}
+
+export function isGlassChrome(chrome: ChromeTokens): boolean {
+  return blurIntensityFor(chrome) > 0;
+}
 
 // The official 11 sects (game vocabulary; same list as SECTS in Web format.ts; used as signup weapons)
 // Note: this is domain vocabulary, not a design token, so it stays out of @yanyun/theme; extraction candidate: see repo-root README (packages/domain).

@@ -4,7 +4,8 @@ import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchQuery, useLazyLoadQuery, useRelayEnvironment } from 'react-relay';
 import { fonts, theme, SECTS } from '../theme';
-import { GoldFill } from './ui';
+import { ChromeBackdrop, GoldFill } from './ui';
+import { useChrome } from '../useChrome';
 import { LoadingView } from './AsyncBoundary';
 import { parseStartsAt } from '../week';
 import { effectiveLocaleTag } from '../locale';
@@ -269,6 +270,10 @@ export default function GroupingForm({
 }: Props) {
   const isEdit = mode === 'edit';
   const insets = useSafeAreaInsets();
+  // Bottom-sheet shell chrome: fill / border / top radii come from the
+  // chrome tokens (classic = the shipped ink-2 panel exactly; glass =
+  // translucent sheet fill over a BlurView with the larger radius).
+  const { chrome, isGlass } = useChrome();
   const now = useMemo(() => new Date(), []);
   const initDate = useMemo(() => {
     if (initial?.startsAt) {
@@ -506,7 +511,22 @@ export default function GroupingForm({
   return (
     <View style={s.overlay}>
       <Pressable style={s.dim} onPress={onClose} />
-      <View style={[s.panel, { paddingBottom: 16 + insets.bottom }]}>
+      <View
+        style={[
+          s.panel,
+          {
+            paddingBottom: 16 + insets.bottom,
+            backgroundColor: chrome.sheetFill,
+            borderColor: chrome.sheetBorder,
+            borderTopLeftRadius: Math.max(16, chrome.radius),
+            borderTopRightRadius: Math.max(16, chrome.radius),
+            ...(isGlass
+              ? { overflow: 'hidden' as const, borderTopWidth: 1, borderTopColor: chrome.sheetBorder }
+              : { borderTopWidth: 2, borderTopColor: theme.gold }),
+          },
+        ]}
+      >
+        <ChromeBackdrop kind="sheet" />
         <View style={s.head}>
           <Text style={s.headTitle}>{isEdit ? text.formEditTitle : text.formCreateTitle}</Text>
           <Pressable onPress={onClose} hitSlop={10}><Text style={s.close}>✕</Text></Pressable>
@@ -889,9 +909,10 @@ const s = StyleSheet.create({
   // Bottom sheet (on mobile the Web form is a bottom sheet; a centered desktop dialog doesn't fit phones)
   overlay: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, zIndex: 50, justifyContent: 'flex-end' },
   dim: { position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,.55)' },
+  // Fill / border / top edge / top radii are supplied at render from
+  // the chrome tokens (classic values are exactly the ones removed here).
   panel: {
-    backgroundColor: theme.ink2, borderWidth: 1, borderColor: 'rgba(201,163,92,.4)',
-    borderTopWidth: 2, borderTopColor: theme.gold,
+    borderWidth: 1,
     borderTopLeftRadius: 16, borderTopRightRadius: 16,
     paddingHorizontal: 20, paddingTop: 16, maxHeight: '88%',
   },

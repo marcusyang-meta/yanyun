@@ -24,6 +24,7 @@ import {
   ResetCalendarFeedMutation,
   UpdateGroupingMutation,
   UpdateMyLocaleMutation,
+  UpdateMyThemeMutation,
   ViewerQuery,
   UpdateGuildProfileAdminMutation,
   SetGuildAvatarAdminMutation,
@@ -79,6 +80,7 @@ import type { documentsCloneGroupingMutation } from './__generated__/documentsCl
 import type { documentsCreateGuildMutation } from './__generated__/documentsCreateGuildMutation.graphql';
 import type { documentsUpdateGroupingMutation } from './__generated__/documentsUpdateGroupingMutation.graphql';
 import type { documentsUpdateMyLocaleMutation } from './__generated__/documentsUpdateMyLocaleMutation.graphql';
+import type { documentsUpdateMyThemeMutation } from './__generated__/documentsUpdateMyThemeMutation.graphql';
 import type { documentsSubmitFeedbackMutation } from './__generated__/documentsSubmitFeedbackMutation.graphql';
 import type { documentsRegisterPushTokenMutation } from './__generated__/documentsRegisterPushTokenMutation.graphql';
 import type { documentsUnregisterPushTokenMutation } from './__generated__/documentsUnregisterPushTokenMutation.graphql';
@@ -227,6 +229,9 @@ export type ViewerData = {
   guilds: GuildItem[];
   homeRecruit: HomeRecruitData | null;
   localePref?: string | null;
+  // Effective account chrome theme ('classic' | 'glass'); the server
+  // resolves unset / anonymous to 'classic'.
+  themePref?: string | null;
   text: SiteText;
 };
 
@@ -240,6 +245,7 @@ export async function fetchViewer(): Promise<ViewerData> {
     guilds: (viewer?.guilds ?? []).map((g) => ({ ...g })),
     homeRecruit: (viewer?.homeRecruit as unknown as HomeRecruitData | undefined) ?? null,
     localePref: viewer?.myLocalePref ?? null,
+    themePref: viewer?.myThemePref ?? null,
     text: {
       siteTitle: viewer?.siteTitle,
       siteSubtitle: viewer?.siteSubtitle,
@@ -463,6 +469,21 @@ export async function createGuild(input: {
 export async function updateMyLocale(locale: string | null): Promise<LocalePayload> {
   const r = await commit<documentsUpdateMyLocaleMutation>(UpdateMyLocaleMutation, { locale });
   return r.updateMyLocale as LocalePayload;
+}
+
+export type ThemePayload = {
+  ok: boolean;
+  error?: string | null;
+  errorCode?: string | null;
+  themePref?: string | null;
+};
+
+// Account chrome theme write: the payload returns the effective theme
+// after the write (the server validates the value; an unsupported one
+// comes back ok=false with errorCode 'themeUnsupported').
+export async function updateMyTheme(theme: string): Promise<ThemePayload> {
+  const r = await commit<documentsUpdateMyThemeMutation>(UpdateMyThemeMutation, { theme });
+  return r.updateMyTheme as ThemePayload;
 }
 
 export type FeedbackCategoryInput = 'PROBLEM' | 'SUGGESTION' | 'OTHER';
