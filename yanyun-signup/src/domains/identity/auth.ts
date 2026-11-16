@@ -1,7 +1,7 @@
 import { SUPPORTED_LOCALES } from '../platform/index.ts';
 import { isPublicIdOfType } from '../platform/ids.ts';
 import { listDistinctSettingValues, parseGuildSubdomainSlug, guildSubdomainOrigin } from '../guilds/index.ts';
-import { upsertUserOnLogin, getDiscordIdByUserId, getUserLocalePref as getUserLocalePrefRepo, setUserLocalePref as setUserLocalePrefRepo, getUserGuildsJson, getOAuthGrant, getOAuthRefresh, upsertOAuthOnLogin, updateOAuthAfterRefresh, markOAuthNeedsRelogin, upsertNick as upsertNickRepo, touchNick as touchNickRepo, getNickRow, listNickRowsByUser } from './index.ts';
+import { upsertUserOnLogin, getDiscordIdByUserId, getUserLocalePref as getUserLocalePrefRepo, setUserLocalePref as setUserLocalePrefRepo, getUserThemePref as getUserThemePrefRepo, setUserThemePref as setUserThemePrefRepo, resolveThemePref, getUserGuildsJson, getOAuthGrant, getOAuthRefresh, upsertOAuthOnLogin, updateOAuthAfterRefresh, markOAuthNeedsRelogin, upsertNick as upsertNickRepo, touchNick as touchNickRepo, getNickRow, listNickRowsByUser } from './index.ts';
 import { noteFreshAuthAndSettlePending } from './account.ts';
 
 // Discord OAuth + stateless JWT session (yy_session cookie).
@@ -211,6 +211,22 @@ export async function getUserLocalePref(env: any, userId: number) {
 
 export async function setUserLocalePref(env: any, userId: number, pref: any) {
   await setUserLocalePrefRepo(env.DB, userId, pref);
+}
+
+/* ---------- UI theme preference (account-level, users.theme_pref) ----------
+ * 'classic' | 'glass'; no stored choice resolves to 'classic' (the
+ * shipped default). The getter returns the EFFECTIVE theme (never
+ * null): dirty stored values count as 'classic'. */
+export async function getUserThemePref(env: any, userId: number) {
+  try {
+    if (!env || !env.DB || !userId) return 'classic';
+    const v = await getUserThemePrefRepo(env.DB, userId);
+    return resolveThemePref(v);
+  } catch { return 'classic'; }
+}
+
+export async function setUserThemePref(env: any, userId: number, pref: any) {
+  await setUserThemePrefRepo(env.DB, userId, pref);
 }
 
 // Read the users row's server details [{id, name, icon, permissions, owner}]; no row -> null

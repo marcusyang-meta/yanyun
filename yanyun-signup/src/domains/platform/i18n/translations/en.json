@@ -829,6 +829,54 @@
       ],
       "types": []
     },
+    "V4D9QFqgTr6/nNDhVeAU7A==": {
+      "description": "Field label for the profile settings dialog, used for the UI theme (chrome variant) selector.",
+      "id": "identity/settings_themeLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Theme",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "eRsmq8V5PdxSdQgTqOyRGg==": {
+      "description": "Hint text for the theme selector in profile settings, used to explain that the theme only changes the control-layer chrome (bars, tabs, dialogs) while content stays the same, and that the choice is stored on the account and applies on web and mobile alike.",
+      "id": "identity/settings_themeHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Only the feel of the chrome — top bar, tabs and dialogs — changes; content itself stays the same. The choice is stored on your account and applies on web and mobile alike.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "FV4H243seftddjO2kYxTTQ==": {
+      "description": "Option label for the theme selector, used for the classic ink-and-gold chrome theme.",
+      "id": "identity/settings_themeClassicLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Classic",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0X26e5IKsLGde85jeZw3Vg==": {
+      "description": "Option label for the theme selector, used for the Liquid Glass chrome theme (translucent, blurred control layer in the iOS 27 style).",
+      "id": "identity/settings_themeGlassLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Glass",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
     "yG1o2yVGX6/AJF1z6BbMmQ==": {
       "description": "Error message for guild avatar uploads, used when the uploaded image exceeds 400 KB.",
       "id": "platform/errors_avatarTooLarge",
@@ -1064,6 +1112,18 @@
       "translations": [
         {
           "translation": "Unsupported language",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "b/2ysrsssL5apLeHcHPEiw==": {
+      "description": "Error message for theme settings, used when an unsupported UI theme is submitted.",
+      "id": "platform/errors_themeUnsupported",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Unsupported theme",
           "variations": {}
         }
       ],

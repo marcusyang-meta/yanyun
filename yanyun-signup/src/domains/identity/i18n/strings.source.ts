@@ -63,6 +63,10 @@ export abstract class SettingsFbtUtils {
   static langEs(fbs: FbsAPI) { return fbs("Español", "Option label for the language selector, used for the Spanish choice."); }
   static langFr(fbs: FbsAPI) { return fbs("Français", "Option label for the language selector, used for the French choice."); }
   static savedText(fbs: FbsAPI) { return fbs("已保存", "Confirmation text for profile settings, used as a transient notice after a change is saved."); }
+  static themeLabel(fbs: FbsAPI) { return fbs("主题", "Field label for the profile settings dialog, used for the UI theme (chrome variant) selector."); }
+  static themeHint(fbs: FbsAPI) { return fbs("只改变顶栏、页签与弹窗等界面框架的质感，内容本身不变；保存在你的账号里，网页与手机同步生效。", "Hint text for the theme selector in profile settings, used to explain that the theme only changes the control-layer chrome (bars, tabs, dialogs) while content stays the same, and that the choice is stored on the account and applies on web and mobile alike."); }
+  static themeClassicLabel(fbs: FbsAPI) { return fbs("经典", "Option label for the theme selector, used for the classic ink-and-gold chrome theme."); }
+  static themeGlassLabel(fbs: FbsAPI) { return fbs("玻璃", "Option label for the theme selector, used for the Liquid Glass chrome theme (translucent, blurred control layer in the iOS 27 style)."); }
   static calendarSectionTitle(fbs: FbsAPI) { return fbs("日历订阅", "Section title in profile settings for the personal calendar subscription (an iCalendar feed of the cars the member has signed up for)."); }
   static calendarHint(fbs: FbsAPI) { return fbs("把这个链接粘贴到日历应用的「订阅日历」里，你报名的车队会自动同步过去。链接包含你的专属凭证，请勿外传；怀疑泄露时可重置链接，旧链接会立即失效。", "Hint text in profile settings explaining the calendar subscription link: pasting it into a calendar app's subscribe feature syncs the member's signed-up cars automatically, the link carries a personal credential that must not be shared, and resetting the link invalidates the old one immediately."); }
   static calendarCopyLabel(fbs: FbsAPI) { return fbs("复制订阅链接", "Button label in profile settings, used to copy the personal calendar subscription link to the clipboard."); }

@@ -31,6 +31,11 @@ export const users = sqliteTable('users', {
   createdAt: text('created_at').notNull().default(sql`(strftime('%s','now'))`),
   updatedAt: text('updated_at').notNull().default(sql`(strftime('%s','now'))`),
   localePref: text('locale_pref'),
+  // UI theme (chrome variant) preference (migration 0043):
+  // 'classic' | 'glass'; NULL = no choice stored, resolves to
+  // 'classic'. Account-level so the choice follows the member across
+  // web and mobile; only control-layer chrome reads it. [alt 0043]
+  themePref: text('theme_pref'),
   // IANA timezone of the member's most recent signed-in request
   // (migration 0040), captured from the x-tz header, change-only.
   // NULL = never captured. Aggregate-only: it feeds the car home-zone

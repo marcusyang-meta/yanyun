@@ -228,6 +228,22 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "Enregistré",
       "zh-TW": "已儲存"
     },
+    "themeLabel": {
+      "zh-CN": "主题",
+      "en": "Theme"
+    },
+    "themeHint": {
+      "zh-CN": "只改变顶栏、页签与弹窗等界面框架的质感，内容本身不变；保存在你的账号里，网页与手机同步生效。",
+      "en": "Only the feel of the chrome — top bar, tabs and dialogs — changes; content itself stays the same. The choice is stored on your account and applies on web and mobile alike."
+    },
+    "themeClassicLabel": {
+      "zh-CN": "经典",
+      "en": "Classic"
+    },
+    "themeGlassLabel": {
+      "zh-CN": "玻璃",
+      "en": "Glass"
+    },
     "calendarSectionTitle": {
       "zh-CN": "日历订阅",
       "en": "Calendar subscription"
@@ -4280,6 +4296,10 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Idioma no compatible",
       "fr": "Langue non prise en charge",
       "zh-TW": "不支援的語言"
+    },
+    "themeUnsupported": {
+      "zh-CN": "不支持的主题",
+      "en": "Unsupported theme"
     },
     "pushTokenInvalid": {
       "zh-CN": "推送令牌无效",

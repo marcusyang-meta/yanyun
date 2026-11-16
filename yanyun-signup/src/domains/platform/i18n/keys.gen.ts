@@ -55,6 +55,7 @@ export type PlatformStringKey =
   | 'errors_loginRequired'
   | 'errors_loginRequiredShort'
   | 'errors_localeUnsupported'
+  | 'errors_themeUnsupported'
   | 'errors_pushTokenInvalid'
   | 'errors_guildUnboundWrite'
   | 'errors_memberOnly'
@@ -386,6 +387,7 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors_loginRequired',
   'errors_loginRequiredShort',
   'errors_localeUnsupported',
+  'errors_themeUnsupported',
   'errors_pushTokenInvalid',
   'errors_guildUnboundWrite',
   'errors_memberOnly',

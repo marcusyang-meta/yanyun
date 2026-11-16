@@ -10,7 +10,7 @@ import { getSettingValue, setSettingValue, listSettingsByKey } from '../guilds/s
 import { getTenantRow, getTenantRowById, getTenantSlug, listTenantSlugs, listTenantsDirectory } from '../guilds/tenants.ts';
 import { getOfficerGrant, parseCapabilities } from '../guilds/governance.ts';
 import { listGuildMembers, getGuildMember } from '../identity/guildMembers.ts';
-import { getUsernameRow, getUserLocalePref } from '../identity/users.ts';
+import { getUsernameRow, getUserLocalePref, getUserThemePref, resolveThemePref } from '../identity/users.ts';
 import { getLatestDungeonVersion } from '../dex/dungeons.ts';
 import { getUserServers, getGuildNick, maybeRefreshGuildNicks } from '../identity/auth.ts';
 
@@ -79,6 +79,23 @@ export function loadMyLocalePref(ctx: Context) {
     })());
   }
   return store.get('myLocalePref');
+}
+
+// Account theme preference (request-memoized): users.theme_pref. Unlike
+// the locale loader this returns the EFFECTIVE theme ('classic' |
+// 'glass'), never null: anonymous viewers and members without a stored
+// choice both get 'classic', the shipped default. Only control-layer
+// chrome consumes it.
+export function loadMyThemePref(ctx: Context) {
+  const store = ctx._memo || (ctx._memo = new Map());
+  if (!store.has('myThemePref')) {
+    store.set('myThemePref', (async () => {
+      if (!ctx.user) return 'classic';
+      const stored = await getUserThemePref(ctx.env.DB, ctx.user.userId).catch(() => null);
+      return resolveThemePref(stored);
+    })());
+  }
+  return store.get('myThemePref');
 }
 
 // Server error text: generated from the catalog by stable code + request locale
@@ -507,6 +524,12 @@ export class UpdateLocalePayloadShell extends PayloadBase {
 }
 export const uFail = (ctx: Context, code: any, effectiveLocale: any) => new UpdateLocalePayloadShell(ctx, {
   ok: false, errorCode: code, localePref: undefined, effectiveLocale,
+});
+export class UpdateThemePayloadShell extends PayloadBase {
+  genThemePref(){ return this.data.themePref || 'classic'; }
+}
+export const thFail = (ctx: Context, code: any, themePref: any) => new UpdateThemePayloadShell(ctx, {
+  ok: false, errorCode: code, themePref: themePref || 'classic',
 });
 export const gFail = (ctx: Context, code: any) => new GroupingPayloadShell(ctx, { ok: false, errorCode: code });
 export const sFail = (ctx: Context, code: any) => new SeatPayloadShell(ctx, { ok: false, errorCode: code });

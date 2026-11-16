@@ -5,7 +5,8 @@ import {
   fmtStartsAt, groupByLocalDay, TYPE_SHORT_KEY, HEALER_SECT,
 } from '../platform/index.ts';
 import { tlCalculateExcel } from '../gear/index.ts';
-import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref } from './auth.ts';
+import { getUserServers, getGuildNick, maybeRefreshGuildNicks, getUserLocalePref, setUserLocalePref, getUserThemePref, setUserThemePref } from './auth.ts';
+import { SUPPORTED_THEMES } from './users.ts';
 import { upsertGuildMember } from '../groupings/index.ts';
 import { getMemberAvailability, parseAvailabilitySlots } from '../groupings/index.ts';
 import { isValidPushToken, savePushToken, deletePushToken } from '../platform/index.ts';
@@ -62,13 +63,13 @@ import {
   enAffixSys, enMartialArtName, enClassLabel, enGearSetName,
 } from '../dex/index.ts';
 import {
-  ShellBase, defineTextGens, loadMyLocalePref, errText, assertTenant,
+  ShellBase, defineTextGens, loadMyLocalePref, loadMyThemePref, errText, assertTenant,
   getTenantSetting, setTenantSetting, isDevRequest, getServersForUser,
   serverCanManage, getGuildAccess, publishGroupingEvent, requireWrite,
   sha256hexLocal, rateLimitGql as rateLimit, getClientIp, s, roleOf, newUid,
   TAB_TO_TYPE, TYPE_TO_ENUM, GUILD_TABS, getGameVersion, getCurrentVersionCode,
   PayloadBase, GroupingPayloadShell, SeatPayloadShell, DeletePayloadShell,
-  CreateGuildPayloadShell, UpdateLocalePayloadShell, uFail, gFail, sFail, dFail, cFail,
+  CreateGuildPayloadShell, UpdateLocalePayloadShell, UpdateThemePayloadShell, uFail, thFail, gFail, sFail, dFail, cFail,
 } from '../platform/graphql-base.ts';
 import { guildResult, guildAdminResult, homeRecruitResult, fillMarketResult, guildAlliesResult } from '../guilds/index.ts';
 import { platformAdminResult } from '../platform/index.ts';
@@ -320,6 +321,11 @@ export class ViewerShell extends ShellBase {
   // locale (ctx.locale already resolved: preference > browser language > zh-CN)
   genMyLocalePref(){ return loadMyLocalePref(this.ctx); }
   genMyEffectiveLocale(){ return this.locale; }
+  // Account theme preference, effective value ('classic' | 'glass'):
+  // the app shells on both clients read this at bootstrap to pick the
+  // chrome variant; 'classic' is the default for everyone without a
+  // stored choice.
+  genMyThemePref(){ return loadMyThemePref(this.ctx); }
 }
 
 export const VIEWER_TEXT_RESOLVERS = defineTextGens(ViewerShell, [
@@ -413,6 +419,7 @@ export class SettingsAvailabilityGuildShell extends ShellBase {
 
 export class SettingsPageShell extends ShellBase {
   genLocalePref(){ return loadMyLocalePref(this.ctx); }
+  genThemePref(){ return loadMyThemePref(this.ctx); }
   genEffectiveLocale(){ return this.locale; }
   /* My availability, relocated here from the guild schedule tab
    * (marcus, 2026-10-27: availability is personal data, edited in
@@ -487,6 +494,10 @@ export const SETTINGS_TEXT_RESOLVERS = defineTextGens(SettingsPageShell, [
   ['settingsTitle', 'settings_title'],
   ['settingsDiscordLabel', 'settings_discordLabel'],
   ['settingsLanguageLabel', 'settings_languageLabel'],
+  ['settingsThemeLabel', 'settings_themeLabel'],
+  ['settingsThemeHint', 'settings_themeHint'],
+  ['settingsThemeClassicLabel', 'settings_themeClassicLabel'],
+  ['settingsThemeGlassLabel', 'settings_themeGlassLabel'],
   ['settingsLanguageHint', 'settings_languageHint'],
   ['settingsAutoLabel', 'settings_autoLabel'],
   ['settingsLangZhCnLabel', 'settings_langZhCn'],
@@ -712,6 +723,22 @@ export const identityResolvers = {
       });
     },
 
+    /* UI theme (chrome variant): 'classic' | 'glass', stored on the
+     * account so the choice follows the member across web and mobile.
+     * No "automatic" state — an unset preference already resolves to
+     * 'classic' on read, so the mutation only accepts the two values. */
+    updateMyTheme: async (_: any, { theme }: any, ctx: Context) => {
+      if (!ctx.user) return thFail(ctx, 'loginRequired', 'classic');
+      if (!SUPPORTED_THEMES.includes(theme)) {
+        const current = await getUserThemePref(ctx.env, ctx.user.userId);
+        return thFail(ctx, 'themeUnsupported', current);
+      }
+      await setUserThemePref(ctx.env, ctx.user.userId, theme);
+      return new UpdateThemePayloadShell(ctx, {
+        ok: true, errorCode: null, themePref: theme,
+      });
+    },
+
     /* Account self-service: export + deletion. All gates (fresh auth,
      * rate limit, typed-name confirmation, cooling-off) live in the
      * identity account service; these resolvers only adapt payloads. */
@@ -746,6 +773,7 @@ export const identityResolvers = {
   SettingsPage: {
     localePref: (p: any) => p.genLocalePref(),
     effectiveLocale: (p: any) => p.genEffectiveLocale(),
+    themePref: (p: any) => p.genThemePref(),
     freshAuthAt: (p: any) => p.genFreshAuthAt(),
     accountPendingDeletion: (p: any) => p.genAccountPendingDeletion(),
     seasonGoals: (p: SettingsPageShell) => p.genSeasonGoals(),
@@ -817,10 +845,17 @@ export const identityResolvers = {
     localePref: (p: any) => p.genLocalePref(),
     effectiveLocale: (p: any) => p.genEffectiveLocale(),
   },
+  UpdateThemePayload: {
+    ok: (p: any) => p.genOk(),
+    error: (p: any) => p.genError(),
+    errorCode: (p: any) => p.genErrorCode(),
+    themePref: (p: any) => p.genThemePref(),
+  },
 
   Viewer: {
     myLocalePref: (p: any) => p.genMyLocalePref(),
     myEffectiveLocale: (p: any) => p.genMyEffectiveLocale(),
+    myThemePref: (p: any) => p.genMyThemePref(),
     user: (p: any) => p.genUser(),
     guilds: (p: any) => p.genGuilds(),
     guild: (p: any, { slug }: any) => p.genGuild({ slug }),
