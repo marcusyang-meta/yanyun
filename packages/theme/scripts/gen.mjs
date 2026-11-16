@@ -13,6 +13,7 @@ export const gradients = ${JSON.stringify(data.gradients, null, 2)} as const;
 export const fonts = ${JSON.stringify(data.fonts, null, 2)} as const;
 export const space = ${JSON.stringify(data.space, null, 2)} as const;
 export const radius = ${JSON.stringify(data.radius, null, 2)} as const;
+export const chrome = ${JSON.stringify(data.chrome, null, 2)} as const;
 `;
 writeFileSync(new URL('../src/tokens.ts', import.meta.url), ts);
 
@@ -21,6 +22,19 @@ for (const [k, v] of Object.entries(data.colors)) css += `  --${kebab(k)}: ${v};
 css += `  --card-bg: linear-gradient(160deg, ${data.gradients.card[0]}, ${data.gradients.card[1]});\n`;
 css += `  --font-brush: ${data.fonts.brushStack};\n`;
 css += `  --font-serif: ${data.fonts.serifStack};\n`;
+/* Chrome (control-layer) variants: :root carries the classic theme;
+ * [data-theme="glass"] swaps in the Liquid Glass chrome values.
+ * Content-layer vars above never change between themes. */
+for (const [k, v] of Object.entries(data.chrome.classic)) css += `  --chrome-${kebab(k)}: ${v};\n`;
+css += '}\n:root[data-theme="glass"] {\n';
+for (const [k, v] of Object.entries(data.chrome.glass)) css += `  --chrome-${kebab(k)}: ${v};\n`;
 css += '}\n';
+/* Reduced transparency: glass chrome falls back to the opaque classic
+ * sheet surface so text over chrome stays legible. */
+css += '@media (prefers-reduced-transparency: reduce) {\n  :root[data-theme="glass"] {\n';
+css += `    --chrome-bar-fill: ${data.chrome.classic.sheetFill};\n`;
+css += `    --chrome-tabs-fill: ${data.chrome.classic.sheetFill};\n`;
+css += `    --chrome-sheet-fill: ${data.chrome.classic.sheetFill};\n`;
+css += '    --chrome-blur: 0;\n  }\n}\n';
 writeFileSync(new URL('../src/tokens.css', import.meta.url), css);
 console.log('tokens.ts + tokens.css generated');

@@ -52,3 +52,25 @@ export const radius = {
   "sm": 8,
   "xl": 16
 } as const;
+export const chrome = {
+  "classic": {
+    "barFill": "rgba(12,11,9,.94)",
+    "tabsFill": "rgba(201,163,92,.06)",
+    "sheetFill": "#14120e",
+    "border": "rgba(201,163,92,.22)",
+    "sheetBorder": "rgba(201,163,92,.4)",
+    "highlight": "rgba(0,0,0,0)",
+    "blur": 0,
+    "radius": 12
+  },
+  "glass": {
+    "barFill": "rgba(18,15,11,.55)",
+    "tabsFill": "rgba(18,15,11,.45)",
+    "sheetFill": "rgba(20,17,12,.68)",
+    "border": "rgba(0,0,0,.55)",
+    "sheetBorder": "rgba(0,0,0,.6)",
+    "highlight": "rgba(236,210,143,.35)",
+    "blur": 20,
+    "radius": 22
+  }
+} as const;
