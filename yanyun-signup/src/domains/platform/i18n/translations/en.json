@@ -13767,13 +13767,13 @@
       ],
       "types": []
     },
-    "dO5Vh732vNj/bTPe4+/GNQ==": {
+    "6/gJlibPJrtMvm9wREWXaA==": {
       "description": "Error message for backup operations, used when the R2 BACKUPS binding is not configured on the Worker.",
       "id": "platform/errors_backupStorageMissing",
       "tokens": [],
       "translations": [
         {
-          "translation": "Backup storage (R2 BACKUPS binding) is not configured",
+          "translation": "Backup storage is not configured",
           "variations": {}
         }
       ],
@@ -17043,13 +17043,13 @@
       ],
       "types": []
     },
-    "W6XeI3ESfshqNKySa4Gx7Q==": {
+    "7ySJLa6TOEVXFIyhQa/Zew==": {
       "description": "Body text for the locked demand area, used to explain posting requests and inviting suppliers needs the top tier while publishing supply and answering invitations stay free.",
       "id": "guilds/market_demandLockedBody",
       "tokens": [],
       "translations": [
         {
-          "translation": "Posting fill requests, browsing and inviting fill-in candidates requires your guild to be on the Guildmaster tier (T3). Publishing fill-in supply and answering invitations you receive are not tier-limited and stay free for all members.",
+          "translation": "Posting fill requests, browsing and inviting fill-in candidates requires your guild to be on the Guildmaster tier. Publishing fill-in supply and answering invitations you receive are not tier-limited and stay free for all members.",
           "variations": {}
         }
       ],
@@ -18135,13 +18135,13 @@
       ],
       "types": []
     },
-    "WPAcaKogzi5uWGTSKO7jiA==": {
+    "RPrlKl6yxdd3yOhQkE+c9w==": {
       "description": "Status text for backups on the platform admin page, used when the R2 BACKUPS binding is not configured on the Worker.",
       "id": "platform/platformAdmin_backupsUnavailableText",
       "tokens": [],
       "translations": [
         {
-          "translation": "Backup storage (R2 BACKUPS binding) is not configured",
+          "translation": "Backup storage is not configured",
           "variations": {}
         }
       ],
