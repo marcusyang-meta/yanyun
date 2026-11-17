@@ -13,7 +13,7 @@ export interface FooterText {
 export default function SiteFooter({ text }: { text: FooterText }) {
   if (!text || !text.disclaimer) return null;
   return (
-    <footer style={{ maxWidth: 860, margin: '0 auto', padding: '30px 20px 38px', textAlign: 'center' }}>
+    <footer className="yy-site-footer">
       <p style={{ color: theme.muted, fontSize: 12, lineHeight: 1.8, margin: '0 0 12px' }}>
         {text.disclaimer}
       </p>
