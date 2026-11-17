@@ -376,12 +376,13 @@ body {
   display: flex;
   align-items: center;
   justify-content: flex-start;
+  flex-wrap: wrap;
   gap: 10px;
   margin: 10px 0 12px;
 }
 /* The portal target: collapses away entirely while no filter is
    mounted (every non-team tab), so the row is just the tab capsule. */
-.yy-filter-slot { display: flex; }
+.yy-filter-slot { display: flex; flex-shrink: 0; }
 .yy-filter-slot:empty { display: none; }
 
 /* ---------- tabs (一级页签: 分段控件, 层级必须压过二级筛选项) ---------- */
@@ -399,6 +400,7 @@ body {
   border: 1px solid var(--chrome-border);
   border-radius: 999px;
   position: relative;
+  flex-shrink: 0;
   backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
   -webkit-backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
   box-shadow: inset 0 1px 0 var(--chrome-highlight), 0 10px 28px rgba(0,0,0,.38);
@@ -413,6 +415,13 @@ body {
   color: rgba(236,226,203,.55);
   cursor: pointer;
   position: relative;
+  /* A pill label must never wrap: without nowrap + shrink protection
+     the row's flex layout crushes the active pill and its CJK label
+     stacks character-over-character into a tall oval whenever both
+     capsules share the row at desktop widths (production defect —
+     the protection used to exist only inside the <=640px block). */
+  white-space: nowrap;
+  flex-shrink: 0;
   transition: color .25s ease, background .25s ease, box-shadow .25s ease;
   -webkit-tap-highlight-color: transparent;
 }
@@ -438,6 +447,7 @@ body {
   border: 1px solid var(--chrome-border);
   border-radius: 999px;
   position: relative;
+  flex-shrink: 0;
   backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
   -webkit-backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
   box-shadow: inset 0 1px 0 var(--chrome-highlight), 0 10px 28px rgba(0,0,0,.38);
@@ -452,6 +462,7 @@ body {
   font-size: 13px;
   cursor: pointer;
   white-space: nowrap;
+  flex-shrink: 0;
   transition: color .2s ease, background .2s ease, box-shadow .2s ease;
   -webkit-tap-highlight-color: transparent;
 }
@@ -881,7 +892,7 @@ body {
   .yy-tab { padding: 7px 14px; font-size: 15px; }
   /* The floating row scrolls sideways as one strip instead of
      wrapping the capsules onto two lines. */
-  .yy-tabs-float { justify-content: flex-start; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
+  .yy-tabs-float { justify-content: flex-start; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
   .yy-tabs-float::-webkit-scrollbar { display: none; }
   .yy-tabs, .yy-filter-capsule { flex-shrink: 0; }
 
