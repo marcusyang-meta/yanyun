@@ -31,7 +31,8 @@ import type { documentsDetailPageTextQuery } from '../__generated__/documentsDet
 import type { documentsGuildRosterQuery } from '../__generated__/documentsGuildRosterQuery.graphql';
 
 // Page skeleton mirrors the Web detail page: header row (back link +
-// UserBar) -> guild name + version row -> back-to-list gold link -> block
+// the UserBar slot, empty while signed in) -> guild name + version
+// row -> back-to-list gold link -> block
 // tree (title/meta/hint/roster/action buttons). The content area is the
 // server-supplied typed block tree (GroupingDetailPage.blocks).
 // Permissions are not rebuilt client-side: only the leader receives the
@@ -151,7 +152,7 @@ export default function GroupingDetailScreen({ slug, id, nick, guildName, gameVe
     <View style={s.root}>
       <Backdrop />
       <View style={[s.headZone, { paddingTop: 12 + insets.top }]}>
-        <SiteChrome displayName={nick || undefined} backLabel={guilds.find((g) => g.slug === slug)?.pageBackLabel} />
+        <SiteChrome backLabel={guilds.find((g) => g.slug === slug)?.pageBackLabel} />
         {!!guildName && <GuildHeader name={guildName} version={gameVersion} />}
         <Suspense fallback={<BackLink label="‹ 返回车队列表" />}>
           <BackLinkLive slug={slug} id={id} />

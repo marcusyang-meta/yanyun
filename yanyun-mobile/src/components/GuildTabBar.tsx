@@ -107,9 +107,9 @@ export function GuildTabBar({
                   )}
                   {/* Every entry — profile included — renders its line
                       icon from the one icon system; the capsule never
-                      shows the photo avatar. The guild home's top bar
-                      carries no avatar either (SiteChrome hideAvatar),
-                      so this icon is the screen's one personal entry. */}
+                      shows the photo avatar. No top bar in the app
+                      renders an avatar either, so this icon is the
+                      app's one personal entry. */}
                   <Ionicons
                     name={iconName}
                     size={24}

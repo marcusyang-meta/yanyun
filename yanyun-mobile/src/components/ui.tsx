@@ -216,15 +216,16 @@ export function Seal({ char, size, brush = true }: { char: string; size: number;
   );
 }
 
-// The personal entry is a single round gold-bordered avatar (or an
-// initial circle when there is no avatar): no name, no spread-out
-// buttons, no pill. Tapping it opens the Profile page, which holds
-// every account option (identity, language, gear library,
-// availability, feedback, account, sign-out). Signed out — guild
-// pages are reachable by deep link without a session — the entry is
-// one compact login button routing to the entry gate, which renders
-// the login screen.
-export function UserBar({ displayName, hideAvatar = false }: { displayName?: string | null; hideAvatar?: boolean }) {
+// The chrome row's user slot carries exactly one thing: the
+// signed-out login entry. Signed-in users get no top-right avatar
+// anywhere in the app (marcus ruling 2026-11-17) — the one personal
+// entry is the guild home capsule's profile line icon, routing to
+// the Profile page, which holds every account option (identity,
+// language, gear library, availability, feedback, account,
+// sign-out). Signed out — guild pages are reachable by deep link
+// without a session — the entry is one compact login button routing
+// to the entry gate, which renders the login screen.
+export function UserBar() {
   const { user, text } = useSession();
   if (!user) {
     return (
@@ -241,33 +242,12 @@ export function UserBar({ displayName, hideAvatar = false }: { displayName?: str
       </Pressable>
     );
   }
-  // hideAvatar: the signed-in avatar renders nothing at all. The
-  // signed-out login button above is unaffected — it is not an avatar.
-  if (hideAvatar) return null;
-  const name = displayName ?? user.name;
-  return (
-    <Pressable onPress={() => router.push('/profile')} hitSlop={6}>
-      {user.avatar ? (
-        <Image
-          source={{ uri: user.avatar }}
-          style={{ width: 40, height: 40, borderRadius: 20, borderWidth: 1, borderColor: theme.gold }}
-        />
-      ) : (
-        <View
-          style={{
-            width: 40, height: 40, borderRadius: 20, backgroundColor: '#3a2c17',
-            alignItems: 'center', justifyContent: 'center',
-            borderWidth: 1, borderColor: theme.gold,
-          }}
-        >
-          <Text style={{ color: theme.goldHi, fontSize: 17, fontFamily: fonts.serif }}>{name.slice(0, 1)}</Text>
-        </View>
-      )}
-    </Pressable>
-  );
+  return null;
 }
 
-// Web guild header row: left back link to the guild picker, right UserBar.
+// Web guild header row: left back link to the guild picker, right the
+// UserBar slot (a login entry when signed out, nothing when signed
+// in — no page renders a top-right avatar; see UserBar).
 // The back label is the guild's server-composed chrome copy (pageBackLabel:
 // platform-named only while the guild shows platform branding); without one
 // it falls back to the platform label, as before.
@@ -276,12 +256,7 @@ export function UserBar({ displayName, hideAvatar = false }: { displayName?: str
 // plain row over the backdrop, never a glass surface): the guild home
 // uses it because under the IG-style layout the floating bottom
 // capsule is that screen's only glass surface.
-//
-// `hideAvatar` drops the top-right avatar entirely: the guild home
-// passes it so the screen carries no avatar at all — its capsule's
-// profile entry (a line icon) is the one personal entry. Other pages
-// (grouping detail) omit it and keep the avatar entry as before.
-export function SiteChrome({ displayName, backLabel, solid = false, hideAvatar = false }: { displayName?: string | null; backLabel?: string | null; solid?: boolean; hideAvatar?: boolean }) {
+export function SiteChrome({ backLabel, solid = false }: { backLabel?: string | null; solid?: boolean }) {
   const { text } = useSession();
   const row = (
     <>
@@ -290,7 +265,7 @@ export function SiteChrome({ displayName, backLabel, solid = false, hideAvatar =
           {backLabel ?? `← ${text.siteTitle ?? '百业集结'}`}
         </Text>
       </Pressable>
-      <UserBar displayName={displayName} hideAvatar={hideAvatar} />
+      <UserBar />
     </>
   );
   const rowStyle = { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 } as const;
