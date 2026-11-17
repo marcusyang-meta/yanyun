@@ -3058,6 +3058,14 @@ type Guild {
   # 口径, 含 omni) 的查看者才下发; 其余成员为 null, 主页不渲染入口 —
   # 进不去的入口不广告。可空即为此意, 勿改回 String!。
   homeAdminLabel: String
+  # 左栏收敛 (IG 网页版形态): 入口列末尾的「我的」入口 (头像作图标,
+  # 打开个人设置) 与栏底「更多」菜单 (切换外观 + 退出登录) 的文案;
+  # 外观当前态的主题名与设置面共用同一目录词条, 不另造词。
+  homeRailProfileLabel: String!
+  homeRailMoreLabel: String!
+  homeRailAppearanceLabel: String!
+  homeRailThemeClassicLabel: String!
+  homeRailThemeGlassLabel: String!
   detailNotFoundText: String!
   detailBackToListLabel: String!
   # 白标 chrome 组合 (Premium 第一梯队, 不挂 gate): 服务端按本百业的

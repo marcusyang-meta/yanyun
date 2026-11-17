@@ -274,6 +274,15 @@ export abstract class GuildHomeFbtUtils {
 	static tabAllies(fbs: FbsRuntime) {
 		return fbs._("盟友", null, { hk: "2c0jVq" });
 	}
+	static railProfile(fbs: FbsRuntime) {
+		return fbs._("我的", null, { hk: "4xsEj" });
+	}
+	static railMore(fbs: FbsRuntime) {
+		return fbs._("更多", null, { hk: "2VisDN" });
+	}
+	static railAppearance(fbs: FbsRuntime) {
+		return fbs._("切换外观", null, { hk: "gOacS" });
+	}
 }
 export abstract class GroupingTypeFbtUtils {
 	static tabAll(fbs: FbsRuntime) {
@@ -5589,6 +5598,9 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"guildHome_tabSchedule": GuildHomeFbtUtils.tabSchedule,
 	"guildHome_tabMarket": GuildHomeFbtUtils.tabMarket,
 	"guildHome_tabAllies": GuildHomeFbtUtils.tabAllies,
+	"guildHome_railProfile": GuildHomeFbtUtils.railProfile,
+	"guildHome_railMore": GuildHomeFbtUtils.railMore,
+	"guildHome_railAppearance": GuildHomeFbtUtils.railAppearance,
 	"groupingType_tabAll": GroupingTypeFbtUtils.tabAll,
 	"groupingType_tabActivity": GroupingTypeFbtUtils.tabActivity,
 	"groupingType_tabTalent": GroupingTypeFbtUtils.tabTalent,

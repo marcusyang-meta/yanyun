@@ -1524,6 +1524,10 @@ type SettingsPage {
   settingsLangEsLabel: String!
   settingsLangFrLabel: String!
   settingsSavedText: String!
+  settingsThemeLabel: String!
+  settingsThemeHint: String!
+  settingsThemeClassicLabel: String!
+  settingsThemeGlassLabel: String!
   # 意见反馈: 个人资料内的入口 + 表单文案 (类别枚举见 FeedbackCategory)
   feedbackEntryLabel: String!
   feedbackTitle: String!
@@ -1537,6 +1541,7 @@ type SettingsPage {
   feedbackSuccessText: String!
   localePref: String
   effectiveLocale: String!
+  themePref: String!
   # ---- 我的数据 (账号导出 / 删除自助) ----
   accountSectionTitle: String!
   accountExportLabel: String!
@@ -1706,6 +1711,19 @@ type UpdateLocalePayload {
 extend type Mutation {
   # locale 为 null 时清除偏好 (回自动); 有值必须是受支持 locale id
   updateMyLocale(locale: String): UpdateLocalePayload!
+}
+
+type UpdateThemePayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  # 操作后的有效主题 (classic / glass)
+  themePref: String!
+}
+
+extend type Mutation {
+  # theme 必须是受支持的主题 id (classic / glass); 无「自动」态, 未设置时读取即 classic
+  updateMyTheme(theme: String!): UpdateThemePayload!
 }
 
 type ExportMyDataPayload {
@@ -3040,6 +3058,14 @@ type Guild {
   # 口径, 含 omni) 的查看者才下发; 其余成员为 null, 主页不渲染入口 —
   # 进不去的入口不广告。可空即为此意, 勿改回 String!。
   homeAdminLabel: String
+  # 左栏收敛 (IG 网页版形态): 入口列末尾的「我的」入口 (头像作图标,
+  # 打开个人设置) 与栏底「更多」菜单 (切换外观 + 退出登录) 的文案;
+  # 外观当前态的主题名与设置面共用同一目录词条, 不另造词。
+  homeRailProfileLabel: String!
+  homeRailMoreLabel: String!
+  homeRailAppearanceLabel: String!
+  homeRailThemeClassicLabel: String!
+  homeRailThemeGlassLabel: String!
   detailNotFoundText: String!
   detailBackToListLabel: String!
   # 白标 chrome 组合 (Premium 第一梯队, 不挂 gate): 服务端按本百业的
@@ -3092,6 +3118,8 @@ type Viewer {
   # 账号级语言偏好 (null = 自动跟随浏览器) 与本请求实际生效 locale
   myLocalePref: String
   myEffectiveLocale: String!
+  # 账号级主题偏好 (已解析的有效值: classic 经典 / glass 玻璃; 无存储选择 = classic)
+  myThemePref: String!
   pickerMyGuildsLabel: String!
   pickerMyGuildsEnLabel: String!
   pickerEmptyTitle: String!

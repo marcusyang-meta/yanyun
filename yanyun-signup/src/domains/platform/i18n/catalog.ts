@@ -536,6 +536,18 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     "tabAllies": {
       "zh-CN": "盟友",
       "en": "Allies"
+    },
+    "railProfile": {
+      "zh-CN": "我的",
+      "en": "Profile"
+    },
+    "railMore": {
+      "zh-CN": "更多",
+      "en": "More"
+    },
+    "railAppearance": {
+      "zh-CN": "切换外观",
+      "en": "Switch appearance"
     }
   },
   "groupingType": {

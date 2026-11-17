@@ -13395,6 +13395,42 @@
       ],
       "types": []
     },
+    "EuCf2NkmCQAykmL90Xu1Dw==": {
+      "description": "Navigation label for the guild home page's left rail, used for the profile entry at the end of the entry list (its icon is the viewer's own avatar); opens the personal settings dialog.",
+      "id": "guilds/guildHome_railProfile",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Profile",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "AaBjARE7yHDzl+UkWQ3cbg==": {
+      "description": "Button label for the guild home page's left rail, used for the more menu at the bottom of the rail, which holds the appearance switch and sign-out.",
+      "id": "guilds/guildHome_railMore",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "More",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "it+BJYA+YjRIGqG6J7J1Xw==": {
+      "description": "Menu item label for the guild home page's left rail more menu, used to switch the UI theme between the classic and glass chrome; the current theme's name is shown beside it.",
+      "id": "guilds/guildHome_railAppearance",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Switch appearance",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
     "aT43Gau4A7oEsBG6mL5pdA==": {
       "description": "Progress text for the squad detail page, used to show how many seated members are marked ready, where {ready} is the ready count and {occupied} the seated count.",
       "id": "groupings/groupingDetail_readyProgress",

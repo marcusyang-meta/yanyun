@@ -42,6 +42,9 @@ export abstract class GuildHomeFbtUtils {
   static tabSchedule(fbs: FbsAPI) { return fbs("排期", "Tab label for the guild home page, used to switch to the schedule tab."); }
   static tabMarket(fbs: FbsAPI) { return fbs("补位市场", "Tab label for the guild home page, used to switch to the fill-in market tab."); }
   static tabAllies(fbs: FbsAPI) { return fbs("盟友", "Tab label for the guild home page, used to switch to the allied guilds tab."); }
+  static railProfile(fbs: FbsAPI) { return fbs("我的", "Navigation label for the guild home page's left rail, used for the profile entry at the end of the entry list (its icon is the viewer's own avatar); opens the personal settings dialog."); }
+  static railMore(fbs: FbsAPI) { return fbs("更多", "Button label for the guild home page's left rail, used for the more menu at the bottom of the rail, which holds the appearance switch and sign-out."); }
+  static railAppearance(fbs: FbsAPI) { return fbs("切换外观", "Menu item label for the guild home page's left rail more menu, used to switch the UI theme between the classic and glass chrome; the current theme's name is shown beside it."); }
 }
 
 export abstract class GuildAdminFbtUtils {
