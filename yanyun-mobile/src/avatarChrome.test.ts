@@ -1,14 +1,17 @@
 import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 
-// Avatar placement contract (marcus ruling 2026-11-17): the guild home
-// carries NO photo avatar anywhere — the top bar drops its top-right
-// avatar entirely, and the bottom capsule's profile entry renders the
-// shared person line icon like every other entry, so the capsule icon
-// is the screen's one personal entry. Other pages keep the top-bar
-// avatar. These are source contracts (the repo's established stand-in
-// for component render assertions under the Node test harness): they
-// pin the exact wiring that produces the rendered output.
+// Avatar placement contract (marcus rulings 2026-11-17): NO page in
+// the app renders the user's photo avatar in its chrome — the top
+// bar's user slot (UserBar, reached directly or through SiteChrome)
+// renders only the signed-out login entry, and the guild home's
+// bottom capsule profile entry renders the shared person line icon
+// like every other entry, making that icon the app's one personal
+// entry. There is no per-page variant: the avatar branch is gone,
+// not gated. These are source contracts (the repo's established
+// stand-in for component render assertions under the Node test
+// harness): they pin the exact wiring that produces the rendered
+// output.
 const read = (rel: string) => readFileSync(new URL(rel, import.meta.url), 'utf8');
 
 function jsxTag(source: string, name: string): string {
@@ -16,6 +19,14 @@ function jsxTag(source: string, name: string): string {
   expect(start, `<${name}> usage`).toBeGreaterThanOrEqual(0);
   const end = source.indexOf('/>', start);
   expect(end, `<${name}> self-closing tag`).toBeGreaterThan(start);
+  return source.slice(start, end);
+}
+
+function functionSpan(source: string, startMarker: string, endMarker: string): string {
+  const start = source.indexOf(startMarker);
+  expect(start, startMarker).toBeGreaterThanOrEqual(0);
+  const end = source.indexOf(endMarker, start);
+  expect(end, endMarker).toBeGreaterThan(start);
   return source.slice(start, end);
 }
 
@@ -37,30 +48,45 @@ describe('GuildTabBar capsule: profile entry is a line icon, never a photo', () 
   });
 });
 
-describe('guild home top bar: no avatar; other pages keep theirs', () => {
+describe('top bar: no avatar on any page, no variant', () => {
   const ui = read('./components/ui.tsx');
+  const userBar = functionSpan(ui, 'export function UserBar', 'export function SiteChrome');
 
-  it('SiteChrome accepts hideAvatar and forwards it to UserBar', () => {
-    expect(ui).toContain('hideAvatar = false');
-    expect(ui).toContain('<UserBar displayName={displayName} hideAvatar={hideAvatar} />');
+  it('UserBar renders no avatar and no profile link — only the signed-out login entry', () => {
+    expect(userBar).not.toMatch(/<Image\b/);
+    expect(userBar).not.toContain('user.avatar');
+    expect(userBar).not.toContain("'/profile'");
+    // The signed-out login button is not an avatar and survives.
+    expect(userBar).toContain('if (!user)');
+    expect(userBar).toContain('loginButtonLabel');
+    expect(userBar).toContain('return null;');
   });
 
-  it('UserBar renders nothing for a signed-in user when hideAvatar, after the signed-out branch', () => {
-    // The signed-out login button is not an avatar and must survive:
-    // the hideAvatar early return sits after the `if (!user)` branch.
-    const signedOutBranch = ui.indexOf('if (!user)');
-    const hideReturn = ui.indexOf('if (hideAvatar) return null;');
-    expect(signedOutBranch).toBeGreaterThanOrEqual(0);
-    expect(hideReturn).toBeGreaterThan(signedOutBranch);
+  it('SiteChrome renders the bare UserBar slot', () => {
+    expect(ui).toContain('<UserBar />');
   });
 
-  it('the guild home opts in with hideAvatar on its SiteChrome', () => {
+  it('the hideAvatar variant from the home-only round is abolished everywhere', () => {
+    for (const rel of [
+      './components/ui.tsx',
+      './components/GuildTabBar.tsx',
+      './screens/GroupingListScreen.tsx',
+      './screens/GroupingDetailScreen.tsx',
+      './screens/GuildsScreen.tsx',
+    ]) {
+      expect(read(rel), rel).not.toContain('hideAvatar');
+    }
+  });
+
+  it('no SiteChrome usage passes an identity prop into the bar', () => {
     const home = read('./screens/GroupingListScreen.tsx');
-    expect(jsxTag(home, 'SiteChrome')).toContain('hideAvatar');
+    const detail = read('./screens/GroupingDetailScreen.tsx');
+    expect(jsxTag(home, 'SiteChrome')).not.toContain('displayName');
+    expect(jsxTag(detail, 'SiteChrome')).not.toContain('displayName');
   });
 
-  it('the grouping detail page does not opt in — its avatar entry is unchanged', () => {
-    const detail = read('./screens/GroupingDetailScreen.tsx');
-    expect(jsxTag(detail, 'SiteChrome')).not.toContain('hideAvatar');
+  it('the guild picker uses the same bare UserBar slot', () => {
+    const picker = read('./screens/GuildsScreen.tsx');
+    expect(picker).toContain('<UserBar />');
   });
 });

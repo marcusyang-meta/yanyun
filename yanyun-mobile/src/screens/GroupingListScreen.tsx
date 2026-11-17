@@ -28,8 +28,8 @@ import { useGuildLive } from '../live';
 import type { documentsGroupingListBlocksQuery } from '../__generated__/documentsGroupingListBlocksQuery.graphql';
 
 // Page skeleton mirrors Web GuildHome: header row (back link only —
-// SiteChrome hideAvatar: this screen carries no avatar; the capsule's
-// profile line icon is its one personal entry) -> guild name
+// no page renders a top-right avatar; the capsule's profile line
+// icon is this screen's one personal entry) -> guild name
 // (calligraphy 42) + version row -> the active
 // section panel. Section switching lives in the floating bottom
 // capsule (GuildTabBar, IG-style): 组队/攻略/公告/排期/我的, built
@@ -146,7 +146,7 @@ export default function GroupingListScreen({ slug, name, nick, gameVersion, avat
     <View style={s.root}>
       <Backdrop />
       <View style={[s.headZone, { paddingTop: 12 + insets.top }]}>
-        <SiteChrome solid hideAvatar displayName={nick || undefined} backLabel={guildItem?.pageBackLabel} />
+        <SiteChrome solid backLabel={guildItem?.pageBackLabel} />
         <Suspense fallback={<GuildHeader name={name} version={gameVersion} avatarUrl={avatarUrl} />}>
           <GuildHeaderLive slug={slug} name={name} fallbackVersion={gameVersion} avatarUrl={avatarUrl} />
         </Suspense>
