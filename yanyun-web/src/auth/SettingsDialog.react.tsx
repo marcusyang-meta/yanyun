@@ -4,7 +4,7 @@ import { graphql, useLazyLoadQuery, useMutation, useRelayEnvironment } from 'rea
 import { fetchQuery } from 'relay-runtime';
 import { theme } from '../lib/format';
 import { writePrefMirror, emitLocaleChanged } from '../lib/locale';
-import { applyTheme, resolveThemePref, writeThemeMirror, writeThemeBackToStore, type ThemePref } from '../lib/theme';
+import { applyTheme, resolveThemePref, syncThemeFromServer, writeThemeMirror, writeThemeBackToStore, type ThemePref } from '../lib/theme';
 import { useIsMobile } from '../lib/useIsMobile';
 import type { ViewerUser } from '../lib/user';
 import GearLibrary from '../guild/components/GearLibrary.react.tsx';
@@ -795,6 +795,21 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage, logoutTe
     if (themePicked !== null && themePicked === serverTheme) setThemePicked(null);
   }, [themePicked, serverTheme]);
   const currentTheme: ThemePref = themePicked ?? serverTheme;
+
+  /* Close-out convergence: when this dialog unmounts (closes), the
+   * page behind it must show the server theme — re-sync the root
+   * data-theme and the mirror from the latest server value seen here.
+   * The dialog's own shell is part of the chrome it switches, and a
+   * divergence between the applied attribute and the store value
+   * (see AppRoot's reconciliation note) otherwise survives the close:
+   * the member reopens settings, sees their pick selected, and the
+   * page behind stays on the other theme. The ref tracks the latest
+   * serverTheme (post-write-back) so the cleanup never re-applies a
+   * stale snapshot; a pick still in flight at close time is left to
+   * its own completion handler, which applies the confirmed value. */
+  const serverThemeRef = useRef(serverTheme);
+  serverThemeRef.current = serverTheme;
+  useEffect(() => () => { syncThemeFromServer(serverThemeRef.current); }, []);
 
   const themeOptions: { value: ThemePref; label: string }[] = [
     { value: 'classic', label: page.settingsThemeClassicLabel },
