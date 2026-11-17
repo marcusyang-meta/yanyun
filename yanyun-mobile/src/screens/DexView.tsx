@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLazyLoadQuery } from 'react-relay';
 import { fonts, theme } from '../theme';
 import { CardFill, Seal } from '../components/ui';
+import { TAB_BAR_CLEARANCE } from '../components/GuildTabBar';
 import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
 import { BossPageQuery, DexPageQuery } from '../documents';
 import type { documentsDexPageQuery } from '../__generated__/documentsDexPageQuery.graphql';
@@ -51,7 +52,7 @@ export default function DexView() {
     <View style={{ flex: 1 }}>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 28 + insets.bottom }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: TAB_BAR_CLEARANCE + insets.bottom }}
       >
         {bossId ? (
           <AsyncBoundary onRetry={() => setBossId(null)}>

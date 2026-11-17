@@ -6,7 +6,9 @@ import { useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchQuery, useLazyLoadQuery, useRelayEnvironment } from 'react-relay';
 import { fonts, theme } from '../theme';
-import { Backdrop, ChromeSurface, GoldFill, GuildHeader, SiteChrome, TabFill } from '../components/ui';
+import { Backdrop, GoldFill, GuildHeader, SiteChrome, TabFill } from '../components/ui';
+import { GuildTabBar, TAB_BAR_CLEARANCE } from '../components/GuildTabBar';
+import { buildGuildTabEntries } from '../guildTabEntries';
 import { BLOCKS_VERSION } from '../config';
 import { GroupingListBlocksQuery, ListPageTextQuery } from '../documents';
 import { CreateGroupingFormMount } from '../components/GroupingForm';
@@ -26,14 +28,16 @@ import { useGuildLive } from '../live';
 import type { documentsGroupingListBlocksQuery } from '../__generated__/documentsGroupingListBlocksQuery.graphql';
 
 // Page skeleton mirrors Web GuildHome: header row (back link + UserBar)
-// -> guild name (calligraphy 42) + version row -> section pill tabs
-// (.yy-tabs: grouping/dex/sect guides; labels are the Guild
-// shell's homeTab*Label, same source as Web) -> the active
-// section panel. Grouping panel = new-grouping gold button (right-
-// aligned) -> type ghost chips -> week nav row -> the server-supplied
-// typed block tree (GroupingListPage.blocks); dex panel = DexView; sect
-// panel = SectView. The three surfaces switch in-page (like Web's
-// in-page tabs), not via routing, so session and current guild persist.
+// -> guild name (calligraphy 42) + version row -> the active
+// section panel. Section switching lives in the floating bottom
+// capsule (GuildTabBar, IG-style): 组队/攻略/公告/排期/我的, built
+// from the Guild shell's homeTab*Label fields (same source as Web);
+// 攻略 covers both guide sections, with an opaque in-section switch
+// between DexView and SectView. Grouping panel = new-grouping gold
+// button (right-aligned) -> type ghost chips -> week nav row -> the
+// server-supplied typed block tree (GroupingListPage.blocks). The
+// surfaces switch in-page (like Web's in-page tabs), not via routing,
+// so session and current guild persist.
 // Refresh (WS ping / pull) refetches over the network into the store via
 // the same imperative path; mounted queries re-render from store
 // updates without flashing the Suspense fallback.
@@ -54,7 +58,7 @@ type SectionKey = 'team' | 'dex' | 'sect' | 'announcements' | 'schedule' | 'insi
 export default function GroupingListScreen({ slug, name, nick, gameVersion, avatarUrl }: Props) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { guilds } = useSession();
+  const { guilds, user, text } = useSession();
   const [section, setSection] = useState<SectionKey>('team');
   const [tab, setTab] = useState<TabKey>('ALL');
   const [weekOffset, setWeekOffset] = useState(0);
@@ -118,20 +122,41 @@ export default function GroupingListScreen({ slug, name, nick, gameVersion, avat
       ]
       : null;
 
+  // Floating capsule entries (IG-style main navigation): built from
+  // the same shell labels the section pills used; null when the shell
+  // composed no section set, in which case no capsule renders.
+  const tabEntries = buildGuildTabEntries({
+    sectionLabels,
+    section,
+    profileLabel: text.userBarSettingsLabel,
+  });
+  const onTabSelect = (entry: { key: string }) => {
+    if (entry.key === 'profile') {
+      router.push('/profile');
+    } else {
+      setSection(entry.key as SectionKey);
+    }
+  };
+  const dexLabel = sectionLabels?.find(([k]) => k === 'dex')?.[1];
+  const sectLabel = sectionLabels?.find(([k]) => k === 'sect')?.[1];
+
   return (
     <View style={s.root}>
       <Backdrop />
       <View style={[s.headZone, { paddingTop: 12 + insets.top }]}>
-        <SiteChrome displayName={nick || undefined} backLabel={guildItem?.pageBackLabel} />
+        <SiteChrome solid displayName={nick || undefined} backLabel={guildItem?.pageBackLabel} />
         <Suspense fallback={<GuildHeader name={name} version={gameVersion} avatarUrl={avatarUrl} />}>
           <GuildHeaderLive slug={slug} name={name} fallbackVersion={gameVersion} avatarUrl={avatarUrl} />
         </Suspense>
       </View>
 
-      {sectionLabels && (
+      {(section === 'dex' || section === 'sect') && dexLabel && sectLabel && (
+        // The 攻略 capsule entry covers both guide sections; switching
+        // between them is this in-section control — an opaque row in
+        // both themes (the capsule is the screen's only glass surface).
         <View style={s.tabsZone}>
-          <ChromeSurface kind="tabs" radius={999} contentStyle={s.tabs}>
-            {sectionLabels.map(([key, label]) => {
+          <View style={s.guideSwitch}>
+            {([['dex', dexLabel], ['sect', sectLabel]] as [SectionKey, string][]).map(([key, label]) => {
               const on = section === key;
               return (
                 <Pressable key={key} onPress={() => setSection(key)} style={[s.tab, on && s.tabOn]}>
@@ -140,7 +165,7 @@ export default function GroupingListScreen({ slug, name, nick, gameVersion, avat
                 </Pressable>
               );
             })}
-          </ChromeSurface>
+          </View>
         </View>
       )}
 
@@ -212,6 +237,10 @@ export default function GroupingListScreen({ slug, name, nick, gameVersion, avat
             <GuildInsightsSection slug={slug} />
           </Suspense>
         </AsyncBoundary>
+      )}
+
+      {tabEntries && (
+        <GuildTabBar entries={tabEntries} avatarUrl={user?.avatar} onSelect={onTabSelect} />
       )}
 
       {showCreate && (
@@ -347,8 +376,11 @@ function AdminEntryButton({ slug }: { slug: string }) {
 // Type filter: Web's .yy-fchip ghost-chip row (not a full-width segmented control);
 // labels tabAllLabel/tabActivityLabel/tabTalentLabel/tabRaceLabel/tabTowerLabel/tabExploreLabel come from the list shell.
 function ChipsRow({ labels, tab, onChange }: { labels: string[]; tab: TabKey; onChange: (t: TabKey) => void }) {
+  // Plain opaque row in both themes (IG-style layout: the floating
+  // capsule is the screen's only glass surface; the type filter is a
+  // content-level control, not chrome).
   return (
-    <ChromeSurface kind="bar" bareClassic radius={999} glassPadding={8} contentStyle={s.chips}>
+    <View style={s.chips}>
       {TAB_KEYS.map((key, i) => {
         const on = tab === key;
         return (
@@ -361,7 +393,7 @@ function ChipsRow({ labels, tab, onChange }: { labels: string[]; tab: TabKey; on
           </Pressable>
         );
       })}
-    </ChromeSurface>
+    </View>
   );
 }
 
@@ -447,7 +479,7 @@ function ListBlocks({
       </View>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 28 + insets.bottom }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: TAB_BAR_CLEARANCE + insets.bottom }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}
@@ -467,12 +499,15 @@ function ListBlocks({
 const s = StyleSheet.create({
   root: { flex: 1, backgroundColor: theme.bg },
   headZone: { paddingHorizontal: 20 },
-  // Section pills mirror Web .yy-tabs (narrow values): container padding 4/gap 4, tabs 9/16 at 15px;
-  // active = gold gradient + bright gold text 600 + inner border; left-aligned hug width, below the guild header
+  // Guide switch (dex/sect inside 攻略): same geometry as the old
+  // section pills (padding 4/gap 4, tabs 9/16 at 15px, active = gold
+  // gradient + bright gold text 600 + inner border) but an opaque
+  // ink surface in both themes — never glass.
   tabsZone: { paddingHorizontal: 20, marginTop: 20, flexDirection: 'row' },
-  // Fill / border / radius are supplied by ChromeSurface (classic
-  // chrome tokens carry exactly the old tabsBg / border / pill values).
-  tabs: { flexDirection: 'row', gap: 4, padding: 4 },
+  guideSwitch: {
+    flexDirection: 'row', gap: 4, padding: 4,
+    backgroundColor: theme.ink2, borderWidth: 1, borderColor: theme.border, borderRadius: 999,
+  },
   tab: { position: 'relative', overflow: 'hidden', borderRadius: 999, paddingVertical: 9, paddingHorizontal: 16 },
   tabOn: { borderWidth: 1, borderColor: 'rgba(60,42,12,.55)' },
   tabText: { fontFamily: fonts.serif, color: theme.muted, fontSize: 15 },

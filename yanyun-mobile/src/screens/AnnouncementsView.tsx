@@ -2,7 +2,9 @@ import React, { Suspense, useState } from 'react';
 import { Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
 import { useLazyLoadQuery } from 'react-relay';
 import { fonts, theme } from '../theme';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
+import { TAB_BAR_CLEARANCE } from '../components/GuildTabBar';
 import { AnnouncementsAdminQuery, AnnouncementsPageQuery } from '../documents';
 import {
   deleteGuildAnnouncementRemote, generateGuildAnnouncementTranslationsRemote,
@@ -184,6 +186,7 @@ export default function AnnouncementsView({ slug }: { slug: string }) {
 }
 
 function MemberList({ slug, epoch }: { slug: string; epoch: number }) {
+  const insets = useSafeAreaInsets();
   const data = useLazyLoadQuery<documentsAnnouncementsPageQuery>(
     AnnouncementsPageQuery, { slug }, { fetchPolicy: 'store-or-network', fetchKey: epoch },
   );
@@ -192,7 +195,7 @@ function MemberList({ slug, epoch }: { slug: string; epoch: number }) {
   if (!page) return <LoadingView />;
   const items: Item[] = page.announcements ?? [];
   return (
-    <ScrollView contentContainerStyle={s.listContent}>
+    <ScrollView contentContainerStyle={[s.listContent, { paddingBottom: TAB_BAR_CLEARANCE + insets.bottom }]}>
       {items.length === 0 ? (
         <Text style={s.empty}>{page.emptyText}</Text>
       ) : (
