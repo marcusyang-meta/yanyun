@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<facdc50a6a02c9502f07b28c6a99240e>>
+ * @generated SignedSource<<acfb4f6890fe7a8084efcea12b5580c9>>
  * @lightSyntaxTransform
  */
 
@@ -8,10 +8,10 @@
 // @ts-nocheck
 
 import { ConcreteRequest } from 'relay-runtime';
-export type SettingsDialogUpdateThemeMutation$variables = {
+export type useThemeSaveMutation$variables = {
   theme: string;
 };
-export type SettingsDialogUpdateThemeMutation$data = {
+export type useThemeSaveMutation$data = {
   readonly updateMyTheme: {
     readonly error: string | null | undefined;
     readonly errorCode: string | null | undefined;
@@ -19,9 +19,9 @@ export type SettingsDialogUpdateThemeMutation$data = {
     readonly themePref: string;
   };
 };
-export type SettingsDialogUpdateThemeMutation = {
-  response: SettingsDialogUpdateThemeMutation$data;
-  variables: SettingsDialogUpdateThemeMutation$variables;
+export type useThemeSaveMutation = {
+  response: useThemeSaveMutation$data;
+  variables: useThemeSaveMutation$variables;
 };
 
 const node: ConcreteRequest = (function(){
@@ -84,7 +84,7 @@ return {
     "argumentDefinitions": (v0/*:: as any*/),
     "kind": "Fragment",
     "metadata": null,
-    "name": "SettingsDialogUpdateThemeMutation",
+    "name": "useThemeSaveMutation",
     "selections": (v1/*:: as any*/),
     "type": "Mutation",
     "abstractKey": null
@@ -93,20 +93,20 @@ return {
   "operation": {
     "argumentDefinitions": (v0/*:: as any*/),
     "kind": "Operation",
-    "name": "SettingsDialogUpdateThemeMutation",
+    "name": "useThemeSaveMutation",
     "selections": (v1/*:: as any*/)
   },
   "params": {
-    "cacheID": "58b866b7c6e4d05cbace955f9b054633",
+    "cacheID": "2bff58db1b0444348683525884f2dd01",
     "id": null,
     "metadata": {},
-    "name": "SettingsDialogUpdateThemeMutation",
+    "name": "useThemeSaveMutation",
     "operationKind": "mutation",
-    "text": "mutation SettingsDialogUpdateThemeMutation(\n  $theme: String!\n) {\n  updateMyTheme(theme: $theme) {\n    ok\n    error\n    errorCode\n    themePref\n  }\n}\n"
+    "text": "mutation useThemeSaveMutation(\n  $theme: String!\n) {\n  updateMyTheme(theme: $theme) {\n    ok\n    error\n    errorCode\n    themePref\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "50217346dcf488247de746a74350afa8";
+(node as any).hash = "94d1c8365e9564c6cf0addf528a05ee9";
 
 export default node;

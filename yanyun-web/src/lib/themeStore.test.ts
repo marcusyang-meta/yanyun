@@ -17,8 +17,10 @@
 //     both read paths still serving 'classic' from the store — the
 //     shipped symptom, reproduced at the seam where it lived;
 //   - the FIXED cases commit through writeThemeBackToStore (the exact
-//     updater SettingsDialog wires in) and show store-only reads — no
-//     network — returning the picked theme on both paths, both ways.
+//     updater the shared theme-save hook wires in — SettingsDialog
+//     and the guild rail's more menu both save through that hook) and
+//     show store-only reads — no network — returning the picked theme
+//     on both paths, both ways.
 // The contract cases pin the client/server seam verbatim: the compiled
 // mutation document and the two read fields against the canonical
 // server SDL, so a rename on either side fails here instead of in
@@ -30,7 +32,7 @@ import {
   Environment, Network, RecordSource, Store, Observable,
   commitMutation, fetchQuery, createOperationDescriptor,
 } from 'relay-runtime';
-import ThemeMutationNode from '../auth/__generated__/SettingsDialogUpdateThemeMutation.graphql';
+import ThemeMutationNode from './__generated__/useThemeSaveMutation.graphql';
 import { writeThemeBackToStore, type ThemeStore } from './theme';
 
 /* ---------- minimal read artifacts for the two read paths ----------
@@ -78,7 +80,7 @@ function makeEnvironment() {
         sink.next({ data: { viewer: { __typename: 'Viewer', myThemePref: serverTheme } } });
       } else if (operation.name === 'ThemeStoreSettingsQuery') {
         sink.next({ data: { settingsPage: { __typename: 'SettingsPage', themePref: serverTheme } } });
-      } else if (operation.name === 'SettingsDialogUpdateThemeMutation') {
+      } else if (operation.name === 'useThemeSaveMutation') {
         serverTheme = variables.theme === 'glass' ? 'glass' : 'classic';
         sink.next({
           data: {
@@ -200,9 +202,14 @@ describe('theme client/server contract (verbatim seam)', () => {
     expect(settingsQuery).toContain('themePref');
   });
 
-  it('SettingsDialog wires the write-back into the theme mutation commit', () => {
-    const src = here('../auth/SettingsDialog.react.tsx');
+  it('the shared save hook wires the write-back and the anchor into the theme mutation commit', () => {
+    const src = here('./useThemeSave.ts');
     expect(src).toContain('writeThemeBackToStore');
     expect(src).toMatch(/updater:\s*\(store[^)]*\)\s*=>\s*\{\s*writeThemeBackToStore\(store, data\);?\s*\}/);
+    expect(src).toContain('confirmThemePref(effective)');
+    // And both theme-writing surfaces save through that hook — no
+    // second, divergent save path may grow elsewhere.
+    expect(here('../auth/SettingsDialog.react.tsx')).toContain('useThemeSave');
+    expect(here('../guild/components/GuildRail.react.tsx')).toContain('useThemeSave');
   });
 });

@@ -1,64 +1,25 @@
-import { useEffect, useState } from 'react';
 import { theme } from '../lib/format';
 import type { ViewerUser } from '../lib/user';
-import SettingsDialog from './SettingsDialog.react.tsx';
-import type { AccountFlow, DialogPage } from './SettingsDialog.react.tsx';
+import SettingsDialogHost, { useSettingsHost, type UserBarText } from './SettingsDialogHost.react.tsx';
 
-export interface UserBarText {
-  logoutLabel: string;
-  loggingOutLabel: string;
-  settingsLabel: string;
-}
+export type { UserBarText };
 
 // Top user bar (display component; it makes no permission judgments). Copy
-// arrives via the text prop from backend viewer text fields.
+// arrives via the text prop from backend viewer text fields. The dialog
+// host behind it (open state, deep-open listener, OAuth return landing,
+// the ONE SettingsDialog) lives in SettingsDialogHost — this component
+// is the hub/admin pages' visible cluster on top of that host; the
+// guild left rail mounts the host directly, with no cluster.
 export default function UserBar({ user, text }: { user: ViewerUser; text: UserBarText }) {
-  const [leaving, setLeaving] = useState(false);
-  const [settingsOpen, setSettingsOpen] = useState(false);
-  const [accountFlow, setAccountFlow] = useState<AccountFlow | null>(null);
-  // Deep-open requests from other surfaces (schedule tab / newcomer
-  // checklist, via lib/settingsNav): open the dialog at the requested
-  // page. The sequence bumps the dialog's key so a request that lands
-  // while the dialog is already open still re-mounts at that page.
-  const [settingsPageReq, setSettingsPageReq] = useState<DialogPage | null>(null);
-  const [settingsSeq, setSettingsSeq] = useState(0);
-  useEffect(() => {
-    const onOpenSettings = (e: Event) => {
-      const page = (e as CustomEvent).detail?.page;
-      if (page !== 'availability') return;
-      setSettingsPageReq(page);
-      setSettingsSeq((n) => n + 1);
-      setSettingsOpen(true);
-    };
-    window.addEventListener('yy:open-settings', onOpenSettings);
-    return () => window.removeEventListener('yy:open-settings', onOpenSettings);
-  }, []);
-  // Return landing from a fresh-OAuth round trip started in the Profile
-  // dialog's My Data section: the returnTo carried ?accountflow=… —
-  // reopen the dialog with the flow so it resumes where it left off,
-  // then scrub the marker from the URL. The 'agent' marker (agent
-  // grant revocation, same fresh-auth tier) lands on the agent page
-  // instead of resuming an account action.
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const flow = params.get('accountflow');
-    if (flow !== 'export' && flow !== 'delete' && flow !== 'agent') return;
-    if (flow === 'agent') {
-      setSettingsPageReq('agent');
-      setSettingsSeq((n) => n + 1);
-    } else {
-      setAccountFlow(flow);
-    }
-    setSettingsOpen(true);
-    params.delete('accountflow');
-    const qs = params.toString();
-    window.history.replaceState(null, '', window.location.pathname + (qs ? `?${qs}` : '') + window.location.hash);
-  }, []);
-  const logout = async () => {
-    setLeaving(true);
-    try { await fetch('/auth/logout', { method: 'POST' }); } catch { /* navigate back to the login page either way */ }
-    window.location.href = '/';
-  };
+  return (
+    <SettingsDialogHost user={user} text={text}>
+      <UserBarCluster user={user} text={text} />
+    </SettingsDialogHost>
+  );
+}
+
+function UserBarCluster({ user, text }: { user: ViewerUser; text: UserBarText }) {
+  const { openSettings, logout, leaving } = useSettingsHost();
   return (
     <div className="yy-userbar" style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
       {/* The avatar doubles as the settings entry on small screens,
@@ -69,7 +30,7 @@ export default function UserBar({ user, text }: { user: ViewerUser; text: UserBa
         className="yy-userbar-avatar-wrap"
         role="button"
         aria-label={text.settingsLabel}
-        onClick={() => { setSettingsPageReq(null); setSettingsOpen(true); }}
+        onClick={() => openSettings()}
       >
         {user.avatar ? (
           <img
@@ -91,24 +52,12 @@ export default function UserBar({ user, text }: { user: ViewerUser; text: UserBa
       </span>
       <button
         className="yy-userbar-wide"
-        onClick={() => { setSettingsPageReq(null); setSettingsOpen(true); }}
+        onClick={() => openSettings()}
         style={{
           background: 'transparent', border: `1px solid rgba(201,163,92,.4)`, color: theme.muted,
           borderRadius: 8, padding: '5px 12px', fontSize: 12.5, cursor: 'pointer',
         }}
       >{text.settingsLabel}</button>
-      {/* The settings dialog is a dialog HOST: the gear library is one of
-          its internal pages (pushed/popped inside it), so UserBar owns
-          just this one dialog's open state — no sibling dialogs here. */}
-      <SettingsDialog
-        key={settingsSeq}
-        open={settingsOpen}
-        onClose={() => { setSettingsOpen(false); setAccountFlow(null); setSettingsPageReq(null); }}
-        user={user}
-        initialFlow={accountFlow}
-        initialPage={settingsPageReq}
-        logoutText={text}
-      />
       <button
         className="yy-userbar-wide"
         onClick={logout}

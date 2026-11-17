@@ -4,7 +4,8 @@ import { graphql, useLazyLoadQuery, useMutation, useRelayEnvironment } from 'rea
 import { fetchQuery } from 'relay-runtime';
 import { theme } from '../lib/format';
 import { writePrefMirror, emitLocaleChanged } from '../lib/locale';
-import { applyTheme, confirmThemePref, resolveThemePref, syncThemeFromServer, writeThemeMirror, writeThemeBackToStore, type ThemePref } from '../lib/theme';
+import { resolveThemePref, syncThemeFromServer, type ThemePref } from '../lib/theme';
+import { useThemeSave } from '../lib/useThemeSave';
 import { useIsMobile } from '../lib/useIsMobile';
 import type { ViewerUser } from '../lib/user';
 import GearLibrary from '../guild/components/GearLibrary.react.tsx';
@@ -239,17 +240,6 @@ const SettingsUpdateMutationNode = graphql`
   }
 `;
 
-const SettingsUpdateThemeMutationNode = graphql`
-  mutation SettingsDialogUpdateThemeMutation($theme: String!) {
-    updateMyTheme(theme: $theme) {
-      ok
-      error
-      errorCode
-      themePref
-    }
-  }
-`;
-
 const SettingsFeedbackMutationNode = graphql`
   mutation SettingsDialogFeedbackMutation($category: FeedbackCategory!, $text: String!) {
     submitFeedback(category: $category, text: $text) {
@@ -386,7 +376,7 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage, logoutTe
   const isMobile = useIsMobile();
   const environment = useRelayEnvironment();
   const [commit, inFlight] = useMutation<any>(SettingsUpdateMutationNode);
-  const [commitTheme, themeInFlight] = useMutation<any>(SettingsUpdateThemeMutationNode);
+  const { saveTheme, themeSaveInFlight: themeInFlight } = useThemeSave();
   const [commitExport, exportInFlight] = useMutation<any>(SettingsExportMutationNode);
   const [commitRequestDeletion, requestInFlight] = useMutation<any>(SettingsRequestDeletionMutationNode);
   const [commitCancelDeletion, cancelInFlight] = useMutation<any>(SettingsCancelDeletionMutationNode);
@@ -777,20 +767,14 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage, logoutTe
   /* Theme preference (root page section under the language picker):
    * same selection-state pattern as the locale picker — the control's
    * value is the local pick override ?? the query's themePref, and the
-   * override drops once the server value matches it. Unlike locale, a
-   * pick also applies immediately (root data-theme + local mirror, see
-   * lib/theme.ts): the chrome — including this dialog's own shell —
-   * switches in place behind the dialog. On save failure the override
-   * drops and the applied theme rolls back to the server truth. On
-   * success the mutation's updater writes the confirmed theme back
-   * into the store's two read paths (writeThemeBackToStore): the
-   * payload record alone never reaches Viewer.myThemePref /
-   * SettingsPage.themePref, and without the write-back their stale
-   * snapshots outvote the pick for the rest of the session. The
-   * completion also anchors the confirmed value for the session
-   * (confirmThemePref): even with the write-back, a query response
-   * whose snapshot predates the save can land afterwards and regress
-   * the store — the anchor is what reconciliation then holds. */
+   * override drops once the server value matches it. The save itself
+   * goes through the shared useThemeSave hook (lib/useThemeSave.ts),
+   * the one save path every theme-writing surface uses: the pick
+   * applies immediately, the mutation's updater writes the confirmed
+   * theme back into the store's two read paths, the completion
+   * anchors the confirmed value for the session, and a failure rolls
+   * the applied theme back to the server truth (rollbackTo below).
+   * This section only adds its own pick/saved/error state on top. */
   const [themePicked, setThemePicked] = useState<ThemePref | null>(null);
   const [themeError, setThemeError] = useState('');
   const [themeSaved, setThemeSaved] = useState(false);
@@ -825,35 +809,15 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage, logoutTe
     setThemePicked(value);
     setThemeError('');
     setThemeSaved(false);
-    applyTheme(value);
-    writeThemeMirror(value);
-    commitTheme({
-      variables: { theme: value },
-      updater: (store: any, data: any) => { writeThemeBackToStore(store, data); },
-      onCompleted: (resp: any) => {
-        const payload = resp?.updateMyTheme;
-        if (payload?.ok) {
-          const effective = resolveThemePref(payload.themePref);
-          // Anchor the confirmed value for this session (lib/theme.ts):
-          // a pre-save query response landing late must not be able to
-          // regress the applied theme back over this save.
-          confirmThemePref(effective);
-          applyTheme(effective);
-          writeThemeMirror(effective);
-          setThemeSaved(true);
-          setTimeout(() => setThemeSaved(false), 2500);
-        } else {
-          setThemePicked(null);
-          applyTheme(serverTheme);
-          writeThemeMirror(serverTheme);
-          setThemeError(payload?.error || viewer.commonUnknownErrorText || '');
-        }
+    saveTheme(value, {
+      rollbackTo: serverTheme,
+      onConfirmed: () => {
+        setThemeSaved(true);
+        setTimeout(() => setThemeSaved(false), 2500);
       },
-      onError: () => {
+      onFailed: (error) => {
         setThemePicked(null);
-        applyTheme(serverTheme);
-        writeThemeMirror(serverTheme);
-        setThemeError(viewer.commonUnknownErrorText || '');
+        setThemeError(error || viewer.commonUnknownErrorText || '');
       },
     });
   };
