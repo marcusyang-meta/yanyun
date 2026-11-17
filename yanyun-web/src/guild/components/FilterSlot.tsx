@@ -14,3 +14,16 @@ export const FilterSlotContext = createContext<HTMLElement | null>(null);
 export function useFilterSlot(): HTMLElement | null {
   return useContext(FilterSlotContext);
 }
+
+// Second shell slot on the same floating row, at its right end: the
+// grouping list's action buttons (week image / new car) portal here
+// so they belong to the title row's visual group instead of floating
+// on a separate row under the capsules. The buttons' state and
+// handlers stay in the list route; only their DOM lands in the row.
+// When no slot is provided, the route renders the buttons inline in
+// their old position instead.
+export const ActionsSlotContext = createContext<HTMLElement | null>(null);
+
+export function useActionsSlot(): HTMLElement | null {
+  return useContext(ActionsSlotContext);
+}

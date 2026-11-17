@@ -1,7 +1,7 @@
 import { useState, useMemo, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
-import { useFilterSlot } from './FilterSlot.tsx';
+import { useFilterSlot, useActionsSlot } from './FilterSlot.tsx';
 import { graphql, usePreloadedQuery, loadQuery } from 'react-relay';
 import type { PreloadedQuery } from 'react-relay';
 import { relayEnvironment } from '../../lib/relay';
@@ -319,10 +319,12 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect, weekOffset, onWeek
     <div>
       {filterSlot ? createPortal(filterCapsule, filterSlot) : filterCapsule}
 
-      {/* Week navigation: weekRangeLabel shares getWeekRange with the filter
-          above; the displayed end minus 1 minute reads as a closed interval,
-          while the filter boundary stays start/end themselves */}
-      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 8, marginBottom: 12 }}>
+      {/* Week navigation: one compact centered group — the two arrows
+          hug the range label instead of pinning to the column's edges.
+          weekRangeLabel shares getWeekRange with the filter above; the
+          displayed end minus 1 minute reads as a closed interval, while
+          the filter boundary stays start/end themselves */}
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8, marginBottom: 12 }}>
         <button onClick={() => setWeekOffset((w) => w - 1)} style={navBtn} aria-label={page.prevWeekLabel}>‹</button>
         <span style={{ color: theme.goldHi, fontSize: 13, textAlign: 'center', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
           {fill(page.weekHeaderTemplate ?? '', { range: weekRangeLabel(weekOffset), count: events.length })}
@@ -376,6 +378,7 @@ export function GroupingListRoute({ slug, defaultNickname }: { slug: string; def
   const [weekOffset, setWeekOffset] = useState(0);
   const [showForm, setShowForm] = useState(false);
   const navigate = useNavigate();
+  const actionsSlot = useActionsSlot();
 
   const queryRef = useMemo(
     () => loadQuery<GroupingListQueryType>(
@@ -443,17 +446,29 @@ export function GroupingListRoute({ slug, defaultNickname }: { slug: string; def
     }
   };
 
+  // Action buttons (week image / new car): portaled into the guild
+  // home's floating title row, at its right end, so they read as part
+  // of the capsule row's control group instead of floating on their
+  // own row under the capsules; without a slot they render inline in
+  // that old position.
+  const actionButtons = (
+    <div style={{ display: 'flex', gap: 10 }}>
+      <button onClick={shareWeekImage} className="yy-btn" style={{
+        padding: '10px 18px', fontSize: 14, background: 'transparent',
+        border: `1px solid ${theme.gold}`, color: theme.paper, borderRadius: 8, cursor: 'pointer',
+        whiteSpace: 'nowrap',
+      }}>{pageText.weekShareImageLabel}</button>
+      <button onClick={() => setShowForm(true)} className="yy-btn yy-btn-gold yy-create-btn" style={{
+        padding: '10px 24px', fontSize: 14, whiteSpace: 'nowrap',
+      }}>{pageText.newCarLabel}</button>
+    </div>
+  );
+
   return (
     <>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 10, marginBottom: 12 }}>
-        <button onClick={shareWeekImage} className="yy-btn" style={{
-          padding: '10px 18px', fontSize: 14, background: 'transparent',
-          border: `1px solid ${theme.gold}`, color: theme.paper, borderRadius: 8, cursor: 'pointer',
-        }}>{pageText.weekShareImageLabel}</button>
-        <button onClick={() => setShowForm(true)} className="yy-btn yy-btn-gold yy-create-btn" style={{
-          padding: '10px 24px', fontSize: 14,
-        }}>{pageText.newCarLabel}</button>
-      </div>
+      {actionsSlot ? createPortal(actionButtons, actionsSlot) : (
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: 12 }}>{actionButtons}</div>
+      )}
       <GroupingList
         queryRef={queryRef}
         tab={tab}

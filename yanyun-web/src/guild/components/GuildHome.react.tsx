@@ -1,6 +1,6 @@
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, Suspense } from 'react';
-import { FilterSlotContext } from './FilterSlot.tsx';
+import { FilterSlotContext, ActionsSlotContext } from './FilterSlot.tsx';
 import GuildRail, { type RailEntry } from './GuildRail.react.tsx';
 import type { ViewerUser } from '../../lib/user';
 import { GroupingListRoute } from './GroupingList.react.tsx';
@@ -107,6 +107,11 @@ export default function GuildHome({ node, slug, carId, user, userBarText }: {
   // Slot in the floating bar row that the grouping list portals its
   // type-filter capsule into (see FilterSlot.tsx).
   const [filterSlot, setFilterSlot] = useState<HTMLElement | null>(null);
+  // Second slot on the same row, at its right end: the grouping
+  // list route portals its action buttons (week image / new car)
+  // into it, so the page's actions sit in the title row's visual
+  // group rather than on their own row beneath the capsules.
+  const [actionsSlot, setActionsSlot] = useState<HTMLElement | null>(null);
   const navigate = useNavigate();
   // Rail (global navigation) entries: the shell's section set minus
   // the ones the rail does not carry (sect folds into 攻略, allies /
@@ -156,7 +161,11 @@ export default function GuildHome({ node, slug, carId, user, userBarText }: {
           onSelect={onRailSelect}
         />
         <div className="yy-guild-main">
-          <div style={{ maxWidth: 860, margin: '0 auto', padding: '0 20px' }}>
+          {/* Content column: widened from 860 to 1220 so wide
+              viewports stop stranding the page in a phone-width
+              column between fields of empty black; the cards keep
+              their internal left-read layout at the new width. */}
+          <div style={{ maxWidth: 1220, margin: '0 auto', padding: '0 20px' }}>
         <header className="yy-anim-fade-up" style={{ padding: '18px 0 4px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             {node.avatarUrl && (
@@ -194,15 +203,18 @@ export default function GuildHome({ node, slug, carId, user, userBarText }: {
           </div>
         ) : (
           <FilterSlotContext.Provider value={filterSlot}>
+          <ActionsSlotContext.Provider value={actionsSlot}>
             {/* Floating bar row (IG-style), placed on the title row:
                 directly beneath the guild title, left-aligned — the
                 section tabs in one slim capsule, the grouping list's
                 type filter portaled into the adjacent slot as a
-                second, smaller capsule on the same row. The row
-                sticks while the panel scrolls under it. Layering:
-                the left rail (GuildRail) is the global guild-level
-                navigation; these capsules are the page-level control
-                for the section the rail selected. */}
+                second, smaller capsule on the same row, and the
+                list's action buttons portaled into the right-end
+                slot so the whole row reads as one control group.
+                The row sticks while the panel scrolls under it.
+                Layering: the left rail (GuildRail) is the global
+                guild-level navigation; these capsules are the
+                page-level control for the section the rail selected. */}
             <div className="yy-tabs-float">
               <nav className="yy-tabs">
                 {TABS.map(t => (
@@ -216,6 +228,7 @@ export default function GuildHome({ node, slug, carId, user, userBarText }: {
                 ))}
               </nav>
               <div ref={setFilterSlot} className="yy-filter-slot" />
+              <div ref={setActionsSlot} className="yy-actions-slot" />
             </div>
 
             <div key={activeTab} className="yy-tabpanel" style={{ paddingBottom: 40 }}>
@@ -230,6 +243,7 @@ export default function GuildHome({ node, slug, carId, user, userBarText }: {
                 {activeTab === 'insights' && node.insights && <GuildInsightsBoard node={node.insights} />}
               </Suspense>
             </div>
+          </ActionsSlotContext.Provider>
           </FilterSlotContext.Provider>
         )}
           </div>

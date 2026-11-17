@@ -299,21 +299,25 @@ body {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 12px;
-  margin-bottom: 14px;
+  /* A hairline rule under the hub return sets it clearly apart from
+     the entry group below it (the return leaves the guild; the
+     entries switch sections inside it). */
+  padding: 6px 12px 12px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--border);
   color: var(--muted);
   font-size: 13px;
   letter-spacing: .08em;
   text-decoration: none;
 }
 .yy-rail-back:hover { color: var(--paper); }
-.yy-rail-nav { display: flex; flex-direction: column; gap: 4px; }
+.yy-rail-nav { display: flex; flex-direction: column; gap: 2px; }
 .yy-rail-entry {
   display: flex;
   align-items: center;
   gap: 12px;
   width: 100%;
-  padding: 9px 12px;
+  padding: 8px 12px;
   border: none;
   border-radius: 12px;
   background: transparent;
@@ -329,19 +333,26 @@ body {
 .yy-rail-entry:hover { color: var(--paper); background: rgba(201,163,92,.07); }
 .yy-rail-entry.active {
   color: var(--gold-hi);
-  /* The rail's selected state is the same IG lens as the capsules. */
-  background: rgba(236,210,143,.16);
-  box-shadow: inset 0 0 0 1px rgba(236,210,143,.30), inset 0 1px 0 rgba(236,210,143,.20);
+  /* Selected state, unified across the rail and both capsules: a
+     DARK translucent base with a 1px gold edge and gold text — the
+     pale-gold wash that used to sit here read as a muddy solid tan
+     block on wide rows (production polish pass). Under glass the
+     pale-gold glass fill returns (see the grouped glass rule with
+     the capsule actives below). */
+  background: rgba(0,0,0,.42);
+  box-shadow: inset 0 0 0 1px rgba(201,163,92,.55);
 }
 .yy-rail-user {
   margin-top: auto;
   border-top: 1px solid var(--border);
   padding-top: 12px;
 }
-/* UserBar in the rail: stacked cluster, and the avatar is a live
-   settings entry here at every width (the rail bottom is where
-   profile/settings live now). */
-.yy-rail-user .yy-userbar { flex-direction: column; align-items: flex-start; gap: 8px; }
+/* UserBar in the rail: a wrapping row cluster — avatar and username
+   share the first line so the rail's foot never reads as a lone
+   avatar, the settings / sign-out buttons wrap beneath them; the
+   avatar is a live settings entry here at every width (the rail
+   bottom is where profile/settings live now). */
+.yy-rail-user .yy-userbar { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
 .yy-rail-user .yy-userbar-avatar-wrap { pointer-events: auto; cursor: pointer; }
 
 /* Narrow widths: the rail collapses to an icon bar — labels and the
@@ -352,7 +363,8 @@ body {
   .yy-rail { width: 62px; padding: 14px 8px; }
   .yy-rail-entry, .yy-rail-back { justify-content: center; padding-left: 0; padding-right: 0; }
   .yy-rail-label { display: none; }
-  .yy-rail-user .yy-userbar { align-items: center; }
+  /* Icon bar: the user cluster stacks again (avatar only, centered). */
+  .yy-rail-user .yy-userbar { flex-direction: column; flex-wrap: nowrap; align-items: center; }
   .yy-rail-user .yy-userbar-wide { display: none !important; }
 }
 @media (max-width: 640px) {
@@ -384,6 +396,13 @@ body {
    mounted (every non-team tab), so the row is just the tab capsule. */
 .yy-filter-slot { display: flex; flex-shrink: 0; }
 .yy-filter-slot:empty { display: none; }
+/* Second portal target, same pattern: the grouping list's action
+   buttons (week image / new car) portal here so they sit in the
+   title row's visual group, pushed to the row's right end, instead
+   of floating on their own row under the capsules. Collapses while
+   no actions are mounted (every non-team tab). */
+.yy-actions-slot { display: flex; flex-shrink: 0; margin-left: auto; }
+.yy-actions-slot:empty { display: none; }
 
 /* ---------- tabs (一级页签: 分段控件, 层级必须压过二级筛选项) ---------- */
 .yy-tabs {
@@ -429,9 +448,13 @@ body {
 .yy-tab.active {
   color: var(--gold-hi);
   font-weight: 600;
-  /* IG lens: a pale-gold translucent glass chip, not a solid block. */
-  background: rgba(236,210,143,.18);
-  box-shadow: inset 0 0 0 1px rgba(236,210,143,.35), inset 0 1px 0 rgba(236,210,143,.22);
+  /* Selected lens, unified with the rail entry and the filter chip:
+     a DARK translucent base with a 1px gold edge and gold text. The
+     pale-gold wash that used to sit here read as a muddy solid tan
+     block (production polish pass); under glass the pale-gold glass
+     fill returns (grouped glass rule after the chip rules below). */
+  background: rgba(0,0,0,.42);
+  box-shadow: inset 0 0 0 1px rgba(201,163,92,.55);
 }
 
 /* ---------- filter capsule (二级筛选: 悬浮行上的第二颗小胶囊) ----------
@@ -470,10 +493,24 @@ body {
 .yy-fchip:active { transform: scale(.95); }
 .yy-fchip.active {
   color: var(--gold-hi);
-  /* Same IG lens as the active tab, at chip scale. */
-  background: rgba(236,210,143,.18);
-  box-shadow: inset 0 0 0 1px rgba(236,210,143,.35), inset 0 1px 0 rgba(236,210,143,.22);
+  /* Same dark-base lens as the active tab, at chip scale. */
+  background: rgba(0,0,0,.42);
+  box-shadow: inset 0 0 0 1px rgba(201,163,92,.55);
   font-weight: 600;
+}
+
+/* Glass theme: the three selected states (rail entry, section tab,
+   filter chip) take the pale-gold translucent glass fill on top of
+   the unified dark-base lens — the capsules already carry the
+   backdrop blur; the rail stays opaque ink, so its entry just takes
+   the fill. (Reduced transparency keeps the chrome fills opaque via
+   the variable fallback above; these fills stay translucent tints
+   over that opaque base and remain legible.) */
+:root[data-theme="glass"] .yy-rail-entry.active,
+:root[data-theme="glass"] .yy-tab.active,
+:root[data-theme="glass"] .yy-fchip.active {
+  background: rgba(236,210,143,.16);
+  box-shadow: inset 0 0 0 1px rgba(236,210,143,.35), inset 0 1px 0 rgba(236,210,143,.22);
 }
 
 /* ---------- skeleton shimmer ---------- */
