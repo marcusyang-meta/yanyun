@@ -1,5 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { useState, Suspense } from 'react';
+import { FilterSlotContext } from './FilterSlot.tsx';
 import type { ViewerUser } from '../../lib/user';
 import { GroupingListRoute } from './GroupingList.react.tsx';
 import { GroupingDetailRoute } from './GroupingDetail.react.tsx';
@@ -95,6 +96,9 @@ export default function GuildHome({ node, slug, carId, user, userBarText }: {
       : []),
   ] as const;
   const [activeTab, setActiveTab] = useState<string>('team');
+  // Slot in the floating bar row that the grouping list portals its
+  // type-filter capsule into (see FilterSlot.tsx).
+  const [filterSlot, setFilterSlot] = useState<HTMLElement | null>(null);
   const navigate = useNavigate();
   // In a guild context the top bar shows the server nickname (only when one
   // exists; the global context keeps the global name). Form/seat prefill:
@@ -107,7 +111,7 @@ export default function GuildHome({ node, slug, carId, user, userBarText }: {
     <div className="yy-page">
       <ToastHost />
       <div style={{ maxWidth: 860, margin: '0 auto', padding: '0 20px' }}>
-        <header className="yy-anim-fade-up" style={{ padding: '36px 0 8px' }}>
+        <header className="yy-anim-fade-up" style={{ padding: '18px 0 4px' }}>
           <div className="yy-guild-topbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
             <span className="yy-guild-topbar-left" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
               {/* On this guild's own subdomain the root IS this page —
@@ -161,18 +165,30 @@ export default function GuildHome({ node, slug, carId, user, userBarText }: {
             </Suspense>
           </div>
         ) : (
-          <>
-            <nav className="yy-tabs" style={{ marginTop: 20 }}>
-              {TABS.map(t => (
-                <button
-                  key={t.key}
-                  className={`yy-tab${activeTab === t.key ? ' active' : ''}`}
-                  onClick={() => setActiveTab(t.key)}
-                >
-                  {t.label}
-                </button>
-              ))}
-            </nav>
+          <FilterSlotContext.Provider value={filterSlot}>
+            {/* Floating bar row (IG-style), placed on the title row:
+                directly beneath the guild title, left-aligned — the
+                section tabs in one slim capsule, the grouping list's
+                type filter portaled into the adjacent slot as a
+                second, smaller capsule on the same row. The row
+                sticks while the panel scrolls under it. No left rail:
+                a rail would be global (guild-level) navigation,
+                which is out of this change's scope — this is the
+                capsules + the slim opaque top bar only. */}
+            <div className="yy-tabs-float">
+              <nav className="yy-tabs">
+                {TABS.map(t => (
+                  <button
+                    key={t.key}
+                    className={`yy-tab${activeTab === t.key ? ' active' : ''}`}
+                    onClick={() => setActiveTab(t.key)}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </nav>
+              <div ref={setFilterSlot} className="yy-filter-slot" />
+            </div>
 
             <div key={activeTab} className="yy-tabpanel" style={{ paddingBottom: 40 }}>
               <Suspense fallback={<TabFallback />}>
@@ -186,7 +202,7 @@ export default function GuildHome({ node, slug, carId, user, userBarText }: {
                 {activeTab === 'insights' && node.insights && <GuildInsightsBoard node={node.insights} />}
               </Suspense>
             </div>
-          </>
+          </FilterSlotContext.Provider>
         )}
       </div>
     </div>

@@ -272,31 +272,70 @@ body {
 }
 .yy-btn-ghost:hover { border-color: var(--gold); color: var(--gold-hi); }
 
+/* ---------- guild top bar (顶栏: 不透明细条, 两主题同形) ----------
+ * The slim opaque bar over the guild header: ink-2 fill and a hairline
+ * border in both themes — deliberately NOT wired to the chrome vars,
+ * so the glass theme never reaches it; the floating capsules below
+ * are the page's only glass surfaces. */
+.yy-guild-topbar {
+  background: var(--ink-2);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 6px 10px 6px 14px;
+}
+
+/* ---------- floating bar row (IG 式悬浮行: 页签胶囊 + 筛选胶囊同行) ----------
+ * The capsules belong to the content area's title row (placement
+ * ruling: they are this page's filter semantics, not global
+ * navigation, so no left rail): one slim capsule row (~46px) hugging
+ * the guild title, left-aligned directly beneath it — the section
+ * tabs in one capsule, the grouping list's type filter in a second,
+ * smaller capsule right beside it (portaled in, see FilterSlot.tsx).
+ * Never stacked, never one giant capsule. The row sticks at the top
+ * of the scroll region, so once the title scrolls away the capsules
+ * stay floating over the content. */
+.yy-tabs-float {
+  position: sticky;
+  top: 12px;
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 10px;
+  margin: 10px 0 12px;
+}
+/* The portal target: collapses away entirely while no filter is
+   mounted (every non-team tab), so the row is just the tab capsule. */
+.yy-filter-slot { display: flex; }
+.yy-filter-slot:empty { display: none; }
+
 /* ---------- tabs (一级页签: 分段控件, 层级必须压过二级筛选项) ---------- */
 .yy-tabs {
   display: inline-flex;
   gap: 4px;
   padding: 4px;
-  /* Chrome wiring: classic fill / border equal the shipped values
-     exactly (tabsFill / chrome border), so they read from the chrome
-     vars; blur / highlight are classic no-ops. The 999px pill radius
-     is this capsule's shape in both themes and stays literal. */
-  background: var(--chrome-tabs-fill);
+  /* Chrome wiring: the capsule fill is the chrome BAR fill (ink,
+     near-opaque under classic, translucent ink + blur under glass) —
+     never a gold wash; gold is reserved for the selected lens and
+     text accents. The 1px border and the top hairline highlight stay
+     thin; the drop shadow is soft and low. The 999px pill radius
+     (half the capsule height) is the shape in both themes. */
+  background: var(--chrome-bar-fill);
   border: 1px solid var(--chrome-border);
   border-radius: 999px;
   position: relative;
   backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
   -webkit-backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
-  box-shadow: inset 0 1px 0 var(--chrome-highlight);
+  box-shadow: inset 0 1px 0 var(--chrome-highlight), 0 10px 28px rgba(0,0,0,.38);
 }
 .yy-tab {
   font-family: var(--font-serif);
-  font-size: 16px;
-  padding: 9px 26px;
+  font-size: 15px;
+  padding: 7px 22px;
   border-radius: 999px;
   background: transparent;
   border: none;
-  color: var(--muted);
+  color: rgba(236,226,203,.55);
   cursor: pointer;
   position: relative;
   transition: color .25s ease, background .25s ease, box-shadow .25s ease;
@@ -306,41 +345,49 @@ body {
 .yy-tab.active {
   color: var(--gold-hi);
   font-weight: 600;
-  background: linear-gradient(160deg, rgba(217,178,106,.30), rgba(185,143,69,.18));
-  box-shadow: inset 0 0 0 1px rgba(236,210,143,.38);
+  /* IG lens: a pale-gold translucent glass chip, not a solid block. */
+  background: rgba(236,210,143,.18);
+  box-shadow: inset 0 0 0 1px rgba(236,210,143,.35), inset 0 1px 0 rgba(236,210,143,.22);
 }
 
-/* ---------- filter chips (二级筛选: 小号描边幽灵片, 不与一级页签抢层级) ---------- */
-.yy-fchip {
-  padding: 6px 16px;
+/* ---------- filter capsule (二级筛选: 悬浮行上的第二颗小胶囊) ----------
+ * The chips live inside their own capsule on the floating row (same
+ * ink fill / thin border / soft shadow recipe as the tab capsule,
+ * one size smaller), so the glass treatment belongs to the capsule
+ * shell only — never per-chip, never glass on glass. */
+.yy-filter-capsule {
+  display: inline-flex;
+  gap: 2px;
+  padding: 4px;
+  background: var(--chrome-bar-fill);
+  border: 1px solid var(--chrome-border);
   border-radius: 999px;
-  border: 1px solid rgba(201,163,92,.32);
+  position: relative;
+  backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
+  -webkit-backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
+  box-shadow: inset 0 1px 0 var(--chrome-highlight), 0 10px 28px rgba(0,0,0,.38);
+}
+.yy-fchip {
+  padding: 5px 13px;
+  border-radius: 999px;
+  border: 1px solid transparent;
   background: transparent;
-  color: var(--muted);
+  color: rgba(236,226,203,.55);
   font-family: var(--font-serif);
   font-size: 13px;
   cursor: pointer;
-  transition: color .2s ease, border-color .2s ease, background .2s ease;
+  white-space: nowrap;
+  transition: color .2s ease, background .2s ease, box-shadow .2s ease;
   -webkit-tap-highlight-color: transparent;
 }
-.yy-fchip:hover { color: var(--paper); border-color: rgba(201,163,92,.6); }
+.yy-fchip:hover { color: var(--paper); }
 .yy-fchip:active { transform: scale(.95); }
 .yy-fchip.active {
   color: var(--gold-hi);
-  border-color: var(--gold);
-  background: rgba(201,163,92,.10);
+  /* Same IG lens as the active tab, at chip scale. */
+  background: rgba(236,210,143,.18);
+  box-shadow: inset 0 0 0 1px rgba(236,210,143,.35), inset 0 1px 0 rgba(236,210,143,.22);
   font-weight: 600;
-}
-/* Grouping-list filter capsules under glass: the classic chip is a
-   transparent ghost chip whose border (.32, the chipBorder token)
-   matches no chrome value, so classic stays literal; glass only
-   darkens the edge and adds the blur / highlight treatment. The
-   active chip keeps its gold state in both themes (:not(.active)). */
-:root[data-theme="glass"] .yy-fchip:not(.active) {
-  border-color: var(--chrome-border);
-  backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
-  -webkit-backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
-  box-shadow: inset 0 1px 0 var(--chrome-highlight);
 }
 
 /* ---------- skeleton shimmer ---------- */
@@ -756,7 +803,12 @@ body {
     max-width: 100%;
     margin: 0 0 12px auto;
   }
-  .yy-tab { padding: 9px 16px; font-size: 15px; }
+  .yy-tab { padding: 7px 14px; font-size: 15px; }
+  /* The floating row scrolls sideways as one strip instead of
+     wrapping the capsules onto two lines. */
+  .yy-tabs-float { justify-content: flex-start; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
+  .yy-tabs-float::-webkit-scrollbar { display: none; }
+  .yy-tabs, .yy-filter-capsule { flex-shrink: 0; }
 
   /* Small screens mirror the RN shell (mobile ui.tsx UserBar /
      SiteChrome and GroupingListScreen): the UserBar collapses to the
@@ -771,8 +823,9 @@ body {
   .yy-userbar-wide { display: none !important; }
   .yy-guild-topbar-left { min-width: 0; overflow: hidden; }
   .yy-guild-topbar-link { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .yy-tabs { max-width: 100%; overflow-x: auto; scrollbar-width: none; }
-  .yy-tabs::-webkit-scrollbar { display: none; }
+  /* The floating row wrapper owns sideways scrolling at this width;
+     the capsule itself sizes to its content. */
+  .yy-tabs { max-width: none; }
   .yy-tab { white-space: nowrap; flex-shrink: 0; }
   .yy-create-btn { padding: 10px 22px !important; }
 }

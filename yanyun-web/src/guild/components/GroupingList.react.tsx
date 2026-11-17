@@ -1,5 +1,7 @@
 import { useState, useMemo, useRef, useCallback } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate } from 'react-router-dom';
+import { useFilterSlot } from './FilterSlot.tsx';
 import { graphql, usePreloadedQuery, loadQuery } from 'react-relay';
 import type { PreloadedQuery } from 'react-relay';
 import { relayEnvironment } from '../../lib/relay';
@@ -188,6 +190,7 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect, weekOffset, onWeek
   onWeekOffsetChange: (updater: number | ((w: number) => number)) => void;
 }) {
   const setWeekOffset = onWeekOffsetChange;
+  const filterSlot = useFilterSlot();
   const data = usePreloadedQuery<GroupingListQueryType>(GroupingListQueryNode, queryRef);
   const page: any = (data as any)?.viewer?.guild?.groupings ?? {};
   const all: any[] = page?.groupings ?? [];
@@ -296,18 +299,25 @@ function GroupingList({ queryRef, tab, onTabChange, onSelect, weekOffset, onWeek
     );
   };
 
+  // Type filter capsule (secondary level): rendered into the guild
+  // home's floating bar row through the filter slot, so it sits on
+  // the same row as the section-tab capsule as a smaller sibling
+  // capsule; without a slot it renders inline in its old position.
+  const filterCapsule = (
+    <div className="yy-filter-capsule">
+      {TABS.map((t) => (
+        <button
+          key={t.key}
+          className={`yy-fchip${tab === t.key ? ' active' : ''}`}
+          onClick={() => { onTabChange(t.key); setWeekOffset(0); }}
+        >{tabLabel[t.key]}</button>
+      ))}
+    </div>
+  );
+
   return (
     <div>
-      {/* Type filter (secondary level): small outlined ghost chips, lower in the hierarchy than the primary tabs */}
-      <div style={{ display: 'flex', gap: 8, marginBottom: 16, flexWrap: 'wrap' }}>
-        {TABS.map((t) => (
-          <button
-            key={t.key}
-            className={`yy-fchip${tab === t.key ? ' active' : ''}`}
-            onClick={() => { onTabChange(t.key); setWeekOffset(0); }}
-          >{tabLabel[t.key]}</button>
-        ))}
-      </div>
+      {filterSlot ? createPortal(filterCapsule, filterSlot) : filterCapsule}
 
       {/* Week navigation: weekRangeLabel shares getWeekRange with the filter
           above; the displayed end minus 1 minute reads as a closed interval,
