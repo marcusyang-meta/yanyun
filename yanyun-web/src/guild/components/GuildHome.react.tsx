@@ -61,9 +61,10 @@ export interface GuildHomeNode {
   homeTabAlliesLabel?: string | null;
   detailNotFoundText: string;
   detailBackToListLabel: string;
-  // Premium insights board (P15 + own P9 status): the tab exists
-  // only when the backend composed the full board variant for this
-  // guild — locked guilds carry the Locked variant and no tab.
+  // Premium insights board (P15 + own P9 status): the rail entry
+  // exists only when the backend composed the full board variant
+  // for this guild — locked guilds carry the Locked variant and
+  // no entry.
   insights?: InsightsBoardNode | null;
 }
 
@@ -76,26 +77,6 @@ export default function GuildHome({ node, slug, carId, user, userBarText }: {
   user: ViewerUser;
   userBarText: UserBarText;
 }) {
-  const TABS = [
-    { key: 'team', label: node.homeTabTeamLabel },
-    { key: 'dex', label: node.homeTabDexLabel },
-    { key: 'sect', label: node.homeTabSectLabel },
-    ...(node.homeTabAnnouncementsLabel
-      ? [{ key: 'announcements', label: node.homeTabAnnouncementsLabel }]
-      : []),
-    ...(node.homeTabScheduleLabel
-      ? [{ key: 'schedule', label: node.homeTabScheduleLabel }]
-      : []),
-    ...(node.homeTabMarketLabel
-      ? [{ key: 'market', label: node.homeTabMarketLabel }]
-      : []),
-    ...(node.homeTabAlliesLabel
-      ? [{ key: 'allies', label: node.homeTabAlliesLabel }]
-      : []),
-    ...(node.insights
-      ? [{ key: 'insights', label: node.insights.homeInsightsRaceTitle }]
-      : []),
-  ] as const;
   // Initial section: a ?tab= deep link (the rail's entries navigate
   // with it when a car detail is open, where the section state does
   // not exist yet) wins over the default; unknown values fall back.
@@ -113,13 +94,15 @@ export default function GuildHome({ node, slug, carId, user, userBarText }: {
   // group rather than on their own row beneath the capsules.
   const [actionsSlot, setActionsSlot] = useState<HTMLElement | null>(null);
   const navigate = useNavigate();
-  // Rail (global navigation) entries: the shell's section set minus
-  // the ones the rail does not carry (sect folds into 攻略, allies /
-  // insights stay capsule-only), gated on their labels exactly like
-  // TABS below.
+  // Rail entries: the shell's FULL section set, gated on their
+  // labels exactly like the panels below. The rail is the only
+  // global navigation — the title row used to carry a second
+  // section capsule duplicating this set; sect, allies and the
+  // insights board (which only that capsule carried) live here now.
   const railEntries: RailEntry[] = [
     { key: 'team', label: node.homeTabTeamLabel, icon: 'team', active: activeTab === 'team' },
-    { key: 'dex', label: node.homeTabDexLabel, icon: 'dex', active: activeTab === 'dex' || activeTab === 'sect' },
+    { key: 'dex', label: node.homeTabDexLabel, icon: 'dex', active: activeTab === 'dex' },
+    { key: 'sect', label: node.homeTabSectLabel, icon: 'sect', active: activeTab === 'sect' },
     ...(node.homeTabAnnouncementsLabel
       ? [{ key: 'announcements', label: node.homeTabAnnouncementsLabel, icon: 'announcements' as const, active: activeTab === 'announcements' }]
       : []),
@@ -128,6 +111,12 @@ export default function GuildHome({ node, slug, carId, user, userBarText }: {
       : []),
     ...(node.homeTabMarketLabel
       ? [{ key: 'market', label: node.homeTabMarketLabel, icon: 'market' as const, active: activeTab === 'market' }]
+      : []),
+    ...(node.homeTabAlliesLabel
+      ? [{ key: 'allies', label: node.homeTabAlliesLabel, icon: 'allies' as const, active: activeTab === 'allies' }]
+      : []),
+    ...(node.insights
+      ? [{ key: 'insights', label: node.insights.homeInsightsRaceTitle, icon: 'insights' as const, active: activeTab === 'insights' }]
       : []),
   ];
   const onRailSelect = (key: string) => {
@@ -204,29 +193,18 @@ export default function GuildHome({ node, slug, carId, user, userBarText }: {
         ) : (
           <FilterSlotContext.Provider value={filterSlot}>
           <ActionsSlotContext.Provider value={actionsSlot}>
-            {/* Floating bar row (IG-style), placed on the title row:
-                directly beneath the guild title, left-aligned — the
-                section tabs in one slim capsule, the grouping list's
-                type filter portaled into the adjacent slot as a
-                second, smaller capsule on the same row, and the
-                list's action buttons portaled into the right-end
-                slot so the whole row reads as one control group.
-                The row sticks while the panel scrolls under it.
-                Layering: the left rail (GuildRail) is the global
-                guild-level navigation; these capsules are the
-                page-level control for the section the rail selected. */}
+            {/* Floating control row (IG-style), placed on the title
+                row directly beneath the guild title, left-aligned:
+                the grouping list's type filter portaled in as one
+                slim capsule, and the list's action buttons portaled
+                into the right-end slot, so the row reads as one
+                page-level control group. The row sticks while the
+                panel scrolls under it. Global section navigation
+                lives ONLY in the left rail (GuildRail) — this row
+                deliberately carries no section tabs; an earlier
+                section capsule here duplicated the rail's entry set
+                and switched the same state. */}
             <div className="yy-tabs-float">
-              <nav className="yy-tabs">
-                {TABS.map(t => (
-                  <button
-                    key={t.key}
-                    className={`yy-tab${activeTab === t.key ? ' active' : ''}`}
-                    onClick={() => setActiveTab(t.key)}
-                  >
-                    {t.label}
-                  </button>
-                ))}
-              </nav>
               <div ref={setFilterSlot} className="yy-filter-slot" />
               <div ref={setActionsSlot} className="yy-actions-slot" />
             </div>
