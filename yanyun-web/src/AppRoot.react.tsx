@@ -216,9 +216,18 @@ export default function AppRoot({ queries }: {
   // data-theme and the local mirror both align to it. The mirror was
   // already applied before first paint (index.html / main.tsx), so a
   // matching server value changes nothing on screen.
+  //
+  // Deliberately NOT gated on [viewer.myThemePref]: the sync is
+  // idempotent and cheap, and running it on every commit makes the
+  // DOM convergent rather than one-shot. Gated on the value's change,
+  // a data-theme that ever diverged from the store (a reconciliation
+  // pass pre-empted by an older snapshot, a remount against a stale
+  // record) stayed diverged forever — the settings value read glass
+  // while the page rendered classic, with no path back. Ungated, any
+  // render of this root re-establishes DOM ≡ server truth.
   useEffect(() => {
     syncThemeFromServer(viewer.myThemePref);
-  }, [viewer.myThemePref]);
+  });
 
   return (
     <>
