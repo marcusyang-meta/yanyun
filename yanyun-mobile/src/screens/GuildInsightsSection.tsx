@@ -2,6 +2,7 @@ import React from 'react';
 import { StyleSheet, Text, View } from 'react-native';
 import { useLazyLoadQuery } from 'react-relay';
 import { fonts, theme } from '../theme';
+import { TAB_BAR_CLEARANCE } from '../components/GuildTabBar';
 import { GuildInsightsBoardQuery } from '../documents';
 import type { documentsGuildInsightsBoardQuery } from '../__generated__/documentsGuildInsightsBoardQuery.graphql';
 
@@ -61,7 +62,7 @@ export default function GuildInsightsSection({ slug }: { slug: string }) {
 }
 
 const s = StyleSheet.create({
-  wrap: { paddingHorizontal: 18, paddingBottom: 48 },
+  wrap: { paddingHorizontal: 18, paddingBottom: TAB_BAR_CLEARANCE + 16 },
   title: { fontFamily: fonts.brush, color: theme.gold, fontSize: 16, letterSpacing: 2, marginTop: 20, marginBottom: 10 },
   seasonLabel: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 12.5, marginTop: 6, marginBottom: 2 },
   row: { flexDirection: 'row', alignItems: 'center', gap: 10, paddingVertical: 7 },

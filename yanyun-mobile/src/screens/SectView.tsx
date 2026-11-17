@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useLazyLoadQuery } from 'react-relay';
 import { fonts, theme } from '../theme';
 import { CardFill } from '../components/ui';
+import { TAB_BAR_CLEARANCE } from '../components/GuildTabBar';
 import { SectPageQuery } from '../documents';
 import TiaolvTab from '../gear/TiaolvTab';
 import GradCalc from '../gear/GradCalc';
@@ -34,7 +35,7 @@ export default function SectView() {
     <>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 28 + insets.bottom }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: TAB_BAR_CLEARANCE + insets.bottom }}
       >
         <SectList sectSlug={sectSlug} setSectSlug={setSectSlug} />
       </ScrollView>

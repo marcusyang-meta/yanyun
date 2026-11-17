@@ -5,6 +5,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchQuery, useLazyLoadQuery, useMutation, useRelayEnvironment } from 'react-relay';
 import { fonts, theme } from '../theme';
 import { GoldFill } from '../components/ui';
+import { TAB_BAR_CLEARANCE } from '../components/GuildTabBar';
 import { LoadingView } from '../components/AsyncBoundary';
 import {
   CloseTimePollMutation, CreateTimePollMutation, SchedulePageQuery, VoteTimePollMutation,
@@ -194,7 +195,7 @@ function ScheduleInner({ slug, defaultNickname, refreshTick }: {
     <View style={s.root}>
       <ScrollView
         style={{ flex: 1 }}
-        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: 28 + insets.bottom }}
+        contentContainerStyle={{ paddingHorizontal: 20, paddingBottom: TAB_BAR_CLEARANCE + insets.bottom }}
         refreshControl={
           <RefreshControl
             refreshing={refreshing}

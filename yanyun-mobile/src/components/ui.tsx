@@ -268,22 +268,36 @@ export function UserBar({ displayName }: { displayName?: string | null }) {
 // The back label is the guild's server-composed chrome copy (pageBackLabel:
 // platform-named only while the guild shows platform branding); without one
 // it falls back to the platform label, as before.
-export function SiteChrome({ displayName, backLabel }: { displayName?: string | null; backLabel?: string | null }) {
+//
+// `solid` pins the row to its opaque classic form in both themes (a
+// plain row over the backdrop, never a glass surface): the guild home
+// uses it because under the IG-style layout the floating bottom
+// capsule is that screen's only glass surface.
+export function SiteChrome({ displayName, backLabel, solid = false }: { displayName?: string | null; backLabel?: string | null; solid?: boolean }) {
   const { text } = useSession();
-  return (
-    <ChromeSurface
-      kind="bar"
-      bareClassic
-      radius={22}
-      glassPadding={10}
-      contentStyle={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 }}
-    >
+  const row = (
+    <>
       <Pressable onPress={() => router.navigate('/')} hitSlop={8} style={{ flexShrink: 1 }}>
         <Text numberOfLines={1} style={{ color: theme.muted, fontSize: 13, letterSpacing: 1, fontFamily: fonts.serif }}>
           {backLabel ?? `← ${text.siteTitle ?? '百业集结'}`}
         </Text>
       </Pressable>
       <UserBar displayName={displayName} />
+    </>
+  );
+  const rowStyle = { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 } as const;
+  if (solid) {
+    return <View style={rowStyle}>{row}</View>;
+  }
+  return (
+    <ChromeSurface
+      kind="bar"
+      bareClassic
+      radius={22}
+      glassPadding={10}
+      contentStyle={rowStyle}
+    >
+      {row}
     </ChromeSurface>
   );
 }
