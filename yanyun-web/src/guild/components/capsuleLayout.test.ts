@@ -2,16 +2,16 @@ import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { describe, expect, it } from 'vitest';
 
-// Regression contract for the floating capsule row's shrink
+// Regression contract for the floating control row's shrink
 // protection. Production defect (PR #157 verification): at desktop
-// widths the section capsule's active pill was crushed by the row's
+// widths a capsule pill sharing the row was crushed by the row's
 // flex layout and its CJK label stacked character-over-character
-// into a tall oval whenever the type-filter capsule shared the row;
-// switching to a section without the filter capsule freed the width
-// and the label recovered. The nowrap / flex-shrink protection
-// existed only inside a <=640px media block, so the base rules must
-// carry it — these assertions read the shipped stylesheet the same
-// way themeStore.test.ts pins the schema contract.
+// into a tall oval; the nowrap / flex-shrink protection existed
+// only inside a <=640px media block, so the base rules must carry
+// it. The row's section capsule is gone (the rail is the only
+// section nav now), but the same protection guards the remaining
+// filter capsule — these assertions read the shipped stylesheet
+// the same way themeStore.test.ts pins the schema contract.
 
 const css = readFileSync(fileURLToPath(new URL('../../index.css', import.meta.url)), 'utf8');
 
@@ -68,26 +68,20 @@ function ruleBlock(text: string, selector: string): string {
 
 const baseCss = withoutSmallScreenBlocks(css);
 
-describe('floating capsule row shrink protection (base rules)', () => {
-  it('section tab pills never wrap and never shrink', () => {
-    const block = ruleBlock(baseCss, '.yy-tab');
-    expect(block).toContain('white-space: nowrap');
-    expect(block).toContain('flex-shrink: 0');
-  });
-
-  it('filter chips never shrink (labels are already nowrap)', () => {
+describe('floating control row shrink protection (base rules)', () => {
+  it('filter chips never wrap and never shrink', () => {
     const block = ruleBlock(baseCss, '.yy-fchip');
     expect(block).toContain('white-space: nowrap');
     expect(block).toContain('flex-shrink: 0');
   });
 
-  it('both capsules and the filter slot keep their natural width', () => {
-    expect(ruleBlock(baseCss, '.yy-tabs')).toContain('flex-shrink: 0');
+  it('the filter capsule and both slots keep their natural width', () => {
     expect(ruleBlock(baseCss, '.yy-filter-capsule')).toContain('flex-shrink: 0');
     expect(ruleBlock(baseCss, '.yy-filter-slot')).toContain('flex-shrink: 0');
+    expect(ruleBlock(baseCss, '.yy-actions-slot')).toContain('flex-shrink: 0');
   });
 
-  it('the row wraps the whole filter capsule instead of crushing pills', () => {
+  it('the row wraps its contents instead of crushing pills', () => {
     expect(ruleBlock(baseCss, '.yy-tabs-float')).toContain('flex-wrap: wrap');
   });
 

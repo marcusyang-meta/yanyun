@@ -371,16 +371,16 @@ body {
   .yy-rail { width: 56px; padding: 12px 6px; }
 }
 
-/* ---------- floating bar row (IG 式悬浮行: 页签胶囊 + 筛选胶囊同行) ----------
- * The capsules belong to the content area's title row (placement
- * ruling: they are this page's filter semantics, not global
- * navigation, so no left rail): one slim capsule row (~46px) hugging
- * the guild title, left-aligned directly beneath it — the section
- * tabs in one capsule, the grouping list's type filter in a second,
- * smaller capsule right beside it (portaled in, see FilterSlot.tsx).
- * Never stacked, never one giant capsule. The row sticks at the top
- * of the scroll region, so once the title scrolls away the capsules
- * stay floating over the content. */
+/* ---------- floating control row (IG 式悬浮行: 标题行页面级控制) ----------
+ * The row belongs to the content area's title row: one slim control
+ * row (~46px) hugging the guild title, left-aligned directly beneath
+ * it — the grouping list's type filter in one capsule (portaled in,
+ * see FilterSlot.tsx) and the list's action buttons at the row's
+ * right end. Global section navigation is NOT here: it lives only
+ * in the left rail (an earlier section-tab capsule on this row
+ * duplicated the rail's entries and switched the same state).
+ * The row sticks at the top of the scroll region, so once the title
+ * scrolls away the controls stay floating over the content. */
 .yy-tabs-float {
   position: sticky;
   top: 12px;
@@ -393,9 +393,12 @@ body {
   margin: 10px 0 12px;
 }
 /* The portal target: collapses away entirely while no filter is
-   mounted (every non-team tab), so the row is just the tab capsule. */
+   mounted (every non-team section). */
 .yy-filter-slot { display: flex; flex-shrink: 0; }
 .yy-filter-slot:empty { display: none; }
+/* While neither portal is mounted (every non-team section) the row
+   itself collapses too, so it leaves no stray gap under the title. */
+.yy-tabs-float:has(> .yy-filter-slot:empty):has(> .yy-actions-slot:empty) { margin: 0; }
 /* Second portal target, same pattern: the grouping list's action
    buttons (week image / new car) portal here so they sit in the
    title row's visual group, pushed to the row's right end, instead
@@ -404,64 +407,11 @@ body {
 .yy-actions-slot { display: flex; flex-shrink: 0; margin-left: auto; }
 .yy-actions-slot:empty { display: none; }
 
-/* ---------- tabs (一级页签: 分段控件, 层级必须压过二级筛选项) ---------- */
-.yy-tabs {
-  display: inline-flex;
-  gap: 4px;
-  padding: 4px;
-  /* Chrome wiring: the capsule fill is the chrome BAR fill (ink,
-     near-opaque under classic, translucent ink + blur under glass) —
-     never a gold wash; gold is reserved for the selected lens and
-     text accents. The 1px border and the top hairline highlight stay
-     thin; the drop shadow is soft and low. The 999px pill radius
-     (half the capsule height) is the shape in both themes. */
-  background: var(--chrome-bar-fill);
-  border: 1px solid var(--chrome-border);
-  border-radius: 999px;
-  position: relative;
-  flex-shrink: 0;
-  backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
-  -webkit-backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
-  box-shadow: inset 0 1px 0 var(--chrome-highlight), 0 10px 28px rgba(0,0,0,.38);
-}
-.yy-tab {
-  font-family: var(--font-serif);
-  font-size: 15px;
-  padding: 7px 22px;
-  border-radius: 999px;
-  background: transparent;
-  border: none;
-  color: rgba(236,226,203,.55);
-  cursor: pointer;
-  position: relative;
-  /* A pill label must never wrap: without nowrap + shrink protection
-     the row's flex layout crushes the active pill and its CJK label
-     stacks character-over-character into a tall oval whenever both
-     capsules share the row at desktop widths (production defect —
-     the protection used to exist only inside the <=640px block). */
-  white-space: nowrap;
-  flex-shrink: 0;
-  transition: color .25s ease, background .25s ease, box-shadow .25s ease;
-  -webkit-tap-highlight-color: transparent;
-}
-.yy-tab:hover { color: var(--paper); }
-.yy-tab.active {
-  color: var(--gold-hi);
-  font-weight: 600;
-  /* Selected lens, unified with the rail entry and the filter chip:
-     a DARK translucent base with a 1px gold edge and gold text. The
-     pale-gold wash that used to sit here read as a muddy solid tan
-     block (production polish pass); under glass the pale-gold glass
-     fill returns (grouped glass rule after the chip rules below). */
-  background: rgba(0,0,0,.42);
-  box-shadow: inset 0 0 0 1px rgba(201,163,92,.55);
-}
-
-/* ---------- filter capsule (二级筛选: 悬浮行上的第二颗小胶囊) ----------
- * The chips live inside their own capsule on the floating row (same
- * ink fill / thin border / soft shadow recipe as the tab capsule,
- * one size smaller), so the glass treatment belongs to the capsule
- * shell only — never per-chip, never glass on glass. */
+/* ---------- filter capsule (二级筛选: 悬浮行上的筛选胶囊) ----------
+ * The chips live inside their own capsule on the floating row (ink
+ * fill / thin border / soft shadow recipe), so the glass treatment
+ * belongs to the capsule shell only — never per-chip, never glass
+ * on glass. */
 .yy-filter-capsule {
   display: inline-flex;
   gap: 2px;
@@ -493,21 +443,20 @@ body {
 .yy-fchip:active { transform: scale(.95); }
 .yy-fchip.active {
   color: var(--gold-hi);
-  /* Same dark-base lens as the active tab, at chip scale. */
+  /* Same dark-base lens as the active rail entry, at chip scale. */
   background: rgba(0,0,0,.42);
   box-shadow: inset 0 0 0 1px rgba(201,163,92,.55);
   font-weight: 600;
 }
 
-/* Glass theme: the three selected states (rail entry, section tab,
-   filter chip) take the pale-gold translucent glass fill on top of
-   the unified dark-base lens — the capsules already carry the
-   backdrop blur; the rail stays opaque ink, so its entry just takes
-   the fill. (Reduced transparency keeps the chrome fills opaque via
-   the variable fallback above; these fills stay translucent tints
-   over that opaque base and remain legible.) */
+/* Glass theme: the two selected states (rail entry, filter chip)
+   take the pale-gold translucent glass fill on top of the unified
+   dark-base lens — the capsule already carries the backdrop blur;
+   the rail stays opaque ink, so its entry just takes the fill.
+   (Reduced transparency keeps the chrome fills opaque via the
+   variable fallback above; these fills stay translucent tints over
+   that opaque base and remain legible.) */
 :root[data-theme="glass"] .yy-rail-entry.active,
-:root[data-theme="glass"] .yy-tab.active,
 :root[data-theme="glass"] .yy-fchip.active {
   background: rgba(236,210,143,.16);
   box-shadow: inset 0 0 0 1px rgba(236,210,143,.35), inset 0 1px 0 rgba(236,210,143,.22);
@@ -926,30 +875,24 @@ body {
     max-width: 100%;
     margin: 0 0 12px auto;
   }
-  .yy-tab { padding: 7px 14px; font-size: 15px; }
   /* The floating row scrolls sideways as one strip instead of
-     wrapping the capsules onto two lines. */
+     wrapping its contents onto two lines. */
   .yy-tabs-float { justify-content: flex-start; flex-wrap: nowrap; overflow-x: auto; scrollbar-width: none; padding-bottom: 4px; }
   .yy-tabs-float::-webkit-scrollbar { display: none; }
-  .yy-tabs, .yy-filter-capsule { flex-shrink: 0; }
+  .yy-filter-capsule { flex-shrink: 0; }
 
   /* Small screens mirror the RN shell (mobile ui.tsx UserBar /
      SiteChrome and GroupingListScreen): the UserBar collapses to the
      single 40px avatar, which becomes the settings entry (sign-out
      lives on the settings dialog's root page); the guild top bar's
-     left links truncate instead of wrapping mid-word; the section tab
-     strip scrolls sideways instead of squeezing its labels into
-     two-line ovals; the create button takes the RN padding. */
+     left links truncate instead of wrapping mid-word; the create
+     button takes the RN padding. */
   .yy-userbar-avatar-wrap { pointer-events: auto; cursor: pointer; }
   .yy-userbar .yy-userbar-avatar { width: 40px !important; height: 40px !important; }
   .yy-userbar span.yy-userbar-avatar { font-size: 17px !important; }
   .yy-userbar-wide { display: none !important; }
   .yy-guild-topbar-left { min-width: 0; overflow: hidden; }
   .yy-guild-topbar-link { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  /* The floating row wrapper owns sideways scrolling at this width;
-     the capsule itself sizes to its content. */
-  .yy-tabs { max-width: none; }
-  .yy-tab { white-space: nowrap; flex-shrink: 0; }
   .yy-create-btn { padding: 10px 22px !important; }
 }
 

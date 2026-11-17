@@ -6,21 +6,20 @@ import { hostGuildSlug } from '../../lib/hostGuild';
 // Guild left rail (global navigation for the guild shell): a vertical
 // strip carrying the guild-level section entries, the hub return and
 // the admin entry at its top, and the user cluster (UserBar — avatar,
-// settings, sign-out) at its bottom. It is the shell's global layer;
-// the title-row capsules remain the page-level control (section tabs
-// + type filter), and both reflect the same active section.
+// settings, sign-out) at its bottom. It is the shell's ONLY global
+// navigation: the title row carries page-level controls only (the
+// grouping list's type filter + actions), never a second section
+// nav.
 //
-// Entry set is the shell's composed set, gated exactly like the tab
-// capsule: an entry exists only when the backend carried its label.
-// Sect / allies / insights are not rail entries (they stay reachable
-// through the tab capsule); the 攻略 entry covers both guide
-// sections, active for either. 我的 has no separate row: it is the
-// bottom user cluster — the avatar IS the settings/profile entry, as
-// in the mock.
+// Entry set is the shell's full composed set, gated exactly like the
+// section panels: an entry exists only when the backend carried its
+// label (or, for the insights board, composed the full board node).
+// 我的 has no separate row: it is the bottom user cluster — the
+// avatar IS the settings/profile entry, as in the mock.
 export type RailEntry = {
   key: string;
   label: string;
-  icon: 'team' | 'dex' | 'announcements' | 'schedule' | 'market';
+  icon: 'team' | 'dex' | 'sect' | 'announcements' | 'schedule' | 'market' | 'allies' | 'insights';
   active: boolean;
 };
 
@@ -36,6 +35,13 @@ const ICON_PATHS: Record<RailEntry['icon'], React.ReactNode> = {
     <>
       <path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20V4H6.5A2.5 2.5 0 0 0 4 6.5v13z" />
       <path d="M4 19.5A2.5 2.5 0 0 0 6.5 22H20v-5" />
+    </>
+  ),
+  sect: (
+    <>
+      <path d="M9.59 4.59A2 2 0 1 1 11 8H2" />
+      <path d="M12.59 19.41A2 2 0 1 0 14 16H2" />
+      <path d="M17.73 7.73A2.5 2.5 0 1 1 19.5 12H2" />
     </>
   ),
   announcements: (
@@ -56,6 +62,20 @@ const ICON_PATHS: Record<RailEntry['icon'], React.ReactNode> = {
       <path d="M3 11V9a4 4 0 0 1 4-4h14" />
       <path d="M7 23l-4-4 4-4" />
       <path d="M21 13v2a4 4 0 0 1-4 4H3" />
+    </>
+  ),
+  allies: (
+    <>
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </>
+  ),
+  insights: (
+    <>
+      <path d="M3 3v16a2 2 0 0 0 2 2h16" />
+      <path d="M8 16v-4" />
+      <path d="M13 16V8" />
+      <path d="M18 16v-6" />
     </>
   ),
 };

@@ -5,9 +5,9 @@ import { describe, expect, it } from 'vitest';
 // Regression contracts for the wide-screen polish pass over the
 // guild shell (the changes that followed the first production look
 // at PR #157/#158):
-//  - the three selected states (rail entry, section tab, filter
-//    chip) share ONE lens recipe: a dark translucent base with a
-//    1px gold edge and gold text. The pale-gold wash they used to
+//  - the two selected states (rail entry, filter chip) share ONE
+//    lens recipe: a dark translucent base with a 1px gold edge and
+//    gold text. The pale-gold wash they used to
 //    carry read as a muddy solid tan block on wide rows; that wash
 //    may only appear under the glass theme, as a glass fill.
 //  - the grouping list's action buttons portal into a right-end
@@ -80,7 +80,7 @@ function ruleBlock(text: string, selector: string): string {
 const baseCss = withoutSmallScreenBlocks(css);
 
 describe('unified selected lens (base rules)', () => {
-  const actives = ['.yy-rail-entry.active', '.yy-tab.active', '.yy-fchip.active'];
+  const actives = ['.yy-rail-entry.active', '.yy-fchip.active'];
 
   it.each(actives)('%s uses the dark base + 1px gold edge + gold text', (sel) => {
     const block = ruleBlock(baseCss, sel);
