@@ -27,8 +27,10 @@ import { deliverShareImage, type ShareImageDeps } from '../shareImage';
 import { useGuildLive } from '../live';
 import type { documentsGroupingListBlocksQuery } from '../__generated__/documentsGroupingListBlocksQuery.graphql';
 
-// Page skeleton mirrors Web GuildHome: header row (back link + UserBar)
-// -> guild name (calligraphy 42) + version row -> the active
+// Page skeleton mirrors Web GuildHome: header row (back link only —
+// SiteChrome hideAvatar: this screen carries no avatar; the capsule's
+// profile line icon is its one personal entry) -> guild name
+// (calligraphy 42) + version row -> the active
 // section panel. Section switching lives in the floating bottom
 // capsule (GuildTabBar, IG-style): 组队/攻略/公告/排期/我的, built
 // from the Guild shell's homeTab*Label fields (same source as Web);
@@ -58,7 +60,7 @@ type SectionKey = 'team' | 'dex' | 'sect' | 'announcements' | 'schedule' | 'insi
 export default function GroupingListScreen({ slug, name, nick, gameVersion, avatarUrl }: Props) {
   const router = useRouter();
   const insets = useSafeAreaInsets();
-  const { guilds, user, text } = useSession();
+  const { guilds, text } = useSession();
   const [section, setSection] = useState<SectionKey>('team');
   const [tab, setTab] = useState<TabKey>('ALL');
   const [weekOffset, setWeekOffset] = useState(0);
@@ -144,7 +146,7 @@ export default function GroupingListScreen({ slug, name, nick, gameVersion, avat
     <View style={s.root}>
       <Backdrop />
       <View style={[s.headZone, { paddingTop: 12 + insets.top }]}>
-        <SiteChrome solid displayName={nick || undefined} backLabel={guildItem?.pageBackLabel} />
+        <SiteChrome solid hideAvatar displayName={nick || undefined} backLabel={guildItem?.pageBackLabel} />
         <Suspense fallback={<GuildHeader name={name} version={gameVersion} avatarUrl={avatarUrl} />}>
           <GuildHeaderLive slug={slug} name={name} fallbackVersion={gameVersion} avatarUrl={avatarUrl} />
         </Suspense>
@@ -240,7 +242,7 @@ export default function GroupingListScreen({ slug, name, nick, gameVersion, avat
       )}
 
       {tabEntries && (
-        <GuildTabBar entries={tabEntries} avatarUrl={user?.avatar} onSelect={onTabSelect} />
+        <GuildTabBar entries={tabEntries} onSelect={onTabSelect} />
       )}
 
       {showCreate && (
