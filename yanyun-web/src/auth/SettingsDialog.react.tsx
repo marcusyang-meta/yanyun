@@ -4,7 +4,7 @@ import { graphql, useLazyLoadQuery, useMutation, useRelayEnvironment } from 'rea
 import { fetchQuery } from 'relay-runtime';
 import { theme } from '../lib/format';
 import { writePrefMirror, emitLocaleChanged } from '../lib/locale';
-import { applyTheme, resolveThemePref, syncThemeFromServer, writeThemeMirror, writeThemeBackToStore, type ThemePref } from '../lib/theme';
+import { applyTheme, confirmThemePref, resolveThemePref, syncThemeFromServer, writeThemeMirror, writeThemeBackToStore, type ThemePref } from '../lib/theme';
 import { useIsMobile } from '../lib/useIsMobile';
 import type { ViewerUser } from '../lib/user';
 import GearLibrary from '../guild/components/GearLibrary.react.tsx';
@@ -786,7 +786,11 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage, logoutTe
    * into the store's two read paths (writeThemeBackToStore): the
    * payload record alone never reaches Viewer.myThemePref /
    * SettingsPage.themePref, and without the write-back their stale
-   * snapshots outvote the pick for the rest of the session. */
+   * snapshots outvote the pick for the rest of the session. The
+   * completion also anchors the confirmed value for the session
+   * (confirmThemePref): even with the write-back, a query response
+   * whose snapshot predates the save can land afterwards and regress
+   * the store — the anchor is what reconciliation then holds. */
   const [themePicked, setThemePicked] = useState<ThemePref | null>(null);
   const [themeError, setThemeError] = useState('');
   const [themeSaved, setThemeSaved] = useState(false);
@@ -830,6 +834,10 @@ function SettingsDialogInner({ onClose, user, initialFlow, initialPage, logoutTe
         const payload = resp?.updateMyTheme;
         if (payload?.ok) {
           const effective = resolveThemePref(payload.themePref);
+          // Anchor the confirmed value for this session (lib/theme.ts):
+          // a pre-save query response landing late must not be able to
+          // regress the applied theme back over this save.
+          confirmThemePref(effective);
           applyTheme(effective);
           writeThemeMirror(effective);
           setThemeSaved(true);

@@ -2,6 +2,9 @@ import { describe, expect, it, vi } from 'vitest';
 import {
   applyMirroredTheme,
   applyTheme,
+  clearSessionConfirmedTheme,
+  confirmThemePref,
+  getSessionConfirmedTheme,
   readThemeMirror,
   resolveThemePref,
   syncThemeFromServer,
@@ -130,5 +133,65 @@ describe('syncThemeFromServer (reconciliation)', () => {
     expect(syncThemeFromServer(null, root, storage)).toBe('classic');
     expect(root.dataset.theme).toBeUndefined();
     expect(map.get('yy_theme_pref')).toBe('classic');
+  });
+});
+
+describe('session-confirmed anchor (stale-response guard)', () => {
+  it('a store value contradicting the confirmed save is ignored as stale', () => {
+    clearSessionConfirmedTheme();
+    confirmThemePref('glass');
+    const root = fakeRoot();
+    const { storage, map } = fakeStorage({ yy_theme_pref: 'glass' });
+    // The late pre-save snapshot: the store regressed to classic, the
+    // server (and the confirmed save) hold glass.
+    expect(syncThemeFromServer('classic', root, storage)).toBe('glass');
+    expect(root.dataset.theme).toBe('glass');
+    expect(map.get('yy_theme_pref')).toBe('glass');
+    clearSessionConfirmedTheme();
+  });
+
+  it('the guard is symmetric: a stale glass snapshot cannot undo a confirmed classic save', () => {
+    clearSessionConfirmedTheme();
+    confirmThemePref('classic');
+    const root = fakeRoot();
+    root.dataset.theme = 'glass';
+    const { storage, map } = fakeStorage({ yy_theme_pref: 'glass' });
+    expect(syncThemeFromServer('glass', root, storage)).toBe('classic');
+    expect(root.dataset.theme).toBeUndefined();
+    expect(map.get('yy_theme_pref')).toBe('classic');
+    clearSessionConfirmedTheme();
+  });
+
+  it('a value matching the anchor passes through, and a newer save supersedes the anchor', () => {
+    clearSessionConfirmedTheme();
+    confirmThemePref('glass');
+    expect(getSessionConfirmedTheme()).toBe('glass');
+    const root = fakeRoot();
+    const { storage } = fakeStorage();
+    expect(syncThemeFromServer('glass', root, storage)).toBe('glass');
+    confirmThemePref('classic');
+    expect(getSessionConfirmedTheme()).toBe('classic');
+    expect(syncThemeFromServer('classic', root, storage)).toBe('classic');
+    expect(root.dataset.theme).toBeUndefined();
+    clearSessionConfirmedTheme();
+  });
+
+  it('clearing the anchor restores plain server-truth reconciliation', () => {
+    confirmThemePref('glass');
+    clearSessionConfirmedTheme();
+    expect(getSessionConfirmedTheme()).toBeNull();
+    const root = fakeRoot();
+    root.dataset.theme = 'glass';
+    const { storage, map } = fakeStorage({ yy_theme_pref: 'glass' });
+    expect(syncThemeFromServer('classic', root, storage)).toBe('classic');
+    expect(root.dataset.theme).toBeUndefined();
+    expect(map.get('yy_theme_pref')).toBe('classic');
+  });
+
+  it('confirming resolves dirty values before anchoring', () => {
+    clearSessionConfirmedTheme();
+    expect(confirmThemePref('neon')).toBe('classic');
+    expect(getSessionConfirmedTheme()).toBe('classic');
+    clearSessionConfirmedTheme();
   });
 });

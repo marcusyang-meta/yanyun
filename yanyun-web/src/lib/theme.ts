@@ -18,6 +18,23 @@
 // inline script in index.html (and applyMirroredTheme in main.tsx)
 // applies the mirrored theme before the first paint, and AppRoot then
 // reconciles the mirror against the server value, which always wins.
+//
+// One exception to "the server value always wins": the
+// session-confirmed anchor below. A Relay query response carries no
+// version — it publishes whatever the server held when the request was
+// PROCESSED, whenever it happens to arrive. The locale-change refetch
+// (lib/relay.ts) re-fetches every executed query network-only, and a
+// slow AppViewerQuery from before a theme save can land after the
+// save's mutation and republish the pre-save myThemePref, regressing
+// the store for the rest of the session; reconciliation trusting the
+// store then re-applies the old theme (and rewrites the mirror to
+// match, so even the next boot starts from the regressed value). The
+// anchor is the effective theme of the most recent updateMyTheme the
+// server confirmed during this page load: once set, a store value
+// that contradicts it is a stale snapshot, not the truth, and
+// reconciliation keeps the anchor. The anchor is module state, so a
+// fresh page load clears it and the stored server value rules again —
+// a change made on another device lands on the next load, as before.
 export type ThemePref = 'classic' | 'glass';
 
 export const SUPPORTED_THEMES: readonly ThemePref[] = ['classic', 'glass'];
@@ -131,14 +148,44 @@ export function writeThemeBackToStore(store: ThemeStore, data: unknown): ThemePr
   return theme;
 }
 
+// Session-confirmed anchor (see the file header): the effective theme
+// of the most recent updateMyTheme the server confirmed in this page
+// load, or null when this session has not saved a theme. Set only from
+// the settings save's completion path — never from a query response,
+// whose snapshot may predate the save it would contradict.
+let sessionConfirmedTheme: ThemePref | null = null;
+
+export function confirmThemePref(value: unknown): ThemePref {
+  sessionConfirmedTheme = resolveThemePref(value);
+  return sessionConfirmedTheme;
+}
+
+export function getSessionConfirmedTheme(): ThemePref | null {
+  return sessionConfirmedTheme;
+}
+
+// Test seam (the storage / root seams above exist for the same
+// reason): module state otherwise outlives a single test case.
+export function clearSessionConfirmedTheme() {
+  sessionConfirmedTheme = null;
+}
+
 // Reconciliation / settings-save entry: the server's effective theme is
 // the truth, so apply it and align the local mirror to it in one step.
+// While a session-confirmed anchor exists, an incoming value that
+// contradicts it is a stale snapshot (a pre-save query response that
+// landed late — see the file header): the anchor is applied instead,
+// so a late publish can never talk the page out of a confirmed save.
 export function syncThemeFromServer(
   value: unknown,
   root: ThemeRoot | null = defaultRoot(),
   storage: ThemeStorage | null = defaultStorage(),
 ): ThemePref {
-  const theme = applyTheme(value, root);
-  writeThemeMirror(theme, storage);
-  return theme;
+  const incoming = resolveThemePref(value);
+  const theme = sessionConfirmedTheme !== null && incoming !== sessionConfirmedTheme
+    ? sessionConfirmedTheme
+    : incoming;
+  const applied = applyTheme(theme, root);
+  writeThemeMirror(applied, storage);
+  return applied;
 }
