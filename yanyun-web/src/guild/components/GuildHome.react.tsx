@@ -1,6 +1,7 @@
-import { Link, useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useState, Suspense } from 'react';
 import { FilterSlotContext } from './FilterSlot.tsx';
+import GuildRail, { type RailEntry } from './GuildRail.react.tsx';
 import type { ViewerUser } from '../../lib/user';
 import { GroupingListRoute } from './GroupingList.react.tsx';
 import { GroupingDetailRoute } from './GroupingDetail.react.tsx';
@@ -12,7 +13,7 @@ import GuildInsightsBoard, { type InsightsBoardNode } from './GuildInsightsBoard
 import { BossDexRoute } from './BossDex.react.tsx';
 import { SectDetailRoute } from './SectDetail.react.tsx';
 import { ToastHost } from './Toast.react.tsx';
-import UserBar, { type UserBarText } from '../../auth/UserBar.react.tsx';
+import type { UserBarText } from '../../auth/UserBar.react.tsx';
 import { theme } from '../../lib/format';
 import { useGuildFooter } from '../../lib/guildChrome';
 import { hostGuildSlug } from '../../lib/hostGuild';
@@ -95,11 +96,45 @@ export default function GuildHome({ node, slug, carId, user, userBarText }: {
       ? [{ key: 'insights', label: node.insights.homeInsightsRaceTitle }]
       : []),
   ] as const;
-  const [activeTab, setActiveTab] = useState<string>('team');
+  // Initial section: a ?tab= deep link (the rail's entries navigate
+  // with it when a car detail is open, where the section state does
+  // not exist yet) wins over the default; unknown values fall back.
+  const [searchParams] = useSearchParams();
+  const [activeTab, setActiveTab] = useState<string>(() => {
+    const t = searchParams.get('tab');
+    return t && ['team', 'dex', 'sect', 'announcements', 'schedule', 'market', 'allies', 'insights'].includes(t) ? t : 'team';
+  });
   // Slot in the floating bar row that the grouping list portals its
   // type-filter capsule into (see FilterSlot.tsx).
   const [filterSlot, setFilterSlot] = useState<HTMLElement | null>(null);
   const navigate = useNavigate();
+  // Rail (global navigation) entries: the shell's section set minus
+  // the ones the rail does not carry (sect folds into 攻略, allies /
+  // insights stay capsule-only), gated on their labels exactly like
+  // TABS below.
+  const railEntries: RailEntry[] = [
+    { key: 'team', label: node.homeTabTeamLabel, icon: 'team', active: activeTab === 'team' },
+    { key: 'dex', label: node.homeTabDexLabel, icon: 'dex', active: activeTab === 'dex' || activeTab === 'sect' },
+    ...(node.homeTabAnnouncementsLabel
+      ? [{ key: 'announcements', label: node.homeTabAnnouncementsLabel, icon: 'announcements' as const, active: activeTab === 'announcements' }]
+      : []),
+    ...(node.homeTabScheduleLabel
+      ? [{ key: 'schedule', label: node.homeTabScheduleLabel, icon: 'schedule' as const, active: activeTab === 'schedule' }]
+      : []),
+    ...(node.homeTabMarketLabel
+      ? [{ key: 'market', label: node.homeTabMarketLabel, icon: 'market' as const, active: activeTab === 'market' }]
+      : []),
+  ];
+  const onRailSelect = (key: string) => {
+    if (carId) {
+      // A car detail is open: the section lives behind the home
+      // route, so navigate there carrying the intended section.
+      const base = hostGuildSlug() === slug ? '/' : `/${slug}`;
+      navigate(`${base}?tab=${key}`);
+    } else {
+      setActiveTab(key);
+    }
+  };
   // In a guild context the top bar shows the server nickname (only when one
   // exists; the global context keeps the global name). Form/seat prefill:
   // server nickname first, falling back to the global name.
@@ -110,26 +145,19 @@ export default function GuildHome({ node, slug, carId, user, userBarText }: {
   return (
     <div className="yy-page">
       <ToastHost />
-      <div style={{ maxWidth: 860, margin: '0 auto', padding: '0 20px' }}>
+      <div className="yy-guild-shell">
+        <GuildRail
+          slug={slug}
+          entries={railEntries}
+          backLabel={node.pageBackLabel}
+          adminLabel={node.homeAdminLabel}
+          user={barUser}
+          userBarText={userBarText}
+          onSelect={onRailSelect}
+        />
+        <div className="yy-guild-main">
+          <div style={{ maxWidth: 860, margin: '0 auto', padding: '0 20px' }}>
         <header className="yy-anim-fade-up" style={{ padding: '18px 0 4px' }}>
-          <div className="yy-guild-topbar" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
-            <span className="yy-guild-topbar-left" style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              {/* On this guild's own subdomain the root IS this page —
-                  the back-to-hub link would point at itself, so it is
-                  not rendered there. */}
-              {hostGuildSlug() !== slug && (
-                <Link to="/" className="yy-guild-topbar-link" style={{ color: theme.muted, fontSize: 13, textDecoration: 'none', letterSpacing: '.1em' }}>
-                  {node.pageBackLabel}
-                </Link>
-              )}
-              {node.homeAdminLabel && (
-                <Link to={`/${slug}/admin`} className="yy-guild-topbar-link" style={{ color: theme.gold, fontSize: 13, textDecoration: 'none', letterSpacing: '.1em' }}>
-                  {node.homeAdminLabel}
-                </Link>
-              )}
-            </span>
-            <UserBar user={barUser} text={userBarText} />
-          </div>
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             {node.avatarUrl && (
               <img
@@ -171,10 +199,10 @@ export default function GuildHome({ node, slug, carId, user, userBarText }: {
                 section tabs in one slim capsule, the grouping list's
                 type filter portaled into the adjacent slot as a
                 second, smaller capsule on the same row. The row
-                sticks while the panel scrolls under it. No left rail:
-                a rail would be global (guild-level) navigation,
-                which is out of this change's scope — this is the
-                capsules + the slim opaque top bar only. */}
+                sticks while the panel scrolls under it. Layering:
+                the left rail (GuildRail) is the global guild-level
+                navigation; these capsules are the page-level control
+                for the section the rail selected. */}
             <div className="yy-tabs-float">
               <nav className="yy-tabs">
                 {TABS.map(t => (
@@ -204,6 +232,8 @@ export default function GuildHome({ node, slug, carId, user, userBarText }: {
             </div>
           </FilterSlotContext.Provider>
         )}
+          </div>
+        </div>
       </div>
     </div>
   );

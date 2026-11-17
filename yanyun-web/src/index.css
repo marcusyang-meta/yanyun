@@ -272,16 +272,91 @@ body {
 }
 .yy-btn-ghost:hover { border-color: var(--gold); color: var(--gold-hi); }
 
-/* ---------- guild top bar (顶栏: 不透明细条, 两主题同形) ----------
- * The slim opaque bar over the guild header: ink-2 fill and a hairline
- * border in both themes — deliberately NOT wired to the chrome vars,
- * so the glass theme never reaches it; the floating capsules below
- * are the page's only glass surfaces. */
-.yy-guild-topbar {
-  background: var(--ink-2);
-  border: 1px solid var(--border);
+/* ---------- guild shell + left rail (全局导航左栏) ----------
+ * The guild shell is a flex row: the rail (global layer) + the
+ * content column. The rail is opaque ink in both themes — glass
+ * belongs only to the title-row capsules. It sticks to the viewport
+ * while the content column scrolls past inside the shell's scroll
+ * region; its user cluster (UserBar) sits at the bottom, so the
+ * avatar remains the settings/profile entry at every width. */
+.yy-guild-shell { display: flex; align-items: stretch; }
+.yy-guild-main { flex: 1; min-width: 0; }
+.yy-rail {
+  width: 208px;
+  flex-shrink: 0;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: 18px 12px 14px;
+  background: #0e0c09;
+  border-right: 1px solid var(--border);
+  z-index: 20;
+}
+.yy-rail-back {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 12px;
+  margin-bottom: 14px;
+  color: var(--muted);
+  font-size: 13px;
+  letter-spacing: .08em;
+  text-decoration: none;
+}
+.yy-rail-back:hover { color: var(--paper); }
+.yy-rail-nav { display: flex; flex-direction: column; gap: 4px; }
+.yy-rail-entry {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 9px 12px;
+  border: none;
   border-radius: 12px;
-  padding: 6px 10px 6px 14px;
+  background: transparent;
+  color: rgba(236,226,203,.62);
+  font-family: var(--font-serif);
+  font-size: 14.5px;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color .2s ease, background .2s ease, box-shadow .2s ease;
+  -webkit-tap-highlight-color: transparent;
+}
+.yy-rail-entry:hover { color: var(--paper); background: rgba(201,163,92,.07); }
+.yy-rail-entry.active {
+  color: var(--gold-hi);
+  /* The rail's selected state is the same IG lens as the capsules. */
+  background: rgba(236,210,143,.16);
+  box-shadow: inset 0 0 0 1px rgba(236,210,143,.30), inset 0 1px 0 rgba(236,210,143,.20);
+}
+.yy-rail-user {
+  margin-top: auto;
+  border-top: 1px solid var(--border);
+  padding-top: 12px;
+}
+/* UserBar in the rail: stacked cluster, and the avatar is a live
+   settings entry here at every width (the rail bottom is where
+   profile/settings live now). */
+.yy-rail-user .yy-userbar { flex-direction: column; align-items: flex-start; gap: 8px; }
+.yy-rail-user .yy-userbar-avatar-wrap { pointer-events: auto; cursor: pointer; }
+
+/* Narrow widths: the rail collapses to an icon bar — labels and the
+   UserBar's wide parts (name, settings / sign-out buttons) hide;
+   the avatar still opens the settings dialog, whose root page
+   carries sign-out, so nothing becomes unreachable. */
+@media (max-width: 1024px) {
+  .yy-rail { width: 62px; padding: 14px 8px; }
+  .yy-rail-entry, .yy-rail-back { justify-content: center; padding-left: 0; padding-right: 0; }
+  .yy-rail-label { display: none; }
+  .yy-rail-user .yy-userbar { align-items: center; }
+  .yy-rail-user .yy-userbar-wide { display: none !important; }
+}
+@media (max-width: 640px) {
+  .yy-rail { width: 56px; padding: 12px 6px; }
 }
 
 /* ---------- floating bar row (IG 式悬浮行: 页签胶囊 + 筛选胶囊同行) ----------
