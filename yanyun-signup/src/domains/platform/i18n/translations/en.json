@@ -17763,13 +17763,13 @@
       ],
       "types": []
     },
-    "u/dZTvPiMawCHFDUlNc2Ow==": {
+    "W9Z/DUh29RdKyUzNBgfPag==": {
       "description": "Label text for the paygate master switch on the platform admin page, used beside the switch that turns the whole Premium gate on or off.",
       "id": "platform/platformAdmin_paygateLabel",
       "tokens": [],
       "translations": [
         {
-          "translation": "Paygate master switch",
+          "translation": "Premium master switch",
           "variations": {}
         }
       ],
@@ -18003,7 +18003,7 @@
       ],
       "types": []
     },
-    "omKBFeRBpR5btz/FA+Fmzw==": {
+    "u9F1cIAr6keknD+q/8gGSQ==": {
       "description": "Label text for the game version code field in platform settings, used beside the input carrying the numeric version code.",
       "id": "platform/platformAdmin_gameVersionCodeLabel",
       "tokens": [],

@@ -8804,8 +8804,8 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "en": "Billing & Entitlements"
     },
     "paygateLabel": {
-      "zh-CN": "付费总闸 (paygate)",
-      "en": "Paygate master switch"
+      "zh-CN": "付费总闸",
+      "en": "Premium master switch"
     },
     "paygateOnText": {
       "zh-CN": "已开启",
@@ -8884,7 +8884,7 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "en": "Game Notice"
     },
     "gameVersionCodeLabel": {
-      "zh-CN": "版本号 (version code)",
+      "zh-CN": "版本号",
       "en": "Version code"
     },
     "bossesTitle": {
