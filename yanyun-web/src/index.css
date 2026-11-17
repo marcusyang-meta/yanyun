@@ -275,19 +275,31 @@ body {
 /* ---------- guild shell + left rail (全局导航左栏) ----------
  * The guild shell is a flex row: the rail (global layer) + the
  * content column. The rail is opaque ink in both themes — glass
- * belongs only to the title-row capsules. It sticks to the viewport
+ * belongs only to the title-row capsules.
+ *
+ * The rail is FIXED to the viewport (left / top / bottom), so it
+ * spans the full screen height — the site footer's band included —
  * while the content column scrolls past inside the shell's scroll
- * region; its user cluster (UserBar) sits at the bottom, so the
- * avatar remains the settings/profile entry at every width. */
+ * region; its user cluster (UserBar) sits at the rail's bottom
+ * edge, on screen at every scroll position. It used to be sticky
+ * with height: 100dvh, which could never work here: the scroll
+ * region is shorter than the viewport by the footer's band, so the
+ * rail overshot the region by exactly the footer's height — the
+ * excess became a phantom scroll, the user cluster sat below the
+ * fold, and sticky had no travel anyway (the shell was exactly as
+ * tall as the rail, its height being rail-driven). The content
+ * column and the site footer offset themselves by the rail's
+ * width (see .yy-guild-main here and the .yy-site-footer rules at
+ * the scroll region), tracking the same widths at the icon-bar
+ * breakpoints below. */
 .yy-guild-shell { display: flex; align-items: stretch; }
-.yy-guild-main { flex: 1; min-width: 0; }
+.yy-guild-main { flex: 1; min-width: 0; margin-left: 208px; }
 .yy-rail {
   width: 208px;
-  flex-shrink: 0;
-  position: sticky;
+  position: fixed;
+  left: 0;
   top: 0;
-  height: 100vh;
-  height: 100dvh;
+  bottom: 0;
   display: flex;
   flex-direction: column;
   padding: 18px 12px 14px;
@@ -361,6 +373,7 @@ body {
    carries sign-out, so nothing becomes unreachable. */
 @media (max-width: 1024px) {
   .yy-rail { width: 62px; padding: 14px 8px; }
+  .yy-guild-main { margin-left: 62px; }
   .yy-rail-entry, .yy-rail-back { justify-content: center; padding-left: 0; padding-right: 0; }
   .yy-rail-label { display: none; }
   /* Icon bar: the user cluster stacks again (avatar only, centered). */
@@ -369,6 +382,7 @@ body {
 }
 @media (max-width: 640px) {
   .yy-rail { width: 56px; padding: 12px 6px; }
+  .yy-guild-main { margin-left: 56px; }
 }
 
 /* ---------- floating control row (IG 式悬浮行: 标题行页面级控制) ----------
@@ -526,6 +540,33 @@ body {
   min-height: 0;
   overflow-y: auto;
   overscroll-behavior: contain;
+}
+/* Site footer: rendered once by AppRoot in flow below the scroll
+   region, always fully on screen. On guild pages the fixed rail
+   owns the left column for the full viewport height, footer band
+   included, so there the footer keeps out of the rail's column:
+   its left margin is the rail's width plus whatever centers the
+   footer's 860 measure in the remaining content width. The offsets
+   track the rail widths (208 / 62 / 56) at the rail's own
+   breakpoints. */
+.yy-site-footer {
+  max-width: 860px;
+  margin: 0 auto;
+  padding: 30px 20px 38px;
+  text-align: center;
+}
+.yy-app-main:has(.yy-guild-shell) > .yy-site-footer {
+  margin-left: calc(208px + max(0px, (100% - 208px - 860px) / 2));
+}
+@media (max-width: 1024px) {
+  .yy-app-main:has(.yy-guild-shell) > .yy-site-footer {
+    margin-left: calc(62px + max(0px, (100% - 62px - 860px) / 2));
+  }
+}
+@media (max-width: 640px) {
+  .yy-app-main:has(.yy-guild-shell) > .yy-site-footer {
+    margin-left: calc(56px + max(0px, (100% - 56px - 860px) / 2));
+  }
 }
 /* 底部氛围底: 同一张山水锚在视口底缘, 只透出很淡的山影,
    让短页面"落在山上"而不是坠进纯黑 (与顶部底图同一层, 内容永远在上) */

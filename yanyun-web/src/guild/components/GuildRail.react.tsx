@@ -111,7 +111,12 @@ export default function GuildRail({
     <aside className="yy-rail">
       {hostGuildSlug() !== slug && (
         <Link to="/" className="yy-rail-back">
-          <span aria-hidden="true" style={{ flexShrink: 0 }}>←</span>
+          {/* The label is server-composed WITH its leading arrow in
+              every variant and locale ("← 百业集结" / "← 返回" /
+              "← Guild Rally" / "← Back") — the same contract the
+              mobile SiteChrome renders verbatim. The rail must not
+              add an arrow of its own: doing so rendered the doubled
+              "← ← 百业集结" seen in production. */}
           <span className="yy-rail-label">{backLabel}</span>
         </Link>
       )}
