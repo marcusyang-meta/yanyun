@@ -2261,7 +2261,7 @@ export abstract class ErrorsFbtUtils {
 		return fbs._("该百业处于试用期且未登记支付方式：启用平台子域名前需先登记卡（试用期启用持久化功能需绑卡）", null, { hk: "40mHIj" });
 	}
 	static backupStorageMissing(fbs: FbsRuntime) {
-		return fbs._("备份存储（R2 BACKUPS 绑定）未配置", null, { hk: "2OMHMJ" });
+		return fbs._("备份存储未配置", null, { hk: "1hOY87" });
 	}
 	static backupNotFound(fbs: FbsRuntime) {
 		return fbs._("备份不存在", null, { hk: "uPJcJ" });
@@ -4354,7 +4354,7 @@ export abstract class MarketFbtUtils {
 		return fbs._("补位需求是盟主档功能", null, { hk: "3g7WH8" });
 	}
 	static demandLockedBody(fbs: FbsRuntime) {
-		return fbs._("发布补位需求、浏览并邀请补位人选需要百业开通盟主档（T3）。发布补位供给与处理收到的邀请不受档位限制，所有成员免费可用。", null, { hk: "2pogcc" });
+		return fbs._("发布补位需求、浏览并邀请补位人选需要百业开通盟主档。发布补位供给与处理收到的邀请不受档位限制，所有成员免费可用。", null, { hk: "3dFIHt" });
 	}
 	static demandNoManageHint(fbs: FbsRuntime) {
 		return fbs._("只有本百业的车头与管理员可以发布需求与发出邀请。", null, { hk: "1yMt1G" });
@@ -4873,7 +4873,7 @@ export abstract class PlatformAdminFbtUtils {
 		return fbs._("暂无备份文件", null, { hk: "1lfVZL" });
 	}
 	static backupsUnavailableText(fbs: FbsRuntime) {
-		return fbs._("备份存储（R2 BACKUPS 绑定）未配置", null, { hk: "2eZ3F8" });
+		return fbs._("备份存储未配置", null, { hk: "3vHKae" });
 	}
 	static rosterTitle(fbs: FbsRuntime) {
 		return fbs._("平台超管名单", null, { hk: "LdNtG" });

@@ -160,7 +160,7 @@ export abstract class ErrorsFbtUtils {
   static webhookFormatInvalid(fbs: FbsAPI) { return fbs("Webhook URL 格式不对（应为 https://discord.com/api/webhooks/...）", "Error message for webhook configuration, used when a submitted Discord webhook URL does not match the official format."); }
   static webhookNotConfigured(fbs: FbsAPI) { return fbs("尚未配置 Webhook URL", "Error message for webhook test sends, used when a test is attempted for a guild that has no webhook configured."); }
   static subdomainTrialCardRequired(fbs: FbsAPI) { return fbs("该百业处于试用期且未登记支付方式：启用平台子域名前需先登记卡（试用期启用持久化功能需绑卡）", "Error message for the platform subdomain switch, used when enabling the subdomain for a trialing guild with no payment method on file."); }
-  static backupStorageMissing(fbs: FbsAPI) { return fbs("备份存储（R2 BACKUPS 绑定）未配置", "Error message for backup operations, used when the R2 BACKUPS binding is not configured on the Worker."); }
+  static backupStorageMissing(fbs: FbsAPI) { return fbs("备份存储未配置", "Error message for backup operations, used when the R2 BACKUPS binding is not configured on the Worker."); }
   static backupNotFound(fbs: FbsAPI) { return fbs("备份不存在", "Error message for backup downloads, used when the requested backup object does not exist in the bucket."); }
   static badParams(fbs: FbsAPI) { return fbs("参数不正确", "Error message for malformed admin requests, used when submitted parameters fail validation."); }
   static testSendFailed(fbs: FbsAPI) { return fbs("测试发送失败", "Error message prefix for webhook test sends on the platform admin surface, used when a test message could not be delivered, followed by the delivery error detail."); }
@@ -338,7 +338,7 @@ export abstract class PlatformAdminFbtUtils {
   static heirloomsEmpty(fbs: FbsAPI) { return fbs("暂无百业", "Empty-state text for the heirloom push configs on the platform admin page, used when no guild has an heirloom config."); }
   static backupsTitle(fbs: FbsAPI) { return fbs("数据备份", "Section title for backups on the platform admin page, used above the snapshot list and the export and run actions."); }
   static backupsEmpty(fbs: FbsAPI) { return fbs("暂无备份文件", "Empty-state text for the backup list on the platform admin page, used when the backup bucket holds no snapshots yet."); }
-  static backupsUnavailableText(fbs: FbsAPI) { return fbs("备份存储（R2 BACKUPS 绑定）未配置", "Status text for backups on the platform admin page, used when the R2 BACKUPS binding is not configured on the Worker."); }
+  static backupsUnavailableText(fbs: FbsAPI) { return fbs("备份存储未配置", "Status text for backups on the platform admin page, used when the R2 BACKUPS binding is not configured on the Worker."); }
   static rosterTitle(fbs: FbsAPI) { return fbs("平台超管名单", "Section title for the platform admin roster on the platform admin page, used above the editor for the settings-side admin list."); }
   static rosterNote(fbs: FbsAPI) { return fbs("名单按 Discord 用户 ID 在 gate 层求值；环境变量 PLATFORM_ADMIN_DISCORD_IDS 的引导名单始终有效，不在此列出。修改即时生效并写入审计。", "Hint text for the platform admin roster editor, used to explain that the env bootstrap floor always applies and that roster edits take effect immediately and are audited."); }
   static backfillsTitle(fbs: FbsAPI) { return fbs("一次性回填工具", "Section title for the one-off backfill tools on the platform admin page, used above the reminder-identity, creator-stamp and guide-migration actions."); }

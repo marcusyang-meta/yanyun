@@ -4671,8 +4671,8 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "en": "This guild is in its trial period with no payment method on file: a card must be registered before enabling the platform subdomain (persistent features require a card during trial)"
     },
     "backupStorageMissing": {
-      "zh-CN": "备份存储（R2 BACKUPS 绑定）未配置",
-      "en": "Backup storage (R2 BACKUPS binding) is not configured"
+      "zh-CN": "备份存储未配置",
+      "en": "Backup storage is not configured"
     },
     "backupNotFound": {
       "zh-CN": "备份不存在",
@@ -8159,8 +8159,8 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "en": "Fill Requests Are a Guildmaster-Tier Feature"
     },
     "demandLockedBody": {
-      "zh-CN": "发布补位需求、浏览并邀请补位人选需要百业开通盟主档（T3）。发布补位供给与处理收到的邀请不受档位限制，所有成员免费可用。",
-      "en": "Posting fill requests, browsing and inviting fill-in candidates requires your guild to be on the Guildmaster tier (T3). Publishing fill-in supply and answering invitations you receive are not tier-limited and stay free for all members."
+      "zh-CN": "发布补位需求、浏览并邀请补位人选需要百业开通盟主档。发布补位供给与处理收到的邀请不受档位限制，所有成员免费可用。",
+      "en": "Posting fill requests, browsing and inviting fill-in candidates requires your guild to be on the Guildmaster tier. Publishing fill-in supply and answering invitations you receive are not tier-limited and stay free for all members."
     },
     "demandNoManageHint": {
       "zh-CN": "只有本百业的车头与管理员可以发布需求与发出邀请。",
@@ -8928,8 +8928,8 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "en": "No backup files yet"
     },
     "backupsUnavailableText": {
-      "zh-CN": "备份存储（R2 BACKUPS 绑定）未配置",
-      "en": "Backup storage (R2 BACKUPS binding) is not configured"
+      "zh-CN": "备份存储未配置",
+      "en": "Backup storage is not configured"
     },
     "rosterTitle": {
       "zh-CN": "平台超管名单",
