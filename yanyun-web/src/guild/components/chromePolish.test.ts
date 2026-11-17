@@ -14,8 +14,9 @@ import { describe, expect, it } from 'vitest';
 //    slot on the floating title row (same collapse contract as the
 //    filter slot), so they join the capsules' visual group.
 //  - the rail's hub return is ruled off from the entry group, and
-//    the wide rail's user cluster is a wrapping row (avatar and
-//    username share a line) that only stacks in the icon bar.
+//    the rail's bottom carries only the more entry with its pop-up
+//    menu (IG web shape) — the old user cluster (avatar + username +
+//    settings / sign-out pills) is gone from the rail.
 //  - the content column is 1220 wide, not the old 860 phone column.
 // Assertions read the shipped stylesheet / component source the
 // same way capsuleLayout.test.ts pins its contract.
@@ -113,7 +114,7 @@ describe('floating row actions slot', () => {
   });
 });
 
-describe('rail grouping and user cluster', () => {
+describe('rail grouping and bottom more entry', () => {
   it('the hub return is ruled off from the entry group', () => {
     expect(ruleBlock(baseCss, '.yy-rail-back')).toContain('border-bottom: 1px solid var(--border)');
   });
@@ -122,15 +123,33 @@ describe('rail grouping and user cluster', () => {
     expect(ruleBlock(baseCss, '.yy-rail-nav')).toContain('gap: 2px');
   });
 
-  it('the wide rail user cluster is a wrapping row (avatar + username share a line)', () => {
-    const block = ruleBlock(baseCss, '.yy-rail-user .yy-userbar');
-    expect(block).toContain('flex-direction: row');
-    expect(block).toContain('flex-wrap: wrap');
+  it('the rail bottom is only the more entry, pushed to the foot and ruled off', () => {
+    const block = ruleBlock(baseCss, '.yy-rail-more');
+    expect(block).toContain('margin-top: auto');
+    expect(block).toContain('border-top: 1px solid var(--border)');
+    expect(block).toContain('position: relative');
   });
 
-  it('the icon bar stacks the user cluster again', () => {
-    const media = mediaBlockContaining(css, '@media (max-width: 1024px)', '.yy-rail-user');
-    expect(ruleBlock(media, '.yy-rail-user .yy-userbar')).toContain('flex-direction: column');
+  it('the more menu pops above the bottom entry at a fixed readable width', () => {
+    const block = ruleBlock(baseCss, '.yy-rail-menu');
+    expect(block).toContain('position: absolute');
+    expect(block).toContain('bottom: calc(100% + 4px)');
+    expect(block).toContain('width: 196px');
+  });
+
+  it('no user cluster remains in the rail', () => {
+    expect(css).not.toContain('.yy-rail-user');
+  });
+
+  it('the profile entry icon is a round avatar photo', () => {
+    const block = ruleBlock(baseCss, '.yy-rail-avatar');
+    expect(block).toContain('border-radius: 50%');
+    expect(block).toContain('object-fit: cover');
+  });
+
+  it('the icon bar hides every rail label (profile = avatar alone, more = ☰ alone)', () => {
+    const media = mediaBlockContaining(css, '@media (max-width: 1024px)', '.yy-rail-label');
+    expect(ruleBlock(media, '.yy-rail-label')).toContain('display: none');
   });
 });
 

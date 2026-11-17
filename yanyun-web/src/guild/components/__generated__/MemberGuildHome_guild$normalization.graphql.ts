@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<769d32682bc6b005050c7758ba064418>>
+ * @generated SignedSource<<57329f0619223b25f88657c6f4f3d534>>
  * @lightSyntaxTransform
  */
 
@@ -147,6 +147,41 @@ return {
       "args": null,
       "kind": "ScalarField",
       "name": "homeAdminLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "homeRailProfileLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "homeRailMoreLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "homeRailAppearanceLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "homeRailThemeClassicLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "homeRailThemeGlassLabel",
       "storageKey": null
     },
     {
@@ -401,6 +436,6 @@ return {
 };
 })();
 
-(node as any).hash = "d0890b4303b71ec3756be46c59050ca4";
+(node as any).hash = "060835336b1671fedaa019fe9280e057";
 
 export default node;

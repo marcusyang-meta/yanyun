@@ -47,6 +47,14 @@ export interface GuildHomeNode {
   // Admin entry label: the backend emits it only for viewers who pass
   // the admin verdict; null (entry not rendered) for everyone else.
   homeAdminLabel?: string | null;
+  // Left-rail convergence copy (IG web shape): the profile entry at
+  // the end of the rail's entry list, the bottom more entry, and the
+  // more menu's appearance item with its theme state names.
+  homeRailProfileLabel: string;
+  homeRailMoreLabel: string;
+  homeRailAppearanceLabel: string;
+  homeRailThemeClassicLabel: string;
+  homeRailThemeGlassLabel: string;
   homeTabDexLabel: string;
   homeTabSectLabel: string;
   // Announcements tab label (backend guildHome copy); optional in the
@@ -147,6 +155,11 @@ export default function GuildHome({ node, slug, carId, user, userBarText }: {
           adminLabel={node.homeAdminLabel}
           user={barUser}
           userBarText={userBarText}
+          profileLabel={node.homeRailProfileLabel}
+          moreLabel={node.homeRailMoreLabel}
+          appearanceLabel={node.homeRailAppearanceLabel}
+          themeClassicLabel={node.homeRailThemeClassicLabel}
+          themeGlassLabel={node.homeRailThemeGlassLabel}
           onSelect={onRailSelect}
         />
         <div className="yy-guild-main">

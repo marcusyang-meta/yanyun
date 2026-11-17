@@ -25,6 +25,11 @@ const MemberGuildHome_guild = graphql`
     homeTabMarketLabel
     homeTabAlliesLabel
     homeAdminLabel
+    homeRailProfileLabel
+    homeRailMoreLabel
+    homeRailAppearanceLabel
+    homeRailThemeClassicLabel
+    homeRailThemeGlassLabel
     homeInsightsRaceTitle
     homeInsightsRaceEmptyText
     homeInsightsRaceTeamLabel

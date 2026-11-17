@@ -1,21 +1,36 @@
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { ViewerUser } from '../../lib/user';
-import UserBar, { type UserBarText } from '../../auth/UserBar.react.tsx';
+import SettingsDialogHost, { useSettingsHost, type UserBarText } from '../../auth/SettingsDialogHost.react.tsx';
 import { hostGuildSlug } from '../../lib/hostGuild';
+import { getSessionConfirmedTheme, resolveThemePref, type ThemePref } from '../../lib/theme';
+import { useThemeSave } from '../../lib/useThemeSave';
 
 // Guild left rail (global navigation for the guild shell): a vertical
-// strip carrying the guild-level section entries, the hub return and
-// the admin entry at its top, and the user cluster (UserBar — avatar,
-// settings, sign-out) at its bottom. It is the shell's ONLY global
+// strip carrying the guild-level section entries and the hub return
+// at its top, the profile entry at the END of the entry list, and a
+// single more menu at its bottom. It is the shell's ONLY global
 // navigation: the title row carries page-level controls only (the
 // grouping list's type filter + actions), never a second section
 // nav.
 //
+// The shape follows IG web's sidebar (marcus ruling, 2026-11-17):
+// the personal entry lives IN the navigation list, last, with the
+// viewer's own avatar as its icon (the list's only photo; every other
+// entry is a line icon), and the bottom of the rail carries no user
+// card — just a "more" entry whose pop-up menu holds the miscellany
+// (appearance switch, sign-out). Clicking the profile entry opens
+// the settings dialog (the personal surface), the same landing the
+// old bottom cluster's avatar opened.
+//
+// The rail mounts the page's ONE SettingsDialogHost (the dialog, its
+// deep-open listener and the OAuth return landing ride along): guild
+// pages have no other user cluster, so the host lives here now
+// instead of inside the removed bottom cluster.
+//
 // Entry set is the shell's full composed set, gated exactly like the
 // section panels: an entry exists only when the backend carried its
 // label (or, for the insights board, composed the full board node).
-// 我的 has no separate row: it is the bottom user cluster — the
-// avatar IS the settings/profile entry, as in the mock.
 export type RailEntry = {
   key: string;
   label: string;
@@ -92,9 +107,15 @@ function RailIcon({ icon }: { icon: RailEntry['icon'] }) {
   );
 }
 
-export default function GuildRail({
-  slug, entries, backLabel, adminLabel, user, userBarText, onSelect,
-}: {
+// The effective theme right now: the session-confirmed anchor when a
+// save already landed this page load, else the applied root
+// attribute (AppRoot keeps it reconciled with the server value).
+function readCurrentTheme(): ThemePref {
+  return getSessionConfirmedTheme()
+    ?? resolveThemePref(typeof document !== 'undefined' ? document.documentElement.dataset.theme : undefined);
+}
+
+export interface GuildRailProps {
   slug: string;
   entries: RailEntry[];
   // Server-composed hub return label; the entry is not rendered on
@@ -105,8 +126,74 @@ export default function GuildRail({
   adminLabel?: string | null;
   user: ViewerUser;
   userBarText: UserBarText;
+  // Rail convergence copy (backend guild-home fields, like the
+  // section labels): the profile entry, the more entry, and the
+  // more menu's appearance item with its two state names.
+  profileLabel: string;
+  moreLabel: string;
+  appearanceLabel: string;
+  themeClassicLabel: string;
+  themeGlassLabel: string;
   onSelect: (key: string) => void;
-}) {
+}
+
+export default function GuildRail(props: GuildRailProps) {
+  return (
+    <SettingsDialogHost user={props.user} text={props.userBarText}>
+      <GuildRailBar {...props} />
+    </SettingsDialogHost>
+  );
+}
+
+function GuildRailBar({
+  slug, entries, backLabel, adminLabel, user, userBarText,
+  profileLabel, moreLabel, appearanceLabel, themeClassicLabel, themeGlassLabel, onSelect,
+}: GuildRailProps) {
+  const { openSettings, logout, leaving } = useSettingsHost();
+  const { saveTheme, themeSaveInFlight } = useThemeSave();
+  const [menuOpen, setMenuOpen] = useState(false);
+  const [currentTheme, setCurrentTheme] = useState<ThemePref>(readCurrentTheme);
+  const moreRef = useRef<HTMLDivElement | null>(null);
+
+  // The more menu closes on any outside press and on Escape.
+  useEffect(() => {
+    if (!menuOpen) return;
+    const onDown = (e: MouseEvent) => {
+      if (moreRef.current && !moreRef.current.contains(e.target as Node)) setMenuOpen(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [menuOpen]);
+
+  const toggleMenu = () => {
+    // Re-read the effective theme at open time: it may have been
+    // changed from the settings dialog since the last open.
+    setCurrentTheme(readCurrentTheme());
+    setMenuOpen((open) => !open);
+  };
+
+  const toggleTheme = () => {
+    if (themeSaveInFlight) return;
+    const next: ThemePref = currentTheme === 'glass' ? 'classic' : 'glass';
+    const rollbackTo = currentTheme;
+    setMenuOpen(false);
+    // The shared save path (lib/useThemeSave.ts) — the same hook the
+    // settings dialog saves through, anchor and store write-back
+    // included; never a rail-local save.
+    saveTheme(next, {
+      rollbackTo,
+      onConfirmed: (effective) => setCurrentTheme(effective),
+      onFailed: () => setCurrentTheme(rollbackTo),
+    });
+  };
+
   return (
     <aside className="yy-rail">
       {hostGuildSlug() !== slug && (
@@ -144,9 +231,68 @@ export default function GuildRail({
             <span className="yy-rail-label">{adminLabel}</span>
           </Link>
         )}
+        {/* The profile entry closes the entry list (IG web shape):
+            the viewer's avatar is its icon — the list's only photo —
+            and it is NOT a section: no selected lens, no onSelect;
+            it opens the settings dialog through the page's host. */}
+        <button
+          type="button"
+          className="yy-rail-entry yy-rail-profile"
+          onClick={() => openSettings()}
+        >
+          {user.avatar ? (
+            <img src={user.avatar} alt="" className="yy-rail-avatar" />
+          ) : (
+            <span className="yy-rail-avatar yy-rail-avatar-initial">{(user.name || '?').slice(0, 1)}</span>
+          )}
+          <span className="yy-rail-label">{profileLabel}</span>
+        </button>
       </nav>
-      <div className="yy-rail-user">
-        <UserBar user={user} text={userBarText} />
+      {/* The rail's bottom carries only the more entry (IG web
+          shape): its pop-up menu holds the appearance switch and
+          sign-out. No user card row lives here anymore. */}
+      <div className="yy-rail-more" ref={moreRef}>
+        {menuOpen && (
+          <div className="yy-rail-menu" role="menu">
+            <button
+              type="button"
+              role="menuitem"
+              className="yy-rail-menu-item"
+              onClick={toggleTheme}
+              disabled={themeSaveInFlight}
+            >
+              <span>{appearanceLabel}</span>
+              <span className="yy-rail-menu-state">
+                {currentTheme === 'glass' ? themeGlassLabel : themeClassicLabel}
+              </span>
+            </button>
+            <button
+              type="button"
+              role="menuitem"
+              className="yy-rail-menu-item"
+              onClick={() => { setMenuOpen(false); logout(); }}
+              disabled={leaving}
+            >
+              <span>{leaving ? userBarText.loggingOutLabel : userBarText.logoutLabel}</span>
+            </button>
+          </div>
+        )}
+        <button
+          type="button"
+          className="yy-rail-entry"
+          aria-haspopup="menu"
+          aria-expanded={menuOpen}
+          onClick={toggleMenu}
+        >
+          <svg
+            width="20" height="20" viewBox="0 0 24 24" fill="none"
+            stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"
+            aria-hidden="true" style={{ flexShrink: 0 }}
+          >
+            <path d="M4 7h16M4 12h16M4 17h16" />
+          </svg>
+          <span className="yy-rail-label">{moreLabel}</span>
+        </button>
       </div>
     </aside>
   );

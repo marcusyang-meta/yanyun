@@ -21,13 +21,24 @@
 //     fixed to the viewport (top/bottom), and the content column
 //     and the footer offset themselves by the rail's width. The
 //     CSS contracts below pin that shape at all three widths.
+//
+// The IG-web convergence suites further down pin the rail's new
+// shape (marcus ruling, 2026-11-17): the entry list ends with the
+// profile entry (avatar photo as its icon, opens the settings
+// dialog), the bottom user cluster is gone, and the bottom more
+// menu's appearance item saves through the shared theme-save hook
+// (mutation + session anchor + mirror), never a rail-local flip.
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
-import { describe, expect, it } from 'vitest';
+import { beforeAll, describe, expect, it } from 'vitest';
 import { act } from 'react';
 import { createRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
+import { RelayEnvironmentProvider } from 'react-relay';
 import GuildRail from './GuildRail.react.tsx';
+import { relayEnvironment } from '../../lib/relay';
+import { clearSessionConfirmedTheme, getSessionConfirmedTheme } from '../../lib/theme';
+import SettingsDialogQueryNode from '../../auth/__generated__/SettingsDialogQuery.graphql';
 
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -79,26 +90,93 @@ function ruleBlock(text: string, selector: string): string {
   return text.slice(open + 1, close);
 }
 
+const AVATAR_URL = 'https://cdn.example/avatar.png';
+
 function renderRail(backLabel: string): HTMLElement {
   const container = document.createElement('div');
   document.body.appendChild(container);
   const root = createRoot(container);
   act(() => {
     root.render(
-      <MemoryRouter>
-        <GuildRail
-          slug="livetest"
-          entries={[{ key: 'team', label: '组队', icon: 'team', active: true }]}
-          backLabel={backLabel}
-          adminLabel={null}
-          user={{ discordId: '2001', name: 'CI Tester', avatar: null }}
-          userBarText={{ logoutLabel: '退出登录', loggingOutLabel: '退出中', settingsLabel: '个人资料' }}
-          onSelect={() => {}}
-        />
-      </MemoryRouter>,
+      <RelayEnvironmentProvider environment={relayEnvironment}>
+        <MemoryRouter>
+          <GuildRail
+            slug="livetest"
+            entries={[{ key: 'team', label: '组队', icon: 'team', active: true }]}
+            backLabel={backLabel}
+            adminLabel={null}
+            user={{ discordId: '2001', name: 'CI Tester', avatar: AVATAR_URL }}
+            userBarText={{ logoutLabel: '退出登录', loggingOutLabel: '退出中', settingsLabel: '个人资料' }}
+            profileLabel="我的"
+            moreLabel="更多"
+            appearanceLabel="切换外观"
+            themeClassicLabel="经典"
+            themeGlassLabel="玻璃"
+            onSelect={() => {}}
+          />
+        </MemoryRouter>
+      </RelayEnvironmentProvider>,
     );
   });
   return container;
+}
+
+async function flush(ms = 80) {
+  await act(async () => { await new Promise((r) => setTimeout(r, ms)); });
+}
+
+function click(el: Element) {
+  act(() => { el.dispatchEvent(new window.MouseEvent('click', { bubbles: true })); });
+}
+
+/* Fetch stub for the behavior suites: the settings dialog's query is
+ * synthesized from its real AST (null scalars, like the theme
+ * suites), the theme mutation behaves like the server (persists and
+ * echoes), sign-out is recorded, everything else gets empty data. */
+const fetchCalls: { url: string; method?: string; name: string; theme?: string }[] = [];
+
+function synth(selections: readonly any[], typeName: string | null): any {
+  const out: any = {};
+  if (typeName) out.__typename = typeName;
+  for (const sel of selections || []) {
+    if (sel.kind === 'ScalarField') {
+      if (sel.name !== '__typename') out[sel.name] = null;
+    } else if (sel.kind === 'LinkedField') {
+      if (!sel.concreteType) { out[sel.name] = sel.plural ? [] : null; continue; }
+      out[sel.name] = sel.plural ? [] : synth(sel.selections, sel.concreteType);
+    } else if (sel.kind === 'InlineFragment' || sel.kind === 'Condition') {
+      Object.assign(out, synth(sel.selections, typeName));
+    }
+  }
+  return out;
+}
+
+function installFetchStub() {
+  (globalThis as any).fetch = async (url: string, init: any) => {
+    const u = String(url);
+    if (u.includes('/auth/logout')) {
+      fetchCalls.push({ url: u, method: init?.method, name: 'logout' });
+      return { json: async () => ({}) };
+    }
+    const body = JSON.parse(init.body);
+    const name = /(query|mutation)\s+(\w+)/.exec(body.query || '')?.[2] || '';
+    let data: any = {};
+    if (name === 'useThemeSaveMutation') {
+      const theme = body.variables?.theme === 'glass' ? 'glass' : 'classic';
+      fetchCalls.push({ url: u, method: init?.method, name, theme });
+      data = {
+        updateMyTheme: {
+          __typename: 'UpdateThemePayload',
+          ok: true, error: null, errorCode: null, themePref: theme,
+        },
+      };
+    } else if (name === 'SettingsDialogQuery') {
+      data = synth(SettingsDialogQueryNode.operation.selections, 'Query');
+    } else {
+      fetchCalls.push({ url: u, method: init?.method, name });
+    }
+    return { json: async () => ({ data }) };
+  };
 }
 
 describe('rail hub return (DOM)', () => {
@@ -137,6 +215,128 @@ describe('rail full-height shape (CSS contract)', () => {
     expect(ruleBlock(at1024, '.yy-guild-main')).toContain('margin-left: 62px');
     const at640 = mediaBlockContaining(css, '@media (max-width: 640px)', '.yy-guild-main');
     expect(ruleBlock(at640, '.yy-guild-main')).toContain('margin-left: 56px');
+  });
+});
+
+describe('rail profile entry (IG web shape, DOM)', () => {
+  it('the entry list ends with the profile entry, whose icon is the avatar photo', () => {
+    const container = renderRail('← 百业集结');
+    const nav = container.querySelector('.yy-rail-nav')!;
+    const items = [...nav.children];
+    const last = items[items.length - 1];
+    expect(last.classList.contains('yy-rail-profile')).toBe(true);
+    expect(last.querySelector('.yy-rail-label')!.textContent).toBe('我的');
+    // The icon is the viewer's avatar photo — the list's only img.
+    const img = last.querySelector('img.yy-rail-avatar') as HTMLImageElement | null;
+    expect(img).not.toBeNull();
+    expect(img!.src).toBe(AVATAR_URL);
+    expect(nav.querySelectorAll('img').length).toBe(1);
+    // Section entries keep line icons (svg), no photos.
+    const team = items[0];
+    expect(team.querySelector('svg')).not.toBeNull();
+    expect(team.querySelector('img')).toBeNull();
+    // The profile entry is not a section: no selected lens state.
+    expect(last.classList.contains('active')).toBe(false);
+  });
+
+  it('the rail bottom has no user cluster — no userbar, no username card', () => {
+    const container = renderRail('← 百业集结');
+    expect(container.querySelector('.yy-rail-user')).toBeNull();
+    expect(container.querySelector('.yy-userbar')).toBeNull();
+    expect(container.querySelector('.yy-rail')!.textContent).not.toContain('CI Tester');
+    // The bottom carries only the more entry.
+    const more = container.querySelector('.yy-rail-more')!;
+    expect(more).not.toBeNull();
+    expect(more.querySelector('.yy-rail-label')!.textContent).toBe('更多');
+    expect(more.querySelector('button')!.getAttribute('aria-haspopup')).toBe('menu');
+  });
+
+  it('clicking the profile entry opens the settings dialog', async () => {
+    installFetchStub();
+    const container = renderRail('← 百业集结');
+    const profile = container.querySelector('.yy-rail-profile')!;
+    click(profile);
+    await flush(150);
+    // The dialog (or its suspense shell) is portaled to the body.
+    expect(document.querySelector('.yy-modal-overlay, .yy-push-page')).not.toBeNull();
+  });
+});
+
+describe('rail more menu (DOM)', () => {
+  beforeAll(() => { installFetchStub(); });
+
+  function openMenu(container: HTMLElement): HTMLElement {
+    const moreButton = container.querySelector('.yy-rail-more > button')!;
+    click(moreButton);
+    const menu = container.querySelector('.yy-rail-menu');
+    expect(menu).not.toBeNull();
+    return menu as HTMLElement;
+  }
+
+  it('opens with the appearance item (current state shown) and sign-out', async () => {
+    clearSessionConfirmedTheme();
+    delete document.documentElement.dataset.theme;
+    window.localStorage.clear();
+    const container = renderRail('← 百业集结');
+    expect(container.querySelector('.yy-rail-menu')).toBeNull();
+    const menu = openMenu(container);
+    const items = [...menu.querySelectorAll('.yy-rail-menu-item')];
+    expect(items.length).toBe(2);
+    expect(items[0].textContent).toContain('切换外观');
+    expect(items[0].querySelector('.yy-rail-menu-state')!.textContent).toBe('经典');
+    expect(items[1].textContent).toContain('退出登录');
+    await flush(10);
+  });
+
+  it('closes on Escape and on an outside press', () => {
+    const container = renderRail('← 百业集结');
+    openMenu(container);
+    act(() => { document.dispatchEvent(new window.KeyboardEvent('keydown', { key: 'Escape', bubbles: true })); });
+    expect(container.querySelector('.yy-rail-menu')).toBeNull();
+    openMenu(container);
+    act(() => { document.body.dispatchEvent(new window.MouseEvent('mousedown', { bubbles: true })); });
+    expect(container.querySelector('.yy-rail-menu')).toBeNull();
+  });
+
+  it('the appearance item saves through the shared theme path (mutation + anchor + mirror)', async () => {
+    clearSessionConfirmedTheme();
+    delete document.documentElement.dataset.theme;
+    window.localStorage.clear();
+    fetchCalls.length = 0;
+    const container = renderRail('← 百业集结');
+    const menu = openMenu(container);
+    const appearance = menu.querySelectorAll('.yy-rail-menu-item')[0];
+    click(appearance);
+    await flush(150);
+    // The save went out as the shared hook's mutation for glass…
+    const call = fetchCalls.find((c) => c.name === 'useThemeSaveMutation');
+    expect(call).toBeTruthy();
+    expect(call!.theme).toBe('glass');
+    // …applied immediately, mirrored, and anchored for the session —
+    // the #153–#155 mechanism, not a rail-local flip.
+    expect(document.documentElement.dataset.theme).toBe('glass');
+    expect(window.localStorage.getItem('yy_theme_pref')).toBe('glass');
+    expect(getSessionConfirmedTheme()).toBe('glass');
+    // The menu closed on selection; reopening shows the new state.
+    expect(container.querySelector('.yy-rail-menu')).toBeNull();
+    const reopened = openMenu(container);
+    expect(reopened.querySelector('.yy-rail-menu-state')!.textContent).toBe('玻璃');
+    clearSessionConfirmedTheme();
+    delete document.documentElement.dataset.theme;
+    window.localStorage.clear();
+  });
+
+  it('sign-out posts to the existing logout endpoint', async () => {
+    fetchCalls.length = 0;
+    const container = renderRail('← 百业集结');
+    const menu = openMenu(container);
+    const signOut = menu.querySelectorAll('.yy-rail-menu-item')[1];
+    click(signOut);
+    await flush(60);
+    const call = fetchCalls.find((c) => c.name === 'logout');
+    expect(call).toBeTruthy();
+    expect(call!.method).toBe('POST');
+    expect(container.querySelector('.yy-rail-menu')).toBeNull();
   });
 });
 
