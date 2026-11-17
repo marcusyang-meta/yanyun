@@ -2549,6 +2549,11 @@ type Guild {
   homeTabMarketLabel: String!
   homeTabAlliesLabel: String
   homeAdminLabel: String
+  homeRailProfileLabel: String!
+  homeRailMoreLabel: String!
+  homeRailAppearanceLabel: String!
+  homeRailThemeClassicLabel: String!
+  homeRailThemeGlassLabel: String!
   detailNotFoundText: String!
   detailBackToListLabel: String!
   pageBackLabel: String!

@@ -389,6 +389,36 @@ const memberPageQ = `query($slug: String!) { viewer { guild(slug: $slug) { __typ
   eq('成员二仍未读 (回执按人隔离)', page3.data?.viewer?.guild?.announcements?.announcements?.[0]?.viewerHasRead, false);
   });
 
+/* ================= rail convergence labels (IG web shape) ================= */
+const railLabelsQ = `query($slug: String!) { viewer { guild(slug: $slug) { __typename
+  ... on Guild { homeRailProfileLabel homeRailMoreLabel homeRailAppearanceLabel homeRailThemeClassicLabel homeRailThemeGlassLabel } } } }`;
+  it('rail convergence labels are served like the other rail entries (zh + en)', async () => {
+  const zh = await gql(railLabelsQ, { user: member1, variables: { slug: 'alpha' } });
+  const g = zh.data?.viewer?.guild;
+  eq('左栏「我的」文案由后端下发', g?.homeRailProfileLabel, '我的');
+  eq('左栏「更多」文案由后端下发', g?.homeRailMoreLabel, '更多');
+  eq('更多菜单「切换外观」文案由后端下发', g?.homeRailAppearanceLabel, '切换外观');
+  eq('外观当前态经典名与设置面共用词条', g?.homeRailThemeClassicLabel, '经典');
+  eq('外观当前态玻璃名与设置面共用词条', g?.homeRailThemeGlassLabel, '玻璃');
+
+  const ctx = {
+    env, request: new Request('http://local/graphql'), user: member1,
+    locale: 'en', browserLocale: 'en', tz: 'Asia/Shanghai',
+    executionCtx: { waitUntil() {} },
+  };
+  const res = await yoga.fetch(new Request('http://local/graphql', {
+    method: 'POST', headers: { 'content-type': 'application/json' },
+    body: JSON.stringify({ query: railLabelsQ, variables: { slug: 'alpha' } }),
+  }), ctx);
+  const en = await res.json();
+  const ge = en.data?.viewer?.guild;
+  eq('en profile label', ge?.homeRailProfileLabel, 'Profile');
+  eq('en more label', ge?.homeRailMoreLabel, 'More');
+  eq('en appearance label', ge?.homeRailAppearanceLabel, 'Switch appearance');
+  eq('en classic label', ge?.homeRailThemeClassicLabel, 'Classic');
+  eq('en glass label', ge?.homeRailThemeGlassLabel, 'Glass');
+  });
+
 /* ================= admin receipts (F10 admin face) ================= */
 const adminPageQ = `query($slug: String!) { viewer { guildAdmin(slug: $slug) { __typename
   ... on GuildAdmin { adminTabAnnouncementsLabel announcements {

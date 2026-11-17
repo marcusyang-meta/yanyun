@@ -11,6 +11,9 @@ export type GuildsStringKey =
   | 'guildHome_tabSchedule'
   | 'guildHome_tabMarket'
   | 'guildHome_tabAllies'
+  | 'guildHome_railProfile'
+  | 'guildHome_railMore'
+  | 'guildHome_railAppearance'
   | 'guildAdmin_title'
   | 'guildAdmin_lockedTitle'
   | 'guildAdmin_lockedBody'
@@ -594,6 +597,9 @@ export const GUILDS_STRING_KEYS: readonly GuildsStringKey[] = [
   'guildHome_tabSchedule',
   'guildHome_tabMarket',
   'guildHome_tabAllies',
+  'guildHome_railProfile',
+  'guildHome_railMore',
+  'guildHome_railAppearance',
   'guildAdmin_title',
   'guildAdmin_lockedTitle',
   'guildAdmin_lockedBody',

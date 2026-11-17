@@ -232,6 +232,16 @@ export const GUILD_HOME_TEXT_SPEC = [
   ['homeTabAnnouncementsLabel', 'guildHome_tabAnnouncements'],
   ['homeTabScheduleLabel', 'guildHome_tabSchedule'],
   ['homeTabMarketLabel', 'guildHome_tabMarket'],
+  // Left-rail convergence (IG web shape): the profile entry at the
+  // end of the rail's entry list and the bottom more menu (appearance
+  // switch + sign-out) carry their labels from here like every other
+  // rail entry; the theme names reuse the settings section's keys —
+  // the same words, declared once in the identity catalog.
+  ['homeRailProfileLabel', 'guildHome_railProfile'],
+  ['homeRailMoreLabel', 'guildHome_railMore'],
+  ['homeRailAppearanceLabel', 'guildHome_railAppearance'],
+  ['homeRailThemeClassicLabel', 'settings_themeClassicLabel'],
+  ['homeRailThemeGlassLabel', 'settings_themeGlassLabel'],
   ['homeInsightsRaceTitle', 'guildAdmin_insightsRaceTitle'],
   ['homeInsightsRaceEmptyText', 'guildAdmin_insightsRaceEmpty'],
   ['homeInsightsRaceTeamLabel', 'guildAdmin_insightsRaceTeamLabel'],
