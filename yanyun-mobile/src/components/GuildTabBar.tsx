@@ -1,5 +1,5 @@
 import React from 'react';
-import { Image, Pressable, StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { theme } from '../theme';
@@ -61,10 +61,9 @@ const ICONS: Record<GuildTabIcon, [string, string]> = {
 type IoniconName = React.ComponentProps<typeof Ionicons>['name'];
 
 export function GuildTabBar({
-  entries, avatarUrl, onSelect,
+  entries, onSelect,
 }: {
   entries: GuildTabEntry[];
-  avatarUrl?: string | null;
   onSelect: (entry: GuildTabEntry) => void;
 }) {
   const insets = useSafeAreaInsets();
@@ -106,18 +105,16 @@ export function GuildTabBar({
                         : <TabFill />}
                     </View>
                   )}
-                  {entry.icon === 'profile' && avatarUrl ? (
-                    <Image
-                      source={{ uri: avatarUrl }}
-                      style={[s.avatar, entry.active && s.avatarOn]}
-                    />
-                  ) : (
-                    <Ionicons
-                      name={iconName}
-                      size={24}
-                      color={entry.active ? theme.goldHi : 'rgba(236,226,203,.55)'}
-                    />
-                  )}
+                  {/* Every entry — profile included — renders its line
+                      icon from the one icon system; the capsule never
+                      shows the photo avatar. The guild home's top bar
+                      carries no avatar either (SiteChrome hideAvatar),
+                      so this icon is the screen's one personal entry. */}
+                  <Ionicons
+                    name={iconName}
+                    size={24}
+                    color={entry.active ? theme.goldHi : 'rgba(236,226,203,.55)'}
+                  />
                 </Pressable>
               );
             })}
@@ -146,6 +143,4 @@ const s = StyleSheet.create({
     borderWidth: 1, borderColor: 'rgba(236,210,143,.38)',
   },
   lensGlass: { backgroundColor: 'rgba(236,210,143,.20)' },
-  avatar: { width: 27, height: 27, borderRadius: 14, borderWidth: 1, borderColor: 'rgba(236,226,203,.4)' },
-  avatarOn: { borderColor: theme.goldHi, borderWidth: 2 },
 });

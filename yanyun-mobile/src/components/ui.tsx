@@ -224,7 +224,7 @@ export function Seal({ char, size, brush = true }: { char: string; size: number;
 // pages are reachable by deep link without a session — the entry is
 // one compact login button routing to the entry gate, which renders
 // the login screen.
-export function UserBar({ displayName }: { displayName?: string | null }) {
+export function UserBar({ displayName, hideAvatar = false }: { displayName?: string | null; hideAvatar?: boolean }) {
   const { user, text } = useSession();
   if (!user) {
     return (
@@ -241,6 +241,9 @@ export function UserBar({ displayName }: { displayName?: string | null }) {
       </Pressable>
     );
   }
+  // hideAvatar: the signed-in avatar renders nothing at all. The
+  // signed-out login button above is unaffected — it is not an avatar.
+  if (hideAvatar) return null;
   const name = displayName ?? user.name;
   return (
     <Pressable onPress={() => router.push('/profile')} hitSlop={6}>
@@ -273,7 +276,12 @@ export function UserBar({ displayName }: { displayName?: string | null }) {
 // plain row over the backdrop, never a glass surface): the guild home
 // uses it because under the IG-style layout the floating bottom
 // capsule is that screen's only glass surface.
-export function SiteChrome({ displayName, backLabel, solid = false }: { displayName?: string | null; backLabel?: string | null; solid?: boolean }) {
+//
+// `hideAvatar` drops the top-right avatar entirely: the guild home
+// passes it so the screen carries no avatar at all — its capsule's
+// profile entry (a line icon) is the one personal entry. Other pages
+// (grouping detail) omit it and keep the avatar entry as before.
+export function SiteChrome({ displayName, backLabel, solid = false, hideAvatar = false }: { displayName?: string | null; backLabel?: string | null; solid?: boolean; hideAvatar?: boolean }) {
   const { text } = useSession();
   const row = (
     <>
@@ -282,7 +290,7 @@ export function SiteChrome({ displayName, backLabel, solid = false }: { displayN
           {backLabel ?? `← ${text.siteTitle ?? '百业集结'}`}
         </Text>
       </Pressable>
-      <UserBar displayName={displayName} />
+      <UserBar displayName={displayName} hideAvatar={hideAvatar} />
     </>
   );
   const rowStyle = { flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', gap: 10 } as const;
