@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<f2ea35c774645186c2c536660360d8a2>>
+ * @generated SignedSource<<6591dacc998ba5037485c5df9e58ec9b>>
  * @lightSyntaxTransform
  */
 
@@ -42,6 +42,11 @@ export type MemberGuildHome_guild$data = {
   readonly homeInsightsRaceTitle: string;
   readonly homeInsightsRaceWinsLabel: string;
   readonly homeInsightsSelfGearTitle: string;
+  readonly homeRailAppearanceLabel: string;
+  readonly homeRailMoreLabel: string;
+  readonly homeRailProfileLabel: string;
+  readonly homeRailThemeClassicLabel: string;
+  readonly homeRailThemeGlassLabel: string;
   readonly homeTabAlliesLabel: string | null | undefined;
   readonly homeTabAnnouncementsLabel: string;
   readonly homeTabDexLabel: string;
@@ -222,6 +227,41 @@ return {
       "args": null,
       "kind": "ScalarField",
       "name": "homeAdminLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "homeRailProfileLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "homeRailMoreLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "homeRailAppearanceLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "homeRailThemeClassicLabel",
+      "storageKey": null
+    },
+    {
+      "alias": null,
+      "args": null,
+      "kind": "ScalarField",
+      "name": "homeRailThemeGlassLabel",
       "storageKey": null
     },
     {
@@ -478,6 +518,6 @@ return {
 };
 })();
 
-(node as any).hash = "d0890b4303b71ec3756be46c59050ca4";
+(node as any).hash = "060835336b1671fedaa019fe9280e057";
 
 export default node;

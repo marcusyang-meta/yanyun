@@ -354,31 +354,82 @@ body {
   background: rgba(0,0,0,.42);
   box-shadow: inset 0 0 0 1px rgba(201,163,92,.55);
 }
-.yy-rail-user {
+/* The profile entry's icon is the viewer's own avatar — the entry
+   list's only photo, every other entry a line icon (IG web shape).
+   Sized a touch larger than the 20px line icons so the photo reads;
+   the initial-letter fallback mirrors the user bar's. */
+.yy-rail-avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  border: 1px solid rgba(201,163,92,.55);
+}
+.yy-rail-avatar-initial {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--gold-hi);
+  font-size: 12px;
+  background: rgba(201,163,92,.12);
+}
+/* The rail's bottom carries ONLY the more entry (IG web shape): no
+   user card row. Its pop-up menu opens upward from it and holds the
+   appearance switch and sign-out. The menu is wider than the icon
+   bar, so at narrow widths it simply overflows the rail's edge —
+   the rail clips nothing. */
+.yy-rail-more {
   margin-top: auto;
   border-top: 1px solid var(--border);
   padding-top: 12px;
+  position: relative;
 }
-/* UserBar in the rail: a wrapping row cluster — avatar and username
-   share the first line so the rail's foot never reads as a lone
-   avatar, the settings / sign-out buttons wrap beneath them; the
-   avatar is a live settings entry here at every width (the rail
-   bottom is where profile/settings live now). */
-.yy-rail-user .yy-userbar { flex-direction: row; flex-wrap: wrap; align-items: center; gap: 8px 10px; }
-.yy-rail-user .yy-userbar-avatar-wrap { pointer-events: auto; cursor: pointer; }
+.yy-rail-menu {
+  position: absolute;
+  left: 0;
+  bottom: calc(100% + 4px);
+  width: 196px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: #171410;
+  border: 1px solid rgba(201,163,92,.28);
+  border-radius: 12px;
+  box-shadow: 0 12px 32px rgba(0,0,0,.5);
+  z-index: 40;
+}
+.yy-rail-menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  width: 100%;
+  padding: 9px 10px;
+  border: none;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--paper);
+  font-family: var(--font-serif);
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+  -webkit-tap-highlight-color: transparent;
+}
+.yy-rail-menu-item:hover { background: rgba(201,163,92,.08); }
+.yy-rail-menu-item:disabled { opacity: .55; cursor: default; }
+.yy-rail-menu-state { color: var(--gold-hi); font-size: 13px; }
 
-/* Narrow widths: the rail collapses to an icon bar — labels and the
-   UserBar's wide parts (name, settings / sign-out buttons) hide;
-   the avatar still opens the settings dialog, whose root page
-   carries sign-out, so nothing becomes unreachable. */
+/* Narrow widths: the rail collapses to an icon bar — labels hide,
+   so the profile entry is the avatar alone and the more entry is
+   the ☰ alone; the more menu still opens (and overflows the bar's
+   edge at its full width), so nothing becomes unreachable. */
 @media (max-width: 1024px) {
   .yy-rail { width: 62px; padding: 14px 8px; }
   .yy-guild-main { margin-left: 62px; }
   .yy-rail-entry, .yy-rail-back { justify-content: center; padding-left: 0; padding-right: 0; }
   .yy-rail-label { display: none; }
-  /* Icon bar: the user cluster stacks again (avatar only, centered). */
-  .yy-rail-user .yy-userbar { flex-direction: column; flex-wrap: nowrap; align-items: center; }
-  .yy-rail-user .yy-userbar-wide { display: none !important; }
 }
 @media (max-width: 640px) {
   .yy-rail { width: 56px; padding: 12px 6px; }
