@@ -4780,7 +4780,7 @@ export abstract class PlatformAdminFbtUtils {
 		return fbs._("计费与权益", null, { hk: "4mSA7V" });
 	}
 	static paygateLabel(fbs: FbsRuntime) {
-		return fbs._("付费总闸 (paygate)", null, { hk: "1g9iLg" });
+		return fbs._("付费总闸", null, { hk: "2gwGbV" });
 	}
 	static paygateOnText(fbs: FbsRuntime) {
 		return fbs._("已开启", null, { hk: "4CSzoa" });
@@ -4840,7 +4840,7 @@ export abstract class PlatformAdminFbtUtils {
 		return fbs._("游戏公告", null, { hk: "381uwb" });
 	}
 	static gameVersionCodeLabel(fbs: FbsRuntime) {
-		return fbs._("版本号 (version code)", null, { hk: "3fNqNY" });
+		return fbs._("版本号", null, { hk: "q4fYL" });
 	}
 	static bossesTitle(fbs: FbsRuntime) {
 		return fbs._("首领图鉴", null, { hk: "2MGNoK" });

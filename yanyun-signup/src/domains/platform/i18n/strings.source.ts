@@ -307,7 +307,7 @@ export abstract class PlatformAdminFbtUtils {
   static tenantsTitle(fbs: FbsAPI) { return fbs("百业列表", "Section title for the tenant list on the platform admin page, used above the table of all guilds on the platform."); }
   static tenantsEmpty(fbs: FbsAPI) { return fbs("暂无百业", "Empty-state text for the tenant list on the platform admin page, used when the platform has no guilds yet."); }
   static billingTitle(fbs: FbsAPI) { return fbs("计费与权益", "Section title for billing on the platform admin page, used above the paygate switch and per-guild entitlement controls."); }
-  static paygateLabel(fbs: FbsAPI) { return fbs("付费总闸 (paygate)", "Label text for the paygate master switch on the platform admin page, used beside the switch that turns the whole Premium gate on or off."); }
+  static paygateLabel(fbs: FbsAPI) { return fbs("付费总闸", "Label text for the paygate master switch on the platform admin page, used beside the switch that turns the whole Premium gate on or off."); }
   static paygateOnText(fbs: FbsAPI) { return fbs("已开启", "Status text for the paygate switch on the platform admin page, used when the Premium gate master switch is on."); }
   static paygateOffText(fbs: FbsAPI) { return fbs("已关闭", "Status text for the paygate switch on the platform admin page, used when the Premium gate master switch is off."); }
   static stripeLabel(fbs: FbsAPI) { return fbs("Stripe", "Label text for the Stripe status row on the platform admin page, used beside the indicator of whether Stripe keys and prices are configured."); }
@@ -327,7 +327,7 @@ export abstract class PlatformAdminFbtUtils {
   static settingsTitle(fbs: FbsAPI) { return fbs("平台设置", "Section title for platform settings on the platform admin page, used above the global game version and notice fields."); }
   static gameVersionLabel(fbs: FbsAPI) { return fbs("游戏版本", "Label text for the game version field in platform settings, used beside the input carrying the current game version string."); }
   static gameNoticeLabel(fbs: FbsAPI) { return fbs("游戏公告", "Label text for the game notice field in platform settings, used beside the input carrying the platform-wide game notice."); }
-  static gameVersionCodeLabel(fbs: FbsAPI) { return fbs("版本号 (version code)", "Label text for the game version code field in platform settings, used beside the input carrying the numeric version code."); }
+  static gameVersionCodeLabel(fbs: FbsAPI) { return fbs("版本号", "Label text for the game version code field in platform settings, used beside the input carrying the numeric version code."); }
   static bossesTitle(fbs: FbsAPI) { return fbs("首领图鉴", "Section title for the boss compendium editor on the platform admin page, used above the boss list."); }
   static bossesEmpty(fbs: FbsAPI) { return fbs("暂无首领", "Empty-state text for the boss compendium editor on the platform admin page, used when no bosses exist yet."); }
   static dungeonsTitle(fbs: FbsAPI) { return fbs("副本图鉴", "Section title for the dungeon compendium editor on the platform admin page, used above the dungeon list."); }
