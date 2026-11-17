@@ -77,7 +77,7 @@ function installFetchStub() {
     const m = /(query|mutation)\s+(\w+)/.exec(body.query || '');
     const name = m?.[2] || '';
     let data: any;
-    if (name === 'SettingsDialogUpdateThemeMutation') {
+    if (name === 'useThemeSaveMutation') {
       serverTheme = body.variables?.theme === 'glass' ? 'glass' : 'classic';
       data = {
         updateMyTheme: {
