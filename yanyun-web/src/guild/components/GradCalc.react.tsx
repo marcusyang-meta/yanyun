@@ -7,6 +7,7 @@ import { toast } from './Toast.react.tsx';
 import GearBench from './GearBench.react.tsx';
 import GearRefs from './GearRefs.react.tsx';
 import GearQuick from './GearQuick.react.tsx';
+import { mergeSlotAffixRows } from './gradSlotAffix';
 import type { GradCalcAffixQuery as GradCalcAffixQueryType } from './__generated__/GradCalcAffixQuery.graphql';
 import type { GradCalcSlotAffixQuery as GradCalcSlotAffixQueryType } from './__generated__/GradCalcSlotAffixQuery.graphql';
 import type { GradCalcMutation as GradCalcMutationType } from './__generated__/GradCalcMutation.graphql';
@@ -153,11 +154,20 @@ export default function GradCalc({ sectSlug, sectName }: { sectSlug: string; sec
     ),
     []
   );
-  const slotQueryRef = useMemo(
+  // Both build layouts load once, up front: the slot editor offers the
+  // union of the two layouts' affixes (see gradSlotAffix.ts), while the
+  // reference table keeps reading the current layout's rows.
+  const bigSlotQueryRef = useMemo(
     () => loadQuery<GradCalcSlotAffixQueryType>(
-      relayEnvironment, GradCalcSlotAffixQueryNode, { build }, { fetchPolicy: 'store-or-network' }
+      relayEnvironment, GradCalcSlotAffixQueryNode, { build: 'big' }, { fetchPolicy: 'store-or-network' }
     ),
-    [build]
+    []
+  );
+  const smallSlotQueryRef = useMemo(
+    () => loadQuery<GradCalcSlotAffixQueryType>(
+      relayEnvironment, GradCalcSlotAffixQueryNode, { build: 'small' }, { fetchPolicy: 'store-or-network' }
+    ),
+    []
   );
 
   const textQueryRef = useMemo(
@@ -173,7 +183,8 @@ export default function GradCalc({ sectSlug, sectName }: { sectSlug: string; sec
       build={build}
       onBuildChange={setBuild}
       affixQueryRef={affixQueryRef}
-      slotQueryRef={slotQueryRef}
+      bigSlotQueryRef={bigSlotQueryRef}
+      smallSlotQueryRef={smallSlotQueryRef}
     />
   );
 }
@@ -186,7 +197,8 @@ function GradTextGate({ textQueryRef, ...rest }: {
   build: Build;
   onBuildChange: (b: Build) => void;
   affixQueryRef: PreloadedQuery<GradCalcAffixQueryType>;
-  slotQueryRef: PreloadedQuery<GradCalcSlotAffixQueryType>;
+  bigSlotQueryRef: PreloadedQuery<GradCalcSlotAffixQueryType>;
+  smallSlotQueryRef: PreloadedQuery<GradCalcSlotAffixQueryType>;
 }) {
   const textData = usePreloadedQuery(GradCalcTextQueryNode, textQueryRef);
   const text: any = (textData as any)?.gradPage ?? {};
@@ -203,6 +215,21 @@ function GradTextGate({ textQueryRef, ...rest }: {
   );
 }
 
+// slotAffixList arrives keyed by canonical slot name; re-key it to the
+// delivered slot ids via the gradSlots label mapping.
+function assembleSlotAffixMap(
+  rows: ReadonlyArray<{ readonly slot: string; readonly affixKey: string }>,
+  slots: ReadonlyArray<{ id: string; label: string }>
+): Record<string, string[]> {
+  const idOfLabel = new Map(slots.map((s) => [s.label, s.id]));
+  const m: Record<string, string[]> = {};
+  rows.forEach((sa) => {
+    const id = idOfLabel.get(sa.slot) ?? sa.slot;
+    (m[id] = m[id] || []).push(sa.affixKey);
+  });
+  return m;
+}
+
 function GradCalcMain({
   sectSlug,
   sectName,
@@ -210,7 +237,8 @@ function GradCalcMain({
   build,
   onBuildChange,
   affixQueryRef,
-  slotQueryRef,
+  bigSlotQueryRef,
+  smallSlotQueryRef,
   text,
 }: {
   sectSlug: string;
@@ -219,11 +247,13 @@ function GradCalcMain({
   build: Build;
   onBuildChange: (b: Build) => void;
   affixQueryRef: PreloadedQuery<GradCalcAffixQueryType>;
-  slotQueryRef: PreloadedQuery<GradCalcSlotAffixQueryType>;
+  bigSlotQueryRef: PreloadedQuery<GradCalcSlotAffixQueryType>;
+  smallSlotQueryRef: PreloadedQuery<GradCalcSlotAffixQueryType>;
   text: any;
 }) {
   const affixData = usePreloadedQuery<GradCalcAffixQueryType>(GradCalcAffixQueryNode, affixQueryRef);
-  const slotResp = usePreloadedQuery<GradCalcSlotAffixQueryType>(GradCalcSlotAffixQueryNode, slotQueryRef);
+  const bigSlotResp = usePreloadedQuery<GradCalcSlotAffixQueryType>(GradCalcSlotAffixQueryNode, bigSlotQueryRef);
+  const smallSlotResp = usePreloadedQuery<GradCalcSlotAffixQueryType>(GradCalcSlotAffixQueryNode, smallSlotQueryRef);
 
   const [benchWhites, setBenchWhites] = useState<{ acc: number; crit: number; int: number; res: number } | null>(null);
   const affixes = affixData.affixMaxList;
@@ -241,17 +271,21 @@ function GradCalcMain({
   // the state and wire keys).
   const slots: ReadonlyArray<{ id: string; label: string; icon: string }> = text.gradSlots ?? [];
   const rateRows: ReadonlyArray<{ key: string; label: string; cap: number }> = text.gradRates ?? [];
-  const slotAffixMap = useMemo(() => {
-    // slotAffixList arrives keyed by canonical slot name; re-key it to
-    // the delivered slot ids via the gradSlots label mapping.
-    const idOfLabel = new Map(slots.map((s) => [s.label, s.id]));
-    const m: Record<string, string[]> = {};
-    slotResp.slotAffixList.forEach((sa) => {
-      const id = idOfLabel.get(sa.slot) ?? sa.slot;
-      (m[id] = m[id] || []).push(sa.affixKey);
-    });
-    return m;
-  }, [slotResp, slots]);
+  // Reference table: the current layout's rows, as delivered.
+  const currentSlotResp = build === 'big' ? bigSlotResp : smallSlotResp;
+  const slotAffixMap = useMemo(
+    () => assembleSlotAffixMap(currentSlotResp.slotAffixList, slots),
+    [currentSlotResp, slots]
+  );
+  // Slot editor: real gear can roll either layout's affixes, so the
+  // selectable set is the union of both layouts (see gradSlotAffix.ts).
+  const unionSlotAffixMap = useMemo(
+    () => assembleSlotAffixMap(
+      mergeSlotAffixRows(bigSlotResp.slotAffixList, smallSlotResp.slotAffixList),
+      slots
+    ),
+    [bigSlotResp, smallSlotResp, slots]
+  );
 
   const [slotData, setSlotData] = useState<AffixRow[][]>(() => emptySlots(slots.length));
   const [rates, setRates] = useState<Rates>({ precision: '', crit: '', affinity: '' });
@@ -691,7 +725,7 @@ function GradCalcMain({
               {scoreOf(slots[openSlot]?.id ?? '') > 0 ? fill(text.gradItemScoreTemplate ?? '', { score: scoreOf(slots[openSlot]?.id ?? '') }) : ''}
             </div>
             {(slotData[openSlot] ?? []).map((d, ri) => {
-              const allowed = slotAffixMap[slots[openSlot]?.id ?? ''] || [];
+              const allowed = unionSlotAffixMap[slots[openSlot]?.id ?? ''] || [];
               const max = d.key ? affixMaxMap[d.key] : undefined;
               const v = parseFloat(d.value);
               const over = max !== undefined && !isNaN(v) && v > max;
