@@ -102,6 +102,9 @@ export abstract class GradFbtUtils {
   static toastSaved(fbs: FbsAPI, p?: StringParams) { return fbs(["已保存方案「", fbs.param("name", pv(p, "name")), "」"], "Toast message for the appraisal page, used after a scheme is saved, where {name} is the scheme name."); }
   static toastLoaded(fbs: FbsAPI, p?: StringParams) { return fbs(["已载入方案「", fbs.param("name", pv(p, "name")), "」"], "Toast message for the appraisal page, used after a scheme is loaded, where {name} is the scheme name."); }
   static toastOldScheme(fbs: FbsAPI) { return fbs("旧方案只保存了分数，无法载入配装", "Toast message for the appraisal page, used when loading a legacy scheme that stored only scores and cannot restore a loadout."); }
+  static pickFromLibrary(fbs: FbsAPI) { return fbs("从装备库选", "Button label for the appraisal item editor, used to open the gear library picker that fills the edited slot from a stored library item."); }
+  static libraryEmpty(fbs: FbsAPI) { return fbs("这个部位在装备库里还没有装备", "Empty-state text for the appraisal item editor's gear library picker, used when the library holds no item for the slot being edited."); }
+  static librarySkipped(fbs: FbsAPI, p?: StringParams) { return fbs(["有 ", fbs.param("n", pv(p, "n")), " 条词条在鉴宝里没有对应项，已跳过"], "Toast message for the appraisal item editor, used after filling a slot from a library item when some of its lines have no counterpart in the appraisal vocabulary and were skipped, where {n} is the number of skipped lines."); }
 }
 
 export abstract class GearFbtUtils {
