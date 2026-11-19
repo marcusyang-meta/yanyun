@@ -154,7 +154,7 @@ kit = ref.gradPage.gearDemoKit.map((g, i) => ({
 [W1, W2, GZ, XJ, HUAN, PEI, JING, WAN] = kit;
 dud = {
   id: 5009, slot: '冠胄', name: 'DudFixture',
-  lines: ['xiaowai', 'shu_mj_da', 'shu_mj_xiao'].map((k) => ({ key: k, val: cyOf.get(k) ?? 0 })),
+  lines: ['xiaowai', 'shu_ls_da', 'shu_mj_xiao'].map((k) => ({ key: k, val: cyOf.get(k) ?? 0 })),
   dingyin: null, schools: [],
 };
 plan = async (lib, loadoutMap) => {

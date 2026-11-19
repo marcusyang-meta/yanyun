@@ -26,7 +26,7 @@ export const GP_BASE_SCHOOLS: any = [{"display":"鸣金-虹","talent":"鸣金虹
 export const GP_BUILD_SCHOOL_DISPLAY: any = {"鸣金-虹":"鸣金-虹","鸣金-影":"鸣金-影","裂石-威":"裂石-威","裂石钧-唐":"裂石钧（唐/陌）","裂石钧-陌":"裂石钧（唐/陌）","裂石-唐":"裂石-唐","裂石-钧（易水歌）":"裂石钧（唐/陌）","牵丝-玉（飞天）":"牵丝-玉","牵丝-玉（走地）":"牵丝-玉","牵丝-霖（纯奶）":"牵丝-霖","牵丝-霖（火拳）":"牵丝-霖","牵丝·翊":"牵丝·翊","破竹-鸢":"破竹-鸢","破竹-樽":"破竹-樽","破竹-尘":"破竹-尘","破竹-风":"破竹-风"};
 export const GP_TALENT: any = {"template":[{"apply":"crit","stat":"min","need":300,"val":9.1},{"apply":"xiaowai","stat":"min","need":300,"val":79.2}],"exclude":{"裂石-威":true},"bySchool":{"鸣金-虹":[{"apply":"int","stat":"jin","need":300,"val":4.6},{"apply":"dawai","stat":"jin","need":300,"val":79.2}],"鸣金-影":[{"apply":"int","stat":"jin","need":300,"val":4.6},{"apply":"dawai","stat":"jin","need":300,"val":79.2}],"裂石-威":[{"apply":"dawai","stat":"maxTiJin","need":300,"val":79.2}]}};
 export const GP_DINGYIN_LEFT: any = {"外功穿透":12.8,"外功抗性":12.8,"无相穿透":15.2};
-export const GP_DINGYIN_RIGHT_MAX: any = 6;
+export const GP_DINGYIN_RIGHT_MAX: any = 7;
 export const GP_DINGYIN_LEFT_SLOTS: any = ["武器","主武器","副武器","环","佩"];
 export const GP_BUILD_DINGYIN: any = {"鸣金-虹":{"name":"无名剑法·蓄力技增伤","wuxue":"无名剑法","verified":true},"鸣金-影":{"name":"积矩九剑·流血增伤","wuxue":"积矩九剑","verified":true},"裂石-威":{"name":"嗟夫刀法·蓄力技增伤","wuxue":"嗟夫刀法","verified":true},"裂石钧-唐":{"name":"斩雪刀法·轻重击派生技增伤","wuxue":"斩雪刀法","verified":true},"裂石-唐":{"name":"斩雪刀法·轻重击派生技增伤","wuxue":"斩雪刀法","verified":true},"裂石钧-陌":{"name":"十方破阵·蓄力技增伤","wuxue":"十方破阵","verified":true},"裂石-钧（易水歌）":{"name":"十方破阵·蓄力技增伤","wuxue":"十方破阵","verified":true},"牵丝-玉（走地）":{"name":"九重春色·特殊技增伤","wuxue":"九重春色","verified":true},"牵丝-霖（纯奶）":{"name":"明川药典·治疗技增疗","wuxue":"明川药典","verified":true},"破竹-尘":{"name":"醉梦游春·武学技增伤","wuxue":"醉梦游春","verified":true},"破竹-风":{"name":"粟子游尘·鼠鼠增伤","wuxue":"粟子游尘","wuxueAlt":"栗子游尘","verified":true},"破竹-鸢":{"name":"天志垂象·蓄力技增伤","wuxue":"天志垂象","verified":true},"牵丝-玉（飞天）":{"category":"弹道 / 伞蓄力（两说）","keywords":["弹道","蓄力"],"verified":false},"牵丝-霖（火拳）":{"name":"明川药典·治疗技增疗","wuxue":"明川药典","verified":true},"牵丝·翊":{"name":"文动霓裳·特殊技增伤","wuxue":"文动霓裳","verified":true},"破竹-樽":{"name":"悬身断水·浓醺技能增伤","wuxue":"悬身断水","keywords":["酩酊"],"verified":true}};
 export const GP_BOW_JUE_VALUES: any = {"acc":{"acc":4.7,"crit":0,"int":0,"label":"精准弓"},"crit":{"acc":0,"crit":5.2,"int":0,"label":"会心弓"},"int":{"acc":0,"crit":0,"int":2.6,"label":"会意弓"}};
@@ -82,6 +82,7 @@ export function gpEffectiveClassOf(key: any, build: any) {
   if (!gpIsShuKey(key)) return gpClassOf(key);
   const sys = shuSystemOfKey(key);
   const bsys = gpBuildSystem(build);
+  if (bsys === '鸣金' && (key === 'shu_mj_da' || key === 'shu_wx_da')) return 'jin';
   if (sys && build && build.targets && sys === bsys && build.targets.some((t: any) => gpIsShuKey(t.cls) && shuSystemOfKey(t.cls) === sys)) return key;
   return (sys === '无相' || sys === bsys) ? 'shugong' : key;
 }
@@ -539,6 +540,7 @@ function heirloomEmbed(build: any, cand: any) {
   const idx = heirloomClassIndex(build), list = build._hlList;
   for (const c0 in cand) if (idx[c0] === undefined) return false;
   const memo: any = {}, resList = heirloomResolutions(build);
+  const jinIndex = gpBuildSystem(build) === '鸣金' ? idx.jin : undefined;
   for (let ri = 0; ri < resList.length; ri++) {
     const R = resList[ri], vec: any[] = []; let tot = 0, j, bad = false;
     for (j = 0; j < list.length; j++) vec.push(0);
@@ -548,23 +550,35 @@ function heirloomEmbed(build: any, cand: any) {
     for (j = 0; j < vec.length; j++) tot += vec[j];
     if (tot !== 35) continue;
     if (heirloomCanPartition(vec, 7, memo)) return true;
+    if (jinIndex === undefined) continue;
+    // 劲 and 大鸣金 can cover the same target while occupying distinct affix positions.
+    const remainingJin = vec[jinIndex];
+    for (let bellstrike = 1; bellstrike <= remainingJin; bellstrike++) {
+      vec[jinIndex] = remainingJin - bellstrike;
+      vec[list.length] = bellstrike;
+      if (heirloomCanPartition(vec, 7, memo)) return true;
+    }
   }
   return false;
 }
 const heirloomCache: Record<string, any> = {};
 export function gpIsHeirloom(g: any, build: any) {
   if (!g || !build || !build.targets || !g.lines || g.lines.length !== 5) return false;
-  const clsArr: any[] = []; let i, c;
-  for (i = 0; i < 5; i++) {
-    c = heirloomLineClass(g, g.lines[i], build);
+  const cand: Record<string, number> = {};
+  const placementCounts: Record<string, number> = {};
+  let first = '';
+  for (const line of g.lines) {
+    const c = heirloomLineClass(g, line, build);
     if (c == null) return false;
-    clsArr.push(c);
+    cand[c] = (cand[c] || 0) + 1;
+    const placementClass = c === 'jin' ? line.key : c;
+    if (!first) first = placementClass;
+    const count = (placementCounts[placementClass] || 0) + 1;
+    if (count > 2 || (count === 2 && placementClass !== first)) return false;
+    placementCounts[placementClass] = count;
   }
-  const cand: Record<string, any> = {};
-  clsArr.forEach((x: any) => { cand[x] = (cand[x] || 0) + 1; });
-  const first = clsArr[0];
-  for (const k in cand) if (cand[k] > 2 || (cand[k] === 2 && k !== first)) return false;
-  const sig = (build.cat || '') + '|' + (build.school || '') + '|' + (build.set || '') + '|' + first + '|' + clsArr.slice().sort().join(',');
+  const recipeCounts = Object.keys(cand).sort().map((cls) => `${cls}:${cand[cls]}`).join(',');
+  const sig = (build.cat || '') + '|' + (build.school || '') + '|' + (build.set || '') + '|' + recipeCounts;
   if (heirloomCache[sig] !== undefined) return heirloomCache[sig];
   const ans = heirloomEmbed(build, cand);
   heirloomCache[sig] = ans;
@@ -858,7 +872,7 @@ export function gpAutoCombine(lib: any, targetIdx: any) {
   }
   function consume(g: any) {
     const cc: Record<string, any> = {};
-    (g.lines || []).forEach((l: any) => { if (gpLineQualityPct(l) == null) return; const c = gpEffectiveClassOf(l.key, build); cc[c] = (cc[c] || 0) + 1; });
+    (g.lines || []).forEach((l: any) => { if (gpLineQualityPct(l) == null || (gpIsWuxiangKey(l.key) && !gpIsWeaponSlot(g.slot))) return; const c = gpEffectiveClassOf(l.key, build); cc[c] = (cc[c] || 0) + 1; });
     Object.keys(cc).forEach((c: any) => { if (need[c] != null) { const take = Math.min(cc[c], Math.max(0, need[c])); need[c] -= take; cc[c] -= take; } });
     flexGroups.forEach((fg: any) => {
       let avail = 0; fg.keys.forEach((c: any) => { avail += cc[c] || 0; });

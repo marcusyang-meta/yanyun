@@ -8,7 +8,7 @@
     "reason": "data-edge values (D1 rows / JSON payloads) narrowed at the repository or parse boundary"
   },
   "src/domains/gear/gearplanner.ts": {
-    "max": 451,
+    "max": 448,
     "reason": "planner algorithm internals: loosely-typed computed gear structures cross function boundaries as any; narrowed at the GraphQL boundary"
   },
   "src/domains/gear/gearstore.ts": {

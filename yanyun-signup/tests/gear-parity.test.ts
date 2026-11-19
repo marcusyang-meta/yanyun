@@ -22,6 +22,8 @@ const src = readFileSync(FIXTURES + 'script1.js', 'utf8');
 runInThisContext(src.replace(/document\.addEventListener\("paste"[\s\S]*?\n\}\);\n/, '\n'), { filename: 'script1.js' });
 
 const R: any = globalThis as any;
+// Compare the same formulas using the current cap. The archived script has the older cap.
+R.DINGYIN_RIGHT_MAX = 7;
 
 function eq(name: string, got: any, want: any) {
   const ok = (typeof got === 'number' && typeof want === 'number') ? Math.abs(got - want) < 1e-9 : JSON.stringify(got) === JSON.stringify(want);
@@ -260,5 +262,76 @@ describe('gear-parity', () => {
     const srvNorm = GP.gpNormalizeGearList(JSON.parse(JSON.stringify(messy)));
     eq('normalize.list', JSON.stringify(srvNorm.list), JSON.stringify(refNorm.list));
     eq('normalize.firstMap', JSON.stringify(srvNorm.firstMap), JSON.stringify(refNorm.firstMap));
+  });
+});
+
+describe('Mingjin affix equivalence', () => {
+  const makeGear = (keys: string[], slot = '武器') => ({
+    id: 1,
+    slot,
+    lines: keys.map((key) => ({ key, val: GP.GP_AFFIX_BY_KEY[key].cy })),
+  });
+
+  const stateFor = (targetIdx: number) => ({
+    targetIdx,
+    baseValues: GP.GP_BASE_PRESET,
+    xinfa: [],
+    extras: { res: 1.85 },
+    sim: {},
+    gradDingyinOn: false,
+  });
+
+  it.each([0, 1])('counts large Mingjin and weapon Wuxiang toward Power for build %i', (targetIdx) => {
+    const state = stateFor(targetIdx);
+    const loadout = { 主武器: 1 };
+    const baseline = GP.gpPlan([makeGear(['dawai', 'dawai', 'jin', 'huiyi', 'wuqizeng'])], loadout, state);
+
+    for (const key of ['shu_mj_da', 'shu_wx_da']) {
+      const gear = makeGear(['dawai', 'dawai', key, 'huiyi', 'wuqizeng']);
+      const plan = GP.gpPlan([gear], loadout, state);
+      const value = GP.GP_AFFIX_BY_KEY[key].cy;
+
+      expect(plan.grad.rows.find((row) => row.cls === 'jin')?.cur).toBe(1);
+      expect(plan.grad.total).toBe(baseline.grad.total);
+      expect(plan.loanGrad.total).toBe(baseline.loanGrad.total);
+      expect(plan.gearEvals).toEqual(baseline.gearEvals);
+      expect(plan.gearEvals[0]).toMatchObject({ hits: 5, verdict: 'heirloom' });
+      expect(plan.realPanel.sums).toHaveProperty(key, value);
+      expect(plan.realPanel.sums.jin).toBeUndefined();
+      expect(plan.realPanel.jin).toBe(baseline.realPanel.jin - GP.GP_AFFIX_BY_KEY.jin.cy);
+      expect(plan.realPanel.shuDaEligible).toBe(value);
+    }
+  });
+
+  it('keeps lesser and off-school attack outside the Power bucket', () => {
+    const target = GP.gpBuild(0);
+    for (const key of ['shu_mj_xiao', 'shu_wx_xiao', 'shu_ls_da']) {
+      expect(GP.gpEffectiveClassOf(key, target)).not.toBe('jin');
+      expect(GP.gpGearRecipeHits(makeGear([key]), target)).toBe(0);
+    }
+    for (const key of ['shu_mj_da', 'shu_wx_da']) {
+      expect(GP.gpEffectiveClassOf(key, GP.gpBuild(2))).not.toBe('jin');
+    }
+
+    const armor = makeGear(['dawai', 'dawai', 'shu_wx_da', 'huiyi', 'shi'], '冠胄');
+    const plan = GP.gpPlan([armor], { 冠胄: 1 }, stateFor(0));
+    expect(plan.grad.rows.find((row) => row.cls === 'jin')?.cur).toBe(0);
+    expect(plan.realPanel.invalidLines).toContainEqual({ gearId: 1, key: 'shu_wx_da', val: GP.GP_AFFIX_BY_KEY.shu_wx_da.cy });
+    expect(plan.gearEvals[0].verdict).not.toBe('heirloom');
+  });
+
+  it('checks actual affix duplication before counting heirloom recipe matches', () => {
+    const build = GP.gpBuild(0);
+    const mixed = makeGear(['dawai', 'jin', 'shu_mj_da', 'huiyi', 'wuqizeng']);
+    const duplicate = makeGear(['dawai', 'jin', 'jin', 'huiyi', 'wuqizeng']);
+
+    expect(GP.gpIsHeirloom(mixed, build)).toBe(true);
+    expect(GP.gpIsHeirloom(duplicate, build)).toBe(false);
+  });
+
+  it('can finish a Mingjin set with distinct Power equivalents in the remaining pieces', () => {
+    const gear = makeGear(['wuqizeng', 'shouling', 'quanwu', 'shi', 'huiyi']);
+
+    expect(GP.gpIsHeirloom(gear, GP.gpBuild(0))).toBe(true);
   });
 });
