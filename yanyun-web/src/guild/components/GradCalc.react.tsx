@@ -1,4 +1,5 @@
 import { Suspense, useEffect, useId, useMemo, useRef, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { graphql, loadQuery, useMutation, usePreloadedQuery } from 'react-relay';
 import type { PreloadedQuery } from 'react-relay';
 import { relayEnvironment } from '../../lib/relay';
@@ -305,8 +306,17 @@ function GradCalcMain({
   const [openSlot, setOpenSlot] = useState<number | null>(null);
   const [pickerOpen, setPickerOpen] = useState(false);
   useEffect(() => { setPickerOpen(false); }, [openSlot]);
+  const slotButtonRef = useRef<HTMLButtonElement | null>(null);
+  const slotDialogRef = useRef<HTMLDivElement>(null);
   const [openSec, setOpenSec] = useState({ ref: false, rate: false, cmp: false });
   const [commit] = useMutation<GradCalcMutationType>(GradCalcMutationNode);
+
+  useEffect(() => {
+    if (openSlot === null) return;
+    const slotButton = slotButtonRef.current;
+    slotDialogRef.current?.focus({ preventScroll: true });
+    return () => slotButton?.focus({ preventScroll: true });
+  }, [openSlot]);
 
   // Switching big/small external: the legacy behavior clears engraved affixes
   // (the two layouts have different affixes); skip the clear once when
@@ -439,6 +449,7 @@ function GradCalcMain({
 
   const ringId = useId().replace(/[^a-zA-Z0-9]/g, '');
   const gradId = `gg-${ringId}`;
+  const slotTitleId = `${gradId}-slot-title`;
 
   return (
     <div className="yy-anim-fade-up">
@@ -538,7 +549,11 @@ function GradCalcMain({
           return (
             <button
               key={s.id}
-              onClick={() => setOpenSlot(si)}
+              aria-haspopup="dialog"
+              onClick={(event) => {
+                slotButtonRef.current = event.currentTarget;
+                setOpenSlot(si);
+              }}
               className="yy-card"
               style={{
                 position: 'relative', overflow: 'hidden', aspectRatio: '1', cursor: 'pointer',
@@ -737,12 +752,28 @@ function GradCalcMain({
         ))}
       </Section>
 
-      {openSlot !== null && (
-        <>
-          <div className="yy-sheet-backdrop" onClick={() => setOpenSlot(null)} />
-          <div className="yy-sheet" style={{ maxWidth: 560, margin: '0 auto' }}>
+      {/* The page animation sets a transformed containing block. Put the editor in the viewport overlay. */}
+      {openSlot !== null && createPortal(
+        <div className="yy-modal-overlay" onClick={(event) => {
+          if (event.target === event.currentTarget) setOpenSlot(null);
+        }}>
+          <div
+            ref={slotDialogRef}
+            className="yy-modal-panel"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby={slotTitleId}
+            tabIndex={-1}
+            style={{ maxWidth: 560 }}
+            onKeyDown={(event) => {
+              if (event.key === 'Escape') {
+                event.stopPropagation();
+                setOpenSlot(null);
+              }
+            }}
+          >
             <div style={{ display: 'flex', alignItems: 'center', marginBottom: 4 }}>
-              <div style={{
+              <div id={slotTitleId} style={{
                 fontFamily: "'Ma Shan Zheng',serif", fontSize: 22, color: theme.goldHi,
                 letterSpacing: 4, flex: 1,
               }}>{slots[openSlot]?.label}</div>
@@ -860,7 +891,8 @@ function GradCalcMain({
               );
             })}
           </div>
-        </>
+        </div>,
+        document.body,
       )}
     </div>
   );
