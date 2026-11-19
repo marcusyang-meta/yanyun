@@ -39,8 +39,11 @@ import GuildRail from './GuildRail.react.tsx';
 import { relayEnvironment } from '../../lib/relay';
 import { clearSessionConfirmedTheme, getSessionConfirmedTheme } from '../../lib/theme';
 import SettingsDialogQueryNode from '../../auth/__generated__/SettingsDialogQuery.graphql';
+import GearLibraryQueryNode, { type GearLibraryQuery$data } from './__generated__/GearLibraryQuery.graphql';
+import type { GearLibraryUpdateItemMutation$variables } from './__generated__/GearLibraryUpdateItemMutation.graphql';
 
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
+window.HTMLElement.prototype.scrollIntoView ??= () => {};
 
 // Stylesheet / source reads resolve from the package root: vitest
 // runs there (pnpm test, CI web-check), and under the jsdom
@@ -129,11 +132,56 @@ function click(el: Element) {
   act(() => { el.dispatchEvent(new window.MouseEvent('click', { bubbles: true })); });
 }
 
-/* Fetch stub for the behavior suites: the settings dialog's query is
- * synthesized from its real AST (null scalars, like the theme
- * suites), the theme mutation behaves like the server (persists and
- * echoes), sign-out is recorded, everything else gets empty data. */
+function selectValue(select: HTMLSelectElement, value: string) {
+  act(() => {
+    select.value = value;
+    select.dispatchEvent(new window.Event('change', { bubbles: true }));
+  });
+}
+
+/* Synthesize settings and gear-library queries from their Relay artifacts.
+ * The theme mutation echoes the selected theme and sign-out is recorded. */
 const fetchCalls: { url: string; method?: string; name: string; theme?: string }[] = [];
+const gearUpdates: GearLibraryUpdateItemMutation$variables[] = [];
+const weaponDingyin = [
+  { name: '外功穿透', label: 'Physical Penetration', max: 12.8 },
+  { name: '外功抗性', label: '外功抗性', max: 12.8 },
+  { name: '无相穿透', label: '无相穿透', max: 15.2 },
+];
+const armorDingyin = [
+  { name: '无名剑法·蓄力技增伤', label: '无名剑法·蓄力技增伤', max: 6 },
+  { name: '明川药典·治疗技增疗', label: '明川药典·治疗技增疗', max: 6 },
+];
+const armorSlots = ['冠胄', '胸甲', '胫甲', '腕甲'];
+const gearItems = [
+  { id: '30000000001', slot: '武器', name: '测试长剑', dingyin: { name: '外功抗性', val: 9.2 }, lines: [], schools: [], warnings: [] },
+  { id: '30000000002', slot: '冠胄', name: '旧版冠胄', dingyin: { name: '九重春色·蓄力技增伤', val: 4.3 }, lines: [], schools: [], warnings: [] },
+] satisfies GearLibraryQuery$data['myGearItems'];
+const gearPage: Partial<GearLibraryQuery$data['gradPage']> = {
+  gearMyLibTitle: '我的装备库',
+  gearEntryLabel: '录入装备',
+  gearAddGearLabel: '存入装备库',
+  gearPasteTitle: '粘贴代码导入',
+  gearOcrTitle: '截图导入（本地识别，不上传）',
+  gearManualTitle: '手动录入',
+  gearGearSlots: ['武器', ...armorSlots, '环', '佩'],
+  gearDingyinGroups: [
+    { slots: ['武器', '主武器', '副武器', '环', '佩'], options: weaponDingyin },
+    { slots: armorSlots, options: armorDingyin },
+  ],
+  gearEditLabel: '编辑',
+  gearUpdateGearLabel: '保存修改',
+  gearFormSlotLabel: '部位',
+  gearDyNameLabel: '定音',
+  gearDyValLabel: '定音数值',
+  gearFillMaxLabel: '填满值',
+  gearSavedToastTemplate: '已保存 {name}',
+  gearSchoolTags: [],
+  gearUsageCount: 0,
+  gearUsageLimit: 200,
+  gearUsageTemplate: '{n}/{limit}',
+  gearSchemeNameTemplate: '配装 {n}',
+};
 
 function synth(selections: readonly any[], typeName: string | null): any {
   const out: any = {};
@@ -152,6 +200,7 @@ function synth(selections: readonly any[], typeName: string | null): any {
 }
 
 function installFetchStub() {
+  let items: GearLibraryQuery$data['myGearItems'] = gearItems;
   (globalThis as any).fetch = async (url: string, init: any) => {
     const u = String(url);
     if (u.includes('/auth/logout')) {
@@ -172,6 +221,22 @@ function installFetchStub() {
       };
     } else if (name === 'SettingsDialogQuery') {
       data = synth(SettingsDialogQueryNode.operation.selections, 'Query');
+      data.gradPage.gearMyLibTitle = gearPage.gearMyLibTitle;
+      data.settingsPage.calendarFeed = null;
+    } else if (name === 'GearLibraryQuery') {
+      data = synth(GearLibraryQueryNode.operation.selections, 'Query');
+      data.viewer.user.discordId = '2001';
+      data.myGearItems = items;
+      Object.assign(data.gradPage, gearPage);
+      Object.assign(data.gradPage.gearVocabRules, { weaponSlot: '武器', weaponPositions: [] });
+    } else if (name === 'GearLibraryUpdateItemMutation') {
+      const variables: GearLibraryUpdateItemMutation$variables = body.variables;
+      gearUpdates.push(variables);
+      const previous = items.find((gear) => gear.id === variables.id);
+      const { slot, name, lines, dingyin, schools } = variables.input;
+      const item = previous ? { ...previous, slot, name: name ?? previous.name, lines, dingyin, schools: schools ?? previous.schools } : null;
+      if (item) items = items.map((gear) => gear.id === item.id ? item : gear);
+      data.updateGearItem = { ok: !!item, error: null, item };
     } else {
       fetchCalls.push({ url: u, method: init?.method, name });
     }
@@ -251,14 +316,90 @@ describe('rail profile entry (IG web shape, DOM)', () => {
     expect(more.querySelector('button')!.getAttribute('aria-haspopup')).toBe('menu');
   });
 
-  it('clicking the profile entry opens the settings dialog', async () => {
+  it('opens gear entry from the profile and applies the correct attunement to each equipment slot', async () => {
     installFetchStub();
+    gearUpdates.length = 0;
     const container = renderRail('← 百业集结');
-    const profile = container.querySelector('.yy-rail-profile')!;
-    click(profile);
+    click(container.querySelector('.yy-rail-profile')!);
     await flush(150);
-    // The dialog (or its suspense shell) is portaled to the body.
-    expect(document.querySelector('.yy-modal-overlay, .yy-push-page')).not.toBeNull();
+    const gearNav = document.querySelector<HTMLButtonElement>('[data-gear-entry]');
+    expect(gearNav?.textContent).toContain('我的装备库');
+    click(gearNav!);
+    await flush(150);
+
+    const buttonFor = (scope: ParentNode, label: string): HTMLButtonElement => {
+      const button = [...scope.querySelectorAll('button')].find((node) => node.textContent === label);
+      expect(button, label).toBeDefined();
+      return button!;
+    };
+    const entry = buttonFor(document, '录入装备');
+    expect(entry.disabled).toBe(false);
+    expect(entry.getAttribute('aria-expanded')).toBe('false');
+    click(entry);
+    expect(entry.getAttribute('aria-expanded')).toBe('true');
+
+    const panel = document.querySelector('#yy-gear-add-panel')!;
+    expect(panel).not.toBeNull();
+    expect(panel.querySelector('textarea')).not.toBeNull();
+    buttonFor(panel, '粘贴代码导入');
+    click(buttonFor(panel, '截图导入（本地识别，不上传）'));
+    expect(panel.querySelector('input[type="file"][accept="image/*"]')).not.toBeNull();
+    click(buttonFor(panel, '手动录入'));
+    expect(buttonFor(panel, '存入装备库').disabled).toBe(false);
+
+    const editGear = (name: string) => {
+      const card = [...document.querySelectorAll('.yy-gear-card')].find((node) => node.textContent?.includes(name));
+      expect(card, name).toBeDefined();
+      click(buttonFor(card!, '编辑'));
+    };
+    editGear('测试长剑');
+    const field = <T extends HTMLElement>(label: string, selector: string) => {
+      const fieldLabel = [...panel.querySelectorAll('label')].find((node) => node.firstElementChild?.textContent === label);
+      const input = fieldLabel?.querySelector<T>(selector);
+      expect(input, label).toBeDefined();
+      return input!;
+    };
+    const slot = field<HTMLSelectElement>('部位', 'select');
+    const dingyin = field<HTMLSelectElement>('定音', 'select');
+    const value = field<HTMLInputElement>('定音数值', 'input');
+    const options = () => [...dingyin.options].map((option) => option.value).filter(Boolean);
+    expect(dingyin.value).toBe('外功抗性');
+    expect(value.value).toBe('9.2');
+    for (const position of ['武器', '环', '佩']) {
+      selectValue(slot, position);
+      expect(options()).toEqual(weaponDingyin.map((option) => option.name));
+      expect(dingyin.value).toBe('外功抗性');
+    }
+    selectValue(dingyin, '无相穿透');
+    click(buttonFor(panel, '填满值'));
+    expect(value.value).toBe('15.2');
+
+    selectValue(slot, armorSlots[0]);
+    expect(dingyin.value).toBe('');
+    expect(value.value).toBe('');
+    for (const position of armorSlots) {
+      selectValue(slot, position);
+      expect(options()).toEqual(armorDingyin.map((option) => option.name));
+    }
+    selectValue(dingyin, armorDingyin[1].name);
+    click(buttonFor(panel, '填满值'));
+    expect(value.value).toBe('6');
+
+    selectValue(slot, '武器');
+    expect(dingyin.value).toBe('');
+    expect(value.value).toBe('');
+    selectValue(dingyin, '外功穿透');
+    expect(dingyin.selectedOptions[0].textContent).toBe('Physical Penetration');
+    click(buttonFor(panel, '填满值'));
+    click(buttonFor(panel, '保存修改'));
+    await flush(30);
+    expect(gearUpdates).toMatchObject([
+      { id: gearItems[0].id, input: { slot: '武器', dingyin: { name: '外功穿透', val: 12.8 } } },
+    ]);
+
+    editGear('旧版冠胄');
+    expect(dingyin.value).toBe('九重春色·蓄力技增伤');
+    expect(value.value).toBe('4.3');
   });
 });
 
