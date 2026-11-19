@@ -444,10 +444,18 @@ async function fetchBuildData(code) {
   };
 }
 
+function formatGraduationRatio(ratio) {
+  const percentage = ratio * 100;
+  return `${(Math.round(percentage * 10) / 10).toFixed(1)}%`;
+}
+
 async function handleBuildImage(request, url, code) {
   // Cache 10 分钟（与车卡同口径；撤销后页面立即 404，图最多残留到缓存过期）
   const cache = caches.default;
-  const cacheKey = new Request(url.toString(), request);
+  // Skip cards cached before graduation ratios were converted to percentages.
+  const cacheUrl = new URL(url);
+  cacheUrl.searchParams.set('build-card-version', '2');
+  const cacheKey = new Request(cacheUrl.toString(), request);
   const cached = await cache.match(cacheKey);
   if (cached) return cached;
 
@@ -540,7 +548,7 @@ async function handleBuildImage(request, url, code) {
                       type: 'span',
                       props: {
                         style: { color: '#ecd28f', fontSize: '84px', fontWeight: 700 },
-                        children: `${b.snapTotal.toFixed(1)}%`,
+                        children: formatGraduationRatio(b.snapTotal),
                       },
                     },
                     {
@@ -557,7 +565,7 @@ async function handleBuildImage(request, url, code) {
                 type: 'div',
                 props: {
                   style: { color: '#ece2cb', fontSize: '30px', letterSpacing: '2px' },
-                  children: `A ${b.snapA.toFixed(1)}% · B ${b.snapB.toFixed(1)}% · D ${b.snapD.toFixed(1)}%`,
+                  children: `A ${formatGraduationRatio(b.snapA)} · B ${formatGraduationRatio(b.snapB)} · D ${formatGraduationRatio(b.snapD)}`,
                 },
               },
             ],

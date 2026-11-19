@@ -56,7 +56,10 @@ function clearRenderCache() {
 }
 
 /* ---------- fetch 桩 ---------- */
-const state = { avatarMode: 'off' }; // off=404 | on=200 png | fail=抛错
+const state = {
+  avatarMode: 'off', // off=404 | on=200 png | fail=抛错
+  buildSnapshot: { snapTotal: 0.801, snapA: 0.801, snapB: 0.801, snapD: 0.801 },
+};
 globalThis.fetch = async (url, opts = {}) => {
   const u = String(url);
   if (u.includes('fonts.gstatic.com/s/notosanssc')) return new Response(notoBytes.slice(0), { status: 200 });
@@ -71,6 +74,9 @@ globalThis.fetch = async (url, opts = {}) => {
     }
     if (q.includes('ogCarCard')) {
       return Response.json({ data: { ogCarCard: null } });
+    }
+    if (q.includes('ogBuildCard')) {
+      return Response.json({ data: { ogBuildCard: { name: '测试配装', buildLabel: '鸣金·虹', ...state.buildSnapshot } } });
     }
     if (q.includes('weekActivityCount')) {
       // fixture 口径与旧 REST 列表桩一致: 2 activity + 1 talent -> 计数 2
@@ -177,4 +183,24 @@ eq('hub = 预渲染通用图字节', await sha256hex(hub.buf), await sha256hex(g
 const ghost = await ogGet('/og/ghost.png');
 eq('不存在百业 -> 404', ghost.res.status, 404);
 });
+});
+
+describe('og build share', () => {
+  it('renders percentage-point changes at one decimal and skips stale cards', async () => {
+    const path = '/og/build/Build01.png?format=svg';
+    cacheStore.set(`http://local${path}`, new Response('old cached card'));
+    const baseline = await ogGet(path);
+    eq('build SVG renders instead of using the old cache', baseline.res.headers.get('content-type'), 'image/svg+xml');
+    const baselineHash = await sha256hex(baseline.buf);
+
+    // Each comparison changes 80.1% to 80.4%. Formatting the raw ratios
+    // to one decimal renders them both as 0.8% and leaves the image unchanged.
+    for (const field of ['snapTotal', 'snapA', 'snapB', 'snapD'] as const) {
+      clearRenderCache();
+      state.buildSnapshot[field] = 0.804;
+      const updated = await ogGet(path);
+      state.buildSnapshot[field] = 0.801;
+      expect(await sha256hex(updated.buf), field).not.toBe(baselineHash);
+    }
+  });
 });
