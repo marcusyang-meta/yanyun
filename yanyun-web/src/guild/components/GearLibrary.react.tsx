@@ -5,6 +5,7 @@ import { refetchGearLibraryQueries } from '../../lib/relay.ts';
 import {
   type GearItem, type GearWorkState, type SavedBuild, loadWorkState, saveWorkState,
   buildExportFile, parseImportFile, fmt1, pct1, poolOf,
+  dingyinOptionsForSlot, dingyinSlotChange,
   applyEquipToSavedWork, mergeAutoSelectIntoSavedWork, applyBuildToSavedWork,
   clearSavedWorkLoadout, onOcrSlotRequest,
 } from './gearStore.ts';
@@ -58,6 +59,7 @@ const libraryQuery = graphql`
       gearDyValLabel
       gearSchoolsLabel
       gearAddGearLabel
+      gearEntryLabel
       gearUpdateGearLabel
       gearCancelEditLabel
       gradCancelLabel
@@ -164,8 +166,7 @@ const libraryQuery = graphql`
       gearBaseFields { key preset }
       gearAffixes { key label max cy }
       gearDingyinLeft { name max }
-      gearDingyinRightMax
-      gearWuxueNames
+      gearDingyinGroups { slots options { name label max } }
       gearDemoKit { slot name keys dingyinName dingyinVal }
       gearPasteNames { name key }
       gearNameToClass { name cls }
@@ -879,6 +880,8 @@ export default function GearLibrary(props: {
   };
 
   const libShown = items.filter((g) => !libFilter || g.slot === libFilter);
+  const formDingyinOptions = dingyinOptionsForSlot(t.gearDingyinGroups, form.slot, form.dyName);
+  const formDingyinMax = formDingyinOptions.find((option) => option.name === form.dyName)?.max;
   const libHeading = mode === 'profile' ? t.gearMyLibTitle : t.gearLibTitle;
   const buildsHeading = mode === 'profile' ? t.gearMyBuildsTitle : t.gearSchemeTitle;
   /* Builds grouped by sect: group order = the order sects first appear in
@@ -915,8 +918,9 @@ export default function GearLibrary(props: {
         <button
           style={{ ...btnGold, marginLeft: 'auto', padding: '6px 14px', fontSize: 12.5, ...(addMode ? { boxShadow: 'inset 0 0 0 2px rgba(26,24,20,.5)' } : {}) }}
           disabled={!loggedIn}
+          aria-expanded={addMode !== null}
           onClick={() => (addMode ? setAddMode(null) : setAddMode('paste'))}
-        >{t.gearAddGearLabel}</button>
+        >{t.gearEntryLabel}</button>
       </div>
       {loggedIn && t.gearUsageLimit > 0 && t.gearUsageCount / t.gearUsageLimit >= 0.9 && (
         <div style={{ color: theme.seal, fontSize: 12, marginTop: 2 }}>{t.gearUsageNearLimitText}</div>
@@ -969,7 +973,7 @@ export default function GearLibrary(props: {
           <div style={{ marginTop: 10, borderTop: '1px solid rgba(201,163,92,.2)', paddingTop: 10 }}>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 8 }}>
               <label><span style={lbl}>{t.gearOcrSlotLabel}</span>
-                <select style={sel} value={review.slot} onChange={(e) => setReview({ ...review, slot: e.target.value })}>
+                <select style={sel} value={review.slot} onChange={(e) => setReview({ ...review, ...dingyinSlotChange(t.gearDingyinGroups, review, e.target.value) })}>
                   {t.gearGearSlots.map((s) => <option key={s} value={s}>{s}</option>)}
                 </select></label>
               <label><span style={lbl}>{t.gearOcrNameLabel}</span>
@@ -977,8 +981,8 @@ export default function GearLibrary(props: {
               <label><span style={lbl}>{t.gearDyNameLabel}</span>
                 <select style={sel} value={review.dyName} onChange={(e) => setReview({ ...review, dyName: e.target.value })}>
                   <option value="">—</option>
-                  {(review.slot === rules.weaponSlot ? t.gearWuxueNames : t.gearDingyinLeft.map((d) => d.name)).map((n) => (
-                    <option key={n} value={n}>{n}</option>
+                  {dingyinOptionsForSlot(t.gearDingyinGroups, review.slot, review.dyName).map(({ name, label }) => (
+                    <option key={name} value={name}>{label}</option>
                   ))}
                 </select></label>
               <label><span style={lbl}>{t.gearDyValLabel}</span>
@@ -1030,7 +1034,7 @@ export default function GearLibrary(props: {
         {addMode === 'manual' && (<>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit,minmax(150px,1fr))', gap: 8 }}>
           <label><span style={lbl}>{t.gearFormSlotLabel}</span>
-            <select style={sel} value={form.slot} onChange={(e) => setForm({ ...form, slot: e.target.value })}>
+            <select style={sel} value={form.slot} onChange={(e) => setForm({ ...form, ...dingyinSlotChange(t.gearDingyinGroups, form, e.target.value) })}>
               {t.gearGearSlots.map((s) => <option key={s} value={s}>{s}</option>)}
             </select></label>
           <label><span style={lbl}>{t.gearFormNameLabel}</span>
@@ -1038,16 +1042,15 @@ export default function GearLibrary(props: {
           <label><span style={lbl}>{t.gearDyNameLabel}</span>
             <select style={sel} value={form.dyName} onChange={(e) => setForm({ ...form, dyName: e.target.value })}>
               <option value="">—</option>
-              {(form.slot === rules.weaponSlot ? t.gearWuxueNames : t.gearDingyinLeft.map((d) => d.name)).map((n) => (
-                <option key={n} value={n}>{n}</option>
+              {formDingyinOptions.map(({ name, label }) => (
+                <option key={name} value={name}>{label}</option>
               ))}
             </select></label>
           <label><span style={lbl}>{t.gearDyValLabel}</span>
             <span style={{ display: 'flex', gap: 5 }}>
               <input style={inp} type="number" step="0.1" value={form.dyVal} onChange={(e) => setForm({ ...form, dyVal: e.target.value })} />
-              <button style={btnMini} onClick={() => {
-                const mx = form.slot === rules.weaponSlot ? t.gearDingyinRightMax : (t.gearDingyinLeft.find((d) => d.name === form.dyName)?.max || 0);
-                if (mx) setForm({ ...form, dyVal: String(mx) });
+              <button style={btnMini} disabled={formDingyinMax == null} onClick={() => {
+                if (formDingyinMax != null) setForm({ ...form, dyVal: String(formDingyinMax) });
               }}>{t.gearFillMaxLabel}</button>
             </span></label>
         </div>

@@ -165,6 +165,28 @@ export type GearVocabRules = {
 export const poolOf = (slot: string, rules: GearVocabRules): string[] =>
   (slot === rules.weaponSlot ? [...rules.weaponPositions] : [slot]);
 
+type GearDingyinGroup = {
+  slots: readonly string[];
+  options: readonly { name: string; label: string; max: number | null }[];
+};
+
+export function dingyinOptionsForSlot(groups: readonly GearDingyinGroup[], slot: string, selected: string) {
+  const options = groups.find((group) => group.slots.includes(slot))?.options ?? [];
+  if (selected && !options.some((option) => option.name === selected)) {
+    return [...options, { name: selected, label: selected, max: null }];
+  }
+  return options;
+}
+
+export function dingyinSlotChange(
+  groups: readonly GearDingyinGroup[],
+  current: { slot: string; dyName: string; dyVal: string },
+  slot: string,
+) {
+  const sameGroup = groups.some((group) => group.slots.includes(current.slot) && group.slots.includes(slot));
+  return sameGroup ? { slot, dyName: current.dyName, dyVal: current.dyVal } : { slot, dyName: '', dyVal: '' };
+}
+
 /* ---- Profile-surface operations on the saved work state (used while the
  * gear bench is unmounted: load/equip lands in the local work state and the
  * bench reads it on its next mount; semantics match the bench's live
