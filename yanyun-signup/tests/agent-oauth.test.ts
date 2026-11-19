@@ -54,6 +54,7 @@ const db = await mf.getD1Database('DB');
 const { oauthRoutes } = await import('../src/domains/identity/oauth-server-routes.ts');
 const { MCP_TOOL_CATALOG } = await import('../src/domains/platform/mcp-routes.ts');
 const { signJwt } = await import('../src/domains/identity/auth.ts');
+const { handleDiscordLogin, safeReturnTo, verifyJwt } = await import('../src/domains/identity/auth.ts');
 const svc = await import('../src/domains/identity/agent-oauth.ts');
 const { yoga } = await import('../src/graphql.ts');
 
@@ -470,6 +471,143 @@ describe('agent OAuth authorization server', () => {
     }, env);
     eq('old session approval refused', postRes.status, 400);
     check('refusal is the login-expired page', (await postRes.text()).includes('登录状态已失效'));
+  });
+});
+
+/* Regression batch (2026-11-18): the owner authorized fine with
+ * a hand-rolled client, but real members authorizing through
+ * hosted-connector clients (Claude and peers) could not. Three
+ * defects compounded: the authorize URL — carried through the
+ * Discord login as returnTo — was truncated at 300 chars by
+ * safeReturnTo; the login state lived only 600s, shorter than a
+ * slow first-time Discord sign-in; and a registration without
+ * the optional scope member defaulted to the read tier, so the
+ * authorize request for the advertised `read signup` failed
+ * invalid_scope as a whole. Each leg is pinned below. */
+describe('hosted-connector interop regressions', () => {
+  const HOSTED_REDIRECT = 'https://claude.ai/api/mcp/auth_callback';
+  const loginEnv = {
+    DB: db, SESSION_SECRET: SECRET,
+    DISCORD_CLIENT_ID: 'interop-client-id', DISCORD_CLIENT_SECRET: 'interop-secret',
+  };
+
+  async function registerClient(body: Record<string, unknown>) {
+    const res = await app.request('/oauth/register', {
+      method: 'POST', headers: { 'content-type': 'application/json' },
+      body: JSON.stringify(body),
+    }, env);
+    eq('registration status', res.status, 201);
+    return res.json() as Promise<any>;
+  }
+
+  it('a real-size authorize URL survives the login round trip byte-for-byte', async () => {
+    // A hosted-connector-style registration: https redirect on
+    // the vendor domain, and NO scope member (RFC 7591 optional).
+    const reg = await registerClient({ client_name: 'Hosted Connector', redirect_uris: [HOSTED_REDIRECT] });
+    eq('scope-less registration lands on the full supported set', reg.scope, 'read signup create');
+    eq('registration default is the widest canonical set',
+      svc.AGENT_REGISTRATION_DEFAULT_SCOPES, svc.AGENT_SCOPE_SETS[svc.AGENT_SCOPE_SETS.length - 1]);
+
+    const verifier = 'interop-verifier-0123456789-abcdefghijklmnop';
+    const challenge = await pkceChallenge(verifier);
+    const q = new URLSearchParams({
+      response_type: 'code', client_id: reg.client_id, redirect_uri: HOSTED_REDIRECT,
+      scope: 'read signup', state: 'a1b2c3d4e5f6a7b8c9d0e1f2a3b4c5d6',
+      code_challenge: challenge, code_challenge_method: 'S256',
+      resource: 'https://yanyun.app/mcp',
+    });
+    const authorizePath = `/oauth/authorize?${q}`;
+    check('the authorize URL is real-size, past the old 300-char cap',
+      authorizePath.length > 300, `len=${authorizePath.length}`);
+    eq('safeReturnTo passes the whole URL through', safeReturnTo(authorizePath), authorizePath);
+
+    // Unauthenticated, the authorize endpoint bounces into the
+    // Discord login carrying the URL as returnTo — unmangled.
+    const bounce = await app.request(authorizePath, {}, env);
+    eq('unauthenticated authorize bounces to login', bounce.status, 302);
+    const bounceLoc = bounce.headers.get('location') || '';
+    check('bounce target is the Discord login', bounceLoc.includes('/auth/discord/login?returnTo='));
+    eq('bounce returnTo is the authorize URL verbatim',
+      new URL(bounceLoc).searchParams.get('returnTo'), authorizePath);
+
+    // Login start: the handler runs returnTo through safeReturnTo
+    // again and signs it into the Discord state JWT.
+    const loginRes = await handleDiscordLogin(
+      new Request(`http://localhost/auth/discord/login?returnTo=${encodeURIComponent(authorizePath)}`),
+      loginEnv);
+    eq('login start redirects onward', loginRes.status, 302);
+    const discordUrl = new URL(loginRes.headers.get('location') || '');
+    eq('login start target is Discord', discordUrl.hostname, 'discord.com');
+    const statePayload = await verifyJwt(SECRET, discordUrl.searchParams.get('state') || '');
+    check('login state verifies', !!statePayload);
+    eq('login state carries the authorize URL verbatim', statePayload?.rt, authorizePath);
+    eq('login state TTL covers a slow human sign-in (1800s)',
+      (statePayload?.exp || 0) - (statePayload?.iat || 0), 1800);
+    // The callback applies safeReturnTo to the recovered value
+    // once more before redirecting to it.
+    eq('callback-side recovery is verbatim too', safeReturnTo(statePayload?.rt || '/'), authorizePath);
+
+    // Landing back on the recovered URL renders the consent page
+    // (validation, PKCE shape and the scope subset check all pass
+    // on the untruncated request), and the consent blob rides the
+    // same 1800s window as the login state.
+    const landed = await app.request(statePayload.rt, {
+      headers: { cookie: await sessionCookie(UID1, '授权测试员') },
+    }, env);
+    eq('recovered authorize URL renders consent', landed.status, 200);
+    const blob = /name="req" value="([^"]+)"/.exec(await landed.text())?.[1] || '';
+    check('consent blob present', blob.length > 10);
+    const blobPayload = await verifyJwt(SECRET, blob);
+    eq('consent blob TTL matches the login state window (1800s)',
+      (blobPayload?.exp || 0) - (blobPayload?.iat || 0), 1800);
+  });
+
+  it('a scope-less registration authorizes read signup end to end; an explicit read registration still refuses it', async () => {
+    const reg = await registerClient({ client_name: 'NoScope Client', redirect_uris: [HOSTED_REDIRECT] });
+    const cookie = await sessionCookie(UID1, '授权测试员');
+    const verifier = 'noscope-verifier-0123456789-abcdefghijklmnop';
+    const challenge = await pkceChallenge(verifier);
+    const q = new URLSearchParams({
+      response_type: 'code', client_id: reg.client_id, redirect_uri: HOSTED_REDIRECT,
+      scope: 'read signup', state: 'st-ns', code_challenge: challenge, code_challenge_method: 'S256',
+    });
+    const getRes = await app.request(`/oauth/authorize?${q}`, { headers: { cookie } }, env);
+    eq('authorize for read signup renders consent (no invalid_scope)', getRes.status, 200);
+    const blob = /name="req" value="([^"]+)"/.exec(await getRes.text())?.[1] || '';
+    check('consent blob present', blob.length > 10);
+    const postRes = await app.request('/oauth/authorize', {
+      method: 'POST',
+      headers: { cookie, 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({ req: blob, decision: 'approve' }),
+    }, env);
+    eq('approval redirects to the client', postRes.status, 302);
+    const code = new URL(postRes.headers.get('location') || '').searchParams.get('code') || '';
+    check('code issued', code.length > 10);
+    const tokRes = await app.request('/oauth/token', {
+      method: 'POST', headers: { 'content-type': 'application/x-www-form-urlencoded' },
+      body: new URLSearchParams({
+        grant_type: 'authorization_code', code, client_id: reg.client_id,
+        redirect_uri: HOSTED_REDIRECT, code_verifier: verifier,
+      }),
+    }, env);
+    eq('token exchange succeeds', tokRes.status, 200);
+    eq('issued scope is read signup', (await tokRes.json() as any).scope, 'read signup');
+
+    // Explicit registrations are NOT widened: a client that asked
+    // for the read tier alone still cannot be authorized beyond it.
+    const narrow = await registerClient({
+      client_name: 'ReadOnly Client', redirect_uris: [HOSTED_REDIRECT], scope: 'read',
+    });
+    eq('explicit read registration stays read', narrow.scope, 'read');
+    const q2 = new URLSearchParams({
+      response_type: 'code', client_id: narrow.client_id, redirect_uri: HOSTED_REDIRECT,
+      scope: 'read signup', state: 'st-ro', code_challenge: challenge, code_challenge_method: 'S256',
+    });
+    const refused = await app.request(`/oauth/authorize?${q2}`, { headers: { cookie } }, env);
+    eq('beyond-registration authorize redirects with an error', refused.status, 302);
+    const refusedLoc = new URL(refused.headers.get('location') || '');
+    eq('error is invalid_scope', refusedLoc.searchParams.get('error'), 'invalid_scope');
+    eq('state preserved on the refusal', refusedLoc.searchParams.get('state'), 'st-ro');
   });
 });
 
