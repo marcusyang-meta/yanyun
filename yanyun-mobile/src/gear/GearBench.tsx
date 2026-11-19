@@ -75,7 +75,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
   const [commitPlan] = useMutation<documentsGearBenchPlanMutation>(GearBenchPlanMutation);
   /* GearItemInput accepts only id/slot/name/lines/dingyin/schools (same note as Web) */
   const libInput = useMemo(() => items.map((g) => ({
-    id: g.id, slot: g.slot, name: g.name,
+    id: String(g.id), slot: g.slot, name: g.name,
     lines: g.lines.map((l) => ({ key: l.key, val: l.val })),
     dingyin: g.dingyin ? { name: g.dingyin.name, val: g.dingyin.val } : null,
     schools: [...g.schools],
@@ -95,12 +95,12 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
           input: {
             targetIdx: work.targetIdx,
             lib: libInput,
-            loadout: Object.entries(work.loadout).map(([slot, gearId]) => ({ slot, gearId })),
+            loadout: Object.entries(work.loadout).map(([slot, gearId]) => ({ slot, gearId: String(gearId) })),
             baseValues: t.gearBaseFields.map((f) => ({ key: f.key, val: work.baseValues[f.key] ?? f.preset })),
             xinfa: work.xinfa,
             res: work.res, extraAcc: work.extraAcc, extraCrit: work.extraCrit, extraInt: work.extraInt,
             bowKind, gradDingyinOn: work.gradDy,
-            sim: Object.entries(work.sim).filter(([, v]) => v).map(([id, tier]) => ({ id: Number(id), tier })),
+            sim: Object.entries(work.sim).filter(([, v]) => v).map(([id, tier]) => ({ id, tier })),
           },
         },
         onCompleted: (resp) => {
@@ -119,7 +119,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [planKey]);
 
-  const evalById = useMemo(() => new Map((plan?.gearEvals || []).map((e) => [e.id, e])), [plan]);
+  const evalById = useMemo(() => new Map((plan?.gearEvals || []).map((e) => [Number(e.id), e])), [plan]);
   const libById = useMemo(() => new Map(items.map((g) => [g.id, g])), [items]);
   const positions = t.gearSlots;
 
@@ -213,7 +213,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
       variables: { lib: libInput, targetIdx: work.targetIdx },
       onCompleted: (resp) => {
         const lo: Record<string, number> = {};
-        resp.gearAutoCombine.loadout.forEach((e) => { lo[e.slot] = e.gearId; });
+        resp.gearAutoCombine.loadout.forEach((e) => { lo[e.slot] = Number(e.gearId); });
         patchWork({ loadout: lo });
         gearToast(resp.gearAutoCombine.fallbackUsed ? t.gearAutoFallbackToast : t.gearAutoDoneToast);
       },

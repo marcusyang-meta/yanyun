@@ -1382,6 +1382,7 @@ export const GearLibraryQuery = graphql`
       gearDyValLabel
       gearSchoolsLabel
       gearAddGearLabel
+      gearEntryLabel
       gearUpdateGearLabel
       gearCancelEditLabel
       gradCancelLabel
@@ -1489,8 +1490,7 @@ export const GearLibraryQuery = graphql`
       gearBaseFields { key preset }
       gearAffixes { key label max cy }
       gearDingyinLeft { name max }
-      gearDingyinRightMax
-      gearWuxueNames
+      gearDingyinGroups { slots options { name label max } }
       gearDemoKit { slot name keys dingyinName dingyinVal }
       gearPasteNames { name key }
       gearNameToClass { name cls }

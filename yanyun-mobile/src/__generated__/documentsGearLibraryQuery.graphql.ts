@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<638c5a01d0f84c7f9370b68eebc8f438>>
+ * @generated SignedSource<<654c3b7d554c5811325d0f6bc56c7174>>
  * @lightSyntaxTransform
  */
 
@@ -50,14 +50,22 @@ export type documentsGearLibraryQuery$data = {
     }>;
     readonly gearDemoLabel: string;
     readonly gearDemoLoadedToast: string;
+    readonly gearDingyinGroups: ReadonlyArray<{
+      readonly options: ReadonlyArray<{
+        readonly label: string;
+        readonly max: number;
+        readonly name: string;
+      }>;
+      readonly slots: ReadonlyArray<string>;
+    }>;
     readonly gearDingyinLeft: ReadonlyArray<{
       readonly max: number;
       readonly name: string;
     }>;
-    readonly gearDingyinRightMax: number;
     readonly gearDyNameLabel: string;
     readonly gearDyValLabel: string;
     readonly gearEditLabel: string;
+    readonly gearEntryLabel: string;
     readonly gearEquipLabel: string;
     readonly gearEquippedTag: string;
     readonly gearExportLabel: string;
@@ -177,7 +185,6 @@ export type documentsGearLibraryQuery$data = {
     readonly gearValuePlaceholder: string;
     readonly gearVerdictDud: string;
     readonly gearVerdictHeirloom: string;
-    readonly gearWuxueNames: ReadonlyArray<string>;
     readonly gearYAccLabel: string;
     readonly gearYCritLabel: string;
     readonly gearYIntLabel: string;
@@ -194,9 +201,9 @@ export type documentsGearLibraryQuery$data = {
     readonly extraCrit: number;
     readonly extraInt: number;
     readonly gradDingyinOn: boolean;
-    readonly id: number;
+    readonly id: string;
     readonly loadout: ReadonlyArray<{
-      readonly gearId: number;
+      readonly gearId: string;
       readonly slot: string;
     }>;
     readonly name: string;
@@ -221,7 +228,7 @@ export type documentsGearLibraryQuery$data = {
       readonly name: string;
       readonly val: number;
     } | null | undefined;
-    readonly id: number;
+    readonly id: string;
     readonly lines: ReadonlyArray<{
       readonly key: string;
       readonly val: number;
@@ -268,46 +275,53 @@ v3 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "max",
+  "name": "label",
   "storageKey": null
 },
 v4 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
-  "name": "name",
+  "name": "max",
   "storageKey": null
 },
 v5 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
+  "name": "name",
+  "storageKey": null
+},
+v6 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
   "name": "slot",
   "storageKey": null
 },
-v6 = [
-  (v4/*:: as any*/),
+v7 = [
+  (v5/*:: as any*/),
   (v2/*:: as any*/)
 ],
-v7 = {
+v8 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "id",
   "storageKey": null
 },
-v8 = {
+v9 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
   "name": "val",
   "storageKey": null
 },
-v9 = [
-  (v2/*:: as any*/),
-  (v8/*:: as any*/)
-],
 v10 = [
+  (v2/*:: as any*/),
+  (v9/*:: as any*/)
+],
+v11 = [
   {
     "alias": null,
     "args": null,
@@ -511,6 +525,13 @@ v10 = [
         "args": null,
         "kind": "ScalarField",
         "name": "gearAddGearLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "gearEntryLabel",
         "storageKey": null
       },
       {
@@ -1282,14 +1303,8 @@ v10 = [
         "plural": true,
         "selections": [
           (v2/*:: as any*/),
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "label",
-            "storageKey": null
-          },
           (v3/*:: as any*/),
+          (v4/*:: as any*/),
           {
             "alias": null,
             "args": null,
@@ -1308,23 +1323,41 @@ v10 = [
         "name": "gearDingyinLeft",
         "plural": true,
         "selections": [
-          (v4/*:: as any*/),
-          (v3/*:: as any*/)
+          (v5/*:: as any*/),
+          (v4/*:: as any*/)
         ],
         "storageKey": null
       },
       {
         "alias": null,
         "args": null,
-        "kind": "ScalarField",
-        "name": "gearDingyinRightMax",
-        "storageKey": null
-      },
-      {
-        "alias": null,
-        "args": null,
-        "kind": "ScalarField",
-        "name": "gearWuxueNames",
+        "concreteType": "GearDingyinGroup",
+        "kind": "LinkedField",
+        "name": "gearDingyinGroups",
+        "plural": true,
+        "selections": [
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "slots",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "concreteType": "GearDingyinOption",
+            "kind": "LinkedField",
+            "name": "options",
+            "plural": true,
+            "selections": [
+              (v5/*:: as any*/),
+              (v3/*:: as any*/),
+              (v4/*:: as any*/)
+            ],
+            "storageKey": null
+          }
+        ],
         "storageKey": null
       },
       {
@@ -1335,8 +1368,8 @@ v10 = [
         "name": "gearDemoKit",
         "plural": true,
         "selections": [
+          (v6/*:: as any*/),
           (v5/*:: as any*/),
-          (v4/*:: as any*/),
           {
             "alias": null,
             "args": null,
@@ -1368,7 +1401,7 @@ v10 = [
         "kind": "LinkedField",
         "name": "gearPasteNames",
         "plural": true,
-        "selections": (v6/*:: as any*/),
+        "selections": (v7/*:: as any*/),
         "storageKey": null
       },
       {
@@ -1379,7 +1412,7 @@ v10 = [
         "name": "gearNameToClass",
         "plural": true,
         "selections": [
-          (v4/*:: as any*/),
+          (v5/*:: as any*/),
           {
             "alias": null,
             "args": null,
@@ -1397,7 +1430,7 @@ v10 = [
         "kind": "LinkedField",
         "name": "gearSlotAliases",
         "plural": true,
-        "selections": (v6/*:: as any*/),
+        "selections": (v7/*:: as any*/),
         "storageKey": null
       },
       {
@@ -1407,7 +1440,7 @@ v10 = [
         "kind": "LinkedField",
         "name": "gearOcrAliases",
         "plural": true,
-        "selections": (v6/*:: as any*/),
+        "selections": (v7/*:: as any*/),
         "storageKey": null
       }
     ],
@@ -1421,9 +1454,9 @@ v10 = [
     "name": "myGearItems",
     "plural": true,
     "selections": [
-      (v7/*:: as any*/),
+      (v8/*:: as any*/),
+      (v6/*:: as any*/),
       (v5/*:: as any*/),
-      (v4/*:: as any*/),
       {
         "alias": null,
         "args": null,
@@ -1431,7 +1464,7 @@ v10 = [
         "kind": "LinkedField",
         "name": "lines",
         "plural": true,
-        "selections": (v9/*:: as any*/),
+        "selections": (v10/*:: as any*/),
         "storageKey": null
       },
       {
@@ -1442,8 +1475,8 @@ v10 = [
         "name": "dingyin",
         "plural": false,
         "selections": [
-          (v4/*:: as any*/),
-          (v8/*:: as any*/)
+          (v5/*:: as any*/),
+          (v9/*:: as any*/)
         ],
         "storageKey": null
       },
@@ -1472,8 +1505,8 @@ v10 = [
     "name": "myGearBuilds",
     "plural": true,
     "selections": [
-      (v7/*:: as any*/),
-      (v4/*:: as any*/),
+      (v8/*:: as any*/),
+      (v5/*:: as any*/),
       {
         "alias": null,
         "args": null,
@@ -1497,7 +1530,7 @@ v10 = [
         "name": "loadout",
         "plural": true,
         "selections": [
-          (v5/*:: as any*/),
+          (v6/*:: as any*/),
           {
             "alias": null,
             "args": null,
@@ -1515,7 +1548,7 @@ v10 = [
         "kind": "LinkedField",
         "name": "baseValues",
         "plural": true,
-        "selections": (v9/*:: as any*/),
+        "selections": (v10/*:: as any*/),
         "storageKey": null
       },
       {
@@ -1648,7 +1681,7 @@ return {
     "kind": "Fragment",
     "metadata": null,
     "name": "documentsGearLibraryQuery",
-    "selections": (v10/*:: as any*/),
+    "selections": (v11/*:: as any*/),
     "type": "Query",
     "abstractKey": null
   },
@@ -1657,19 +1690,19 @@ return {
     "argumentDefinitions": [],
     "kind": "Operation",
     "name": "documentsGearLibraryQuery",
-    "selections": (v10/*:: as any*/)
+    "selections": (v11/*:: as any*/)
   },
   "params": {
-    "cacheID": "a6a57730fa3e505fdeff71832f64bc57",
+    "cacheID": "043c2c98a552a37507098af0596c5ddc",
     "id": null,
     "metadata": {},
     "name": "documentsGearLibraryQuery",
     "operationKind": "query",
-    "text": "query documentsGearLibraryQuery {\n  viewer {\n    user {\n      discordId\n    }\n  }\n  gradPage {\n    gearCalcFailedText\n    gearLibTitle\n    gearMyLibTitle\n    gearMyBuildsTitle\n    gearLoginHint\n    gearLibCountTemplate\n    gearUsageCount\n    gearUsageLimit\n    gearUsageTemplate\n    gearUsageNearLimitText\n    gearFormSlotLabel\n    gearFormNameLabel\n    gearFormNamePlaceholder\n    gearAffixPlaceholder\n    gearValuePlaceholder\n    gearRefTemplate\n    gearFillMaxLabel\n    gearFillCyLabel\n    gearDelRowLabel\n    gearAddRowLabel\n    gearDyNameLabel\n    gearDyValLabel\n    gearSchoolsLabel\n    gearAddGearLabel\n    gearUpdateGearLabel\n    gearCancelEditLabel\n    gradCancelLabel\n    gearDemoLabel\n    gearClearLibLabel\n    gearClearConfirmTitle\n    gearClearConfirmBody\n    gearEquipLabel\n    gearUnequipLabel\n    gearEditLabel\n    gearDeleteLabel\n    gearSimLabel\n    gearSimRealLabel\n    gearSimCyLabel\n    gearSimMaxLabel\n    gearVerdictHeirloom\n    gearVerdictDud\n    gearScoreTemplate\n    gearQualityLabel\n    gearExportLabel\n    gearImportLabel\n    gearImportFailedToast\n    gearImportedToastTemplate\n    gearManualTitle\n    gearPasteTitle\n    gearPastePlaceholder\n    gearPasteButtonLabel\n    gearPasteDemoLabel\n    gearPasteEmptyText\n    gearPasteOkTemplate\n    gearPasteUnknownTemplate\n    gearPasteFailText\n    gearPasteFullText\n    gearOcrTitle\n    gearOcrDropText\n    gearOcrPreparingText\n    gearOcrRunningText\n    gearOcrSecondText\n    gearOcrFailedText\n    gearOcrBadTypeText\n    gearOcrTooBigText\n    gearOcrNoEngineText\n    gearOcrDoneTemplate\n    gearOcrSlotLabel\n    gearOcrNameLabel\n    gearOcrEquipLabel\n    gearOcrConfirmLabel\n    gearOcrCancelLabel\n    gearOcrUnknownTitle\n    gearOcrSavedTemplate\n    gearOcrNeedLineToast\n    gearOcrLowConfTag\n    gearOcrAddRowLabel\n    gearOcrBatchTitle\n    gearOcrBatchDropText\n    gearOcrBatchQueuedText\n    gearOcrBatchRunningText\n    gearOcrBatchReadyText\n    gearOcrBatchFailedText\n    gearOcrBatchImportedText\n    gearOcrBatchRetryLabel\n    gearOcrBatchRemoveLabel\n    gearOcrBatchAdjustLabel\n    gearOcrBatchApplyBoxLabel\n    gearOcrBatchDetectedText\n    gearOcrBatchFullImageText\n    gearOcrBatchDupTag\n    gearOcrBatchDupLibText\n    gearOcrBatchDupRowText\n    gearOcrBatchIncludeLabel\n    gearOcrBatchNoLinesText\n    gearOcrBatchImportTemplate\n    gearOcrBatchResultTemplate\n    gearLibEmptyText\n    gearEquippedTag\n    gearSchemeTitle\n    gearSchemeSaveLabel\n    gearSchemeNameTemplate\n    gearSchemeLoadLabel\n    gearSchemeDeleteLabel\n    gearSchemeEmptyText\n    gearSchemeComposeFirstText\n    gearSchemeSavedToastTemplate\n    gearSchemeLoadedToastTemplate\n    gearSchemeGroupCountTemplate\n    gearShareLabel\n    gearRevokeShareLabel\n    gearCopyLinkLabel\n    gearShareRevokedToast\n    gearCopiedToast\n    gearCopyFailedToast\n    gearSavedToastTemplate\n    gearDemoLoadedToast\n    gearDeletedToast\n    gearClearedToast\n    gearRecipeAllLabel\n    gearTargetLabel\n    gearGradLabel\n    gearYAccLabel\n    gearYCritLabel\n    gearYIntLabel\n    gearGearSlots\n    gearSchoolTags\n    gearBuilds {\n      idx\n      school\n      bowKind\n    }\n    gearBaseFields {\n      key\n      preset\n    }\n    gearAffixes {\n      key\n      label\n      max\n      cy\n    }\n    gearDingyinLeft {\n      name\n      max\n    }\n    gearDingyinRightMax\n    gearWuxueNames\n    gearDemoKit {\n      slot\n      name\n      keys\n      dingyinName\n      dingyinVal\n    }\n    gearPasteNames {\n      name\n      key\n    }\n    gearNameToClass {\n      name\n      cls\n    }\n    gearSlotAliases {\n      name\n      key\n    }\n    gearOcrAliases {\n      name\n      key\n    }\n  }\n  myGearItems {\n    id\n    slot\n    name\n    lines {\n      key\n      val\n    }\n    dingyin {\n      name\n      val\n    }\n    schools\n    warnings\n  }\n  myGearBuilds {\n    id\n    name\n    targetIdx\n    buildLabel\n    school\n    loadout {\n      slot\n      gearId\n    }\n    baseValues {\n      key\n      val\n    }\n    xinfa\n    res\n    extraAcc\n    extraCrit\n    extraInt\n    bowKind\n    gradDingyinOn\n    snapTotal\n    snapA\n    snapB\n    snapD\n    snapLoan\n    snapYAcc\n    snapYCrit\n    snapYInt\n    snapDawai\n    snapXiaowai\n    shareUrl\n  }\n}\n"
+    "text": "query documentsGearLibraryQuery {\n  viewer {\n    user {\n      discordId\n    }\n  }\n  gradPage {\n    gearCalcFailedText\n    gearLibTitle\n    gearMyLibTitle\n    gearMyBuildsTitle\n    gearLoginHint\n    gearLibCountTemplate\n    gearUsageCount\n    gearUsageLimit\n    gearUsageTemplate\n    gearUsageNearLimitText\n    gearFormSlotLabel\n    gearFormNameLabel\n    gearFormNamePlaceholder\n    gearAffixPlaceholder\n    gearValuePlaceholder\n    gearRefTemplate\n    gearFillMaxLabel\n    gearFillCyLabel\n    gearDelRowLabel\n    gearAddRowLabel\n    gearDyNameLabel\n    gearDyValLabel\n    gearSchoolsLabel\n    gearAddGearLabel\n    gearEntryLabel\n    gearUpdateGearLabel\n    gearCancelEditLabel\n    gradCancelLabel\n    gearDemoLabel\n    gearClearLibLabel\n    gearClearConfirmTitle\n    gearClearConfirmBody\n    gearEquipLabel\n    gearUnequipLabel\n    gearEditLabel\n    gearDeleteLabel\n    gearSimLabel\n    gearSimRealLabel\n    gearSimCyLabel\n    gearSimMaxLabel\n    gearVerdictHeirloom\n    gearVerdictDud\n    gearScoreTemplate\n    gearQualityLabel\n    gearExportLabel\n    gearImportLabel\n    gearImportFailedToast\n    gearImportedToastTemplate\n    gearManualTitle\n    gearPasteTitle\n    gearPastePlaceholder\n    gearPasteButtonLabel\n    gearPasteDemoLabel\n    gearPasteEmptyText\n    gearPasteOkTemplate\n    gearPasteUnknownTemplate\n    gearPasteFailText\n    gearPasteFullText\n    gearOcrTitle\n    gearOcrDropText\n    gearOcrPreparingText\n    gearOcrRunningText\n    gearOcrSecondText\n    gearOcrFailedText\n    gearOcrBadTypeText\n    gearOcrTooBigText\n    gearOcrNoEngineText\n    gearOcrDoneTemplate\n    gearOcrSlotLabel\n    gearOcrNameLabel\n    gearOcrEquipLabel\n    gearOcrConfirmLabel\n    gearOcrCancelLabel\n    gearOcrUnknownTitle\n    gearOcrSavedTemplate\n    gearOcrNeedLineToast\n    gearOcrLowConfTag\n    gearOcrAddRowLabel\n    gearOcrBatchTitle\n    gearOcrBatchDropText\n    gearOcrBatchQueuedText\n    gearOcrBatchRunningText\n    gearOcrBatchReadyText\n    gearOcrBatchFailedText\n    gearOcrBatchImportedText\n    gearOcrBatchRetryLabel\n    gearOcrBatchRemoveLabel\n    gearOcrBatchAdjustLabel\n    gearOcrBatchApplyBoxLabel\n    gearOcrBatchDetectedText\n    gearOcrBatchFullImageText\n    gearOcrBatchDupTag\n    gearOcrBatchDupLibText\n    gearOcrBatchDupRowText\n    gearOcrBatchIncludeLabel\n    gearOcrBatchNoLinesText\n    gearOcrBatchImportTemplate\n    gearOcrBatchResultTemplate\n    gearLibEmptyText\n    gearEquippedTag\n    gearSchemeTitle\n    gearSchemeSaveLabel\n    gearSchemeNameTemplate\n    gearSchemeLoadLabel\n    gearSchemeDeleteLabel\n    gearSchemeEmptyText\n    gearSchemeComposeFirstText\n    gearSchemeSavedToastTemplate\n    gearSchemeLoadedToastTemplate\n    gearSchemeGroupCountTemplate\n    gearShareLabel\n    gearRevokeShareLabel\n    gearCopyLinkLabel\n    gearShareRevokedToast\n    gearCopiedToast\n    gearCopyFailedToast\n    gearSavedToastTemplate\n    gearDemoLoadedToast\n    gearDeletedToast\n    gearClearedToast\n    gearRecipeAllLabel\n    gearTargetLabel\n    gearGradLabel\n    gearYAccLabel\n    gearYCritLabel\n    gearYIntLabel\n    gearGearSlots\n    gearSchoolTags\n    gearBuilds {\n      idx\n      school\n      bowKind\n    }\n    gearBaseFields {\n      key\n      preset\n    }\n    gearAffixes {\n      key\n      label\n      max\n      cy\n    }\n    gearDingyinLeft {\n      name\n      max\n    }\n    gearDingyinGroups {\n      slots\n      options {\n        name\n        label\n        max\n      }\n    }\n    gearDemoKit {\n      slot\n      name\n      keys\n      dingyinName\n      dingyinVal\n    }\n    gearPasteNames {\n      name\n      key\n    }\n    gearNameToClass {\n      name\n      cls\n    }\n    gearSlotAliases {\n      name\n      key\n    }\n    gearOcrAliases {\n      name\n      key\n    }\n  }\n  myGearItems {\n    id\n    slot\n    name\n    lines {\n      key\n      val\n    }\n    dingyin {\n      name\n      val\n    }\n    schools\n    warnings\n  }\n  myGearBuilds {\n    id\n    name\n    targetIdx\n    buildLabel\n    school\n    loadout {\n      slot\n      gearId\n    }\n    baseValues {\n      key\n      val\n    }\n    xinfa\n    res\n    extraAcc\n    extraCrit\n    extraInt\n    bowKind\n    gradDingyinOn\n    snapTotal\n    snapA\n    snapB\n    snapD\n    snapLoan\n    snapYAcc\n    snapYCrit\n    snapYInt\n    snapDawai\n    snapXiaowai\n    shareUrl\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "f8b5ae23b286db0e8ee186c1f422d6d4";
+(node as any).hash = "4840dc840653b196d4c5e2f93cac758a";
 
 export default node;

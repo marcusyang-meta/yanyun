@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<ab333ebe878459cd7c15588a526241c6>>
+ * @generated SignedSource<<3a6a12ec5b729eb02199e8648bdf32a6>>
  * @lightSyntaxTransform
  */
 
@@ -34,7 +34,7 @@ export type documentsGearLibraryAddItemMutation$data = {
         readonly name: string;
         readonly val: number;
       } | null | undefined;
-      readonly id: number;
+      readonly id: string;
       readonly lines: ReadonlyArray<{
         readonly key: string;
         readonly val: number;

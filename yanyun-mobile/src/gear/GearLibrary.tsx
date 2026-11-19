@@ -21,6 +21,7 @@ import {
   fmt1, hydrateGearWorkState, loadWorkState, mergeAutoSelectIntoSavedWork, onOcrSlotRequest,
   parseImportFile, pct1, poolOf, saveWorkState,
 } from './gearStore';
+import { dingyinMax, dingyinOptions, dingyinSlotChange } from './gearDingyin';
 import type { OcrMaps, OcrParsed , OcrEngine } from './GearOcr';
 import GearOcrBatch from './GearOcrBatch';
 import { exportTextFile, pickImageFiles, pickTextFile, runOcrFile } from './GearOcrEngine';
@@ -48,14 +49,9 @@ type LibData = documentsGearLibraryQuery['response'];
 type LibItemRaw = LibData['myGearItems'][number];
 type LibBuildRaw = LibData['myGearBuilds'][number];
 
-function mapItem(r: {
-  id: number; slot: string; name: string;
-  lines: readonly { key: string; val: number }[];
-  dingyin: { name: string; val: number } | null | undefined;
-  schools: readonly string[]; warnings: readonly string[];
-}): GearItem {
+function mapItem(r: LibItemRaw): GearItem {
   return {
-    id: r.id, slot: r.slot, name: r.name,
+    id: Number(r.id), slot: r.slot, name: r.name,
     lines: r.lines.map((l) => ({ key: l.key, val: l.val })),
     dingyin: r.dingyin ? { name: r.dingyin.name, val: r.dingyin.val } : null,
     schools: [...r.schools], warnings: [...r.warnings],
@@ -63,8 +59,8 @@ function mapItem(r: {
 }
 function mapBuild(b: LibBuildRaw): SavedBuild {
   return {
-    id: b.id, name: b.name, targetIdx: b.targetIdx, buildLabel: b.buildLabel, school: b.school,
-    loadout: Object.fromEntries(b.loadout.map((e) => [e.slot, e.gearId])),
+    id: Number(b.id), name: b.name, targetIdx: b.targetIdx, buildLabel: b.buildLabel, school: b.school,
+    loadout: Object.fromEntries(b.loadout.map((e) => [e.slot, Number(e.gearId)])),
     baseValues: Object.fromEntries(b.baseValues.map((e) => [e.key, e.val ?? null])),
     xinfa: [...b.xinfa], res: b.res, extraAcc: b.extraAcc, extraCrit: b.extraCrit, extraInt: b.extraInt,
     bowKind: b.bowKind, gradDingyinOn: b.gradDingyinOn,
@@ -156,7 +152,7 @@ export default function GearLibrary(props: {
 
   const deleteItem = (g: GearItem) => {
     commitDelete({
-      variables: { id: g.id },
+      variables: { id: String(g.id) },
       onCompleted: (resp) => {
         if (!resp.deleteGearItem.ok) { gearToast(resp.deleteGearItem.error || t.gearCalcFailedText); return; }
         setItems((prev) => prev.filter((x) => x.id !== g.id));
@@ -186,7 +182,7 @@ export default function GearLibrary(props: {
     commitImport({
       variables: {
         items: list,
-        loadout: Object.entries(loadout).map(([slot, gearId]) => ({ slot, gearId })),
+        loadout: Object.entries(loadout).map(([slot, gearId]) => ({ slot, gearId: String(gearId) })),
         source: opts?.source ?? null,
         imageCount: opts?.imageCount ?? null,
       },
@@ -196,8 +192,9 @@ export default function GearLibrary(props: {
         const added = r.items.map(mapItem);
         setItems((prev) => [...prev, ...added]);
         if (r.autoSelect.length) {
-          if (mode === 'bench') props.onAutoSelect?.(r.autoSelect.map((e) => ({ slot: e.slot, gearId: e.gearId })));
-          else mergeAutoSelectIntoSavedWork(r.autoSelect.map((e) => ({ slot: e.slot, gearId: e.gearId })));
+          const autoSelect = r.autoSelect.map((e) => ({ slot: e.slot, gearId: Number(e.gearId) }));
+          if (mode === 'bench') props.onAutoSelect?.(autoSelect);
+          else mergeAutoSelectIntoSavedWork(autoSelect);
         }
         bumpWork();
         onDone?.(added);
@@ -250,7 +247,7 @@ export default function GearLibrary(props: {
     };
     if (form.id != null) {
       commitUpdate({
-        variables: { id: form.id, input },
+        variables: { id: String(form.id), input },
         onCompleted: (resp) => {
           if (!resp.updateGearItem.ok || !resp.updateGearItem.item) { gearToast(resp.updateGearItem.error || t.gearCalcFailedText); return; }
           done(mapItem(resp.updateGearItem.item as LibItemRaw), false);
@@ -353,10 +350,10 @@ export default function GearLibrary(props: {
   const clearLib = () => {
     setConfirmClear(false);
     [...items].forEach((g) => {
-      commitDelete({ variables: { id: g.id }, onCompleted: () => undefined, onError: () => undefined });
+      commitDelete({ variables: { id: String(g.id) }, onCompleted: () => undefined, onError: () => undefined });
     });
     [...builds].forEach((b) => {
-      commitDeleteBuild({ variables: { id: b.id }, onCompleted: () => undefined, onError: () => undefined });
+      commitDeleteBuild({ variables: { id: String(b.id) }, onCompleted: () => undefined, onError: () => undefined });
     });
     setItems([]);
     setBuilds([]);
@@ -510,7 +507,7 @@ export default function GearLibrary(props: {
       variables: {
         input: {
           name, targetIdx: st.targetIdx,
-          loadout: Object.entries(lo).map(([slot, gearId]) => ({ slot, gearId })),
+          loadout: Object.entries(lo).map(([slot, gearId]) => ({ slot, gearId: String(gearId) })),
           baseValues: st.baseValues,
           xinfa: st.xinfa, res: st.res,
           extraAcc: st.extraAcc, extraCrit: st.extraCrit, extraInt: st.extraInt,
@@ -540,7 +537,7 @@ export default function GearLibrary(props: {
   };
   const deleteScheme = (b: SavedBuild) => {
     commitDeleteBuild({
-      variables: { id: b.id },
+      variables: { id: String(b.id) },
       onCompleted: (resp) => {
         if (!resp.deleteGearBuild.ok) { gearToast(resp.deleteGearBuild.error || t.gearCalcFailedText); return; }
         setBuilds((prev) => prev.filter((x) => x.id !== b.id));
@@ -560,7 +557,7 @@ export default function GearLibrary(props: {
       return;
     }
     commitShareBuild({
-      variables: { id: b.id },
+      variables: { id: String(b.id) },
       onCompleted: (resp) => {
         if (!resp.shareGearBuild.ok || !resp.shareGearBuild.shareUrl) { gearToast(resp.shareGearBuild.error || t.gearCalcFailedText); return; }
         const url = resp.shareGearBuild.shareUrl;
@@ -580,7 +577,7 @@ export default function GearLibrary(props: {
   };
   const revokeScheme = (b: SavedBuild) => {
     commitRevokeShare({
-      variables: { id: b.id },
+      variables: { id: String(b.id) },
       onCompleted: (resp) => {
         if (!resp.revokeGearBuildShare.ok) { gearToast(resp.revokeGearBuildShare.error || t.gearCalcFailedText); return; }
         setBuilds((prev) => prev.map((x) => (x.id === b.id ? { ...x, shareUrl: null } : x)));
@@ -619,10 +616,8 @@ export default function GearLibrary(props: {
     [t],
   );
   const slotOptions = useMemo(() => t.gearGearSlots.map((x) => ({ value: x, label: x })), [t]);
-  const dyOptionsFor = (slot: string) => [
-    { value: '', label: '—' },
-    ...(slot === '武器' ? t.gearWuxueNames : t.gearDingyinLeft.map((d) => d.name)).map((n) => ({ value: n, label: n })),
-  ];
+  const dyGroups = t.gearDingyinGroups;
+  const formDyMax = dingyinMax(dyGroups, form.slot, form.dyName);
 
   return (
     <View>
@@ -635,7 +630,7 @@ export default function GearLibrary(props: {
         <SecTitle>{libHeading}</SecTitle>
         <Text style={s.countText}>{loggedIn ? fill(t.gearUsageTemplate, { n: t.gearUsageCount, limit: t.gearUsageLimit }) : fill(t.gearLibCountTemplate, { n: items.length })}</Text>
         <View style={{ marginLeft: 'auto' }}>
-          <BtnGold label={t.gearAddGearLabel} disabled={!loggedIn} onPress={() => (addMode ? setAddMode(null) : setAddMode('paste'))} />
+          <BtnGold label={t.gearEntryLabel} disabled={!loggedIn} onPress={() => (addMode ? setAddMode(null) : setAddMode('paste'))} />
         </View>
       </View>
       {loggedIn && t.gearUsageLimit > 0 && t.gearUsageCount / t.gearUsageLimit >= 0.9 && (
@@ -689,7 +684,7 @@ export default function GearLibrary(props: {
             <View style={s.grid2}>
               <View style={s.gridCell}>
                 <Lbl>{t.gearOcrSlotLabel}</Lbl>
-                <SheetSelect value={review.slot} options={slotOptions} onChange={(v) => setReview({ ...review, slot: v })} />
+                <SheetSelect value={review.slot} options={slotOptions} onChange={(v) => setReview({ ...review, ...dingyinSlotChange(dyGroups, review, v) })} />
               </View>
               <View style={s.gridCell}>
                 <Lbl>{t.gearOcrNameLabel}</Lbl>
@@ -697,7 +692,7 @@ export default function GearLibrary(props: {
               </View>
               <View style={s.gridCell}>
                 <Lbl>{t.gearDyNameLabel}</Lbl>
-                <SheetSelect value={review.dyName} options={dyOptionsFor(review.slot)} onChange={(v) => setReview({ ...review, dyName: v })} />
+                <SheetSelect value={review.dyName} options={dingyinOptions(dyGroups, review.slot, review.dyName)} onChange={(v) => setReview({ ...review, dyName: v })} />
               </View>
               <View style={s.gridCell}>
                 <Lbl>{t.gearDyValLabel}</Lbl>
@@ -758,7 +753,7 @@ export default function GearLibrary(props: {
         <View style={s.grid2}>
           <View style={s.gridCell}>
             <Lbl>{t.gearFormSlotLabel}</Lbl>
-            <SheetSelect value={form.slot} options={slotOptions} onChange={(v) => setForm({ ...form, slot: v })} />
+            <SheetSelect value={form.slot} options={slotOptions} onChange={(v) => setForm({ ...form, ...dingyinSlotChange(dyGroups, form, v) })} />
           </View>
           <View style={s.gridCell}>
             <Lbl>{t.gearFormNameLabel}</Lbl>
@@ -766,7 +761,7 @@ export default function GearLibrary(props: {
           </View>
           <View style={s.gridCell}>
             <Lbl>{t.gearDyNameLabel}</Lbl>
-            <SheetSelect value={form.dyName} options={dyOptionsFor(form.slot)} onChange={(v) => setForm({ ...form, dyName: v })} />
+            <SheetSelect value={form.dyName} options={dingyinOptions(dyGroups, form.slot, form.dyName)} onChange={(v) => setForm({ ...form, dyName: v })} />
           </View>
           <View style={s.gridCell}>
             <Lbl>{t.gearDyValLabel}</Lbl>
@@ -774,9 +769,9 @@ export default function GearLibrary(props: {
               <NumInput style={{ flex: 1 }} value={form.dyVal} onChangeText={(v) => setForm({ ...form, dyVal: v })} />
               <BtnMini
                 label={t.gearFillMaxLabel}
+                disabled={formDyMax === undefined}
                 onPress={() => {
-                  const mx = form.slot === '武器' ? t.gearDingyinRightMax : (t.gearDingyinLeft.find((d) => d.name === form.dyName)?.max || 0);
-                  if (mx) setForm({ ...form, dyVal: String(mx) });
+                  if (formDyMax !== undefined) setForm({ ...form, dyVal: String(formDyMax) });
                 }}
               />
             </View>
