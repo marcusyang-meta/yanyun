@@ -1660,6 +1660,18 @@ export const GradCalcTextQuery = graphql`
       gradToastSavedTemplate
       gradToastLoadedTemplate
       gradToastOldSchemeText
+      gradPickFromLibraryLabel
+      gradLibraryEmptyText
+      gradLibrarySkippedTemplate
+      gradSlots { id label }
+      gradGearItems {
+        id
+        name
+        gradSlots
+        lines { key val }
+        dingyin { key val }
+        skipped
+      }
       gradConfirmLabel
       gradCancelLabel
     }
