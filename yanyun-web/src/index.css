@@ -146,11 +146,6 @@ body {
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
 }
-@keyframes yy-sheet-up {
-  from { transform: translateY(60px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
 /* ---------- utility animation classes ---------- */
 .yy-anim-fade-up { animation: yy-fade-up .55s cubic-bezier(.22,.9,.28,1) both; }
 .yy-anim-fade-in { animation: yy-fade-in .4s ease both; }
@@ -800,41 +795,6 @@ body {
 .yy-page:has(> .yy-hero-full) {
   display: flex;
   flex-direction: column;
-}
-
-/* ---------- bottom sheet (mobile form) ---------- */
-.yy-sheet-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0,0,0,.6);
-  backdrop-filter: blur(2px);
-  animation: yy-fade-in .25s ease both;
-  z-index: 50;
-}
-.yy-sheet {
-  position: fixed;
-  left: 0; right: 0; bottom: 0;
-  max-height: 85vh;
-  overflow-y: auto;
-  /* Chrome wiring: --ink-2 IS the classic sheet fill, so the fill now
-     reads from the chrome var with the identical classic value. The
-     top border (var(--border), .22) and the 20px top radius match no
-     chrome value at their classic values (sheetBorder is .4), so
-     they stay literal under classic and only glass swaps them below.
-     Blur / highlight are classic no-ops via the vars. */
-  background: var(--chrome-sheet-fill);
-  border-top: 1px solid var(--border);
-  border-radius: 20px 20px 0 0;
-  padding: 20px 20px calc(20px + env(safe-area-inset-bottom));
-  z-index: 51;
-  animation: yy-sheet-up .35s cubic-bezier(.22,.9,.28,1) both;
-  backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
-  -webkit-backdrop-filter: blur(calc(var(--chrome-blur) * 1px));
-  box-shadow: inset 0 1px 0 var(--chrome-highlight);
-}
-:root[data-theme="glass"] .yy-sheet {
-  border-top-color: var(--chrome-sheet-border);
-  border-radius: calc(var(--chrome-radius) * 1px) calc(var(--chrome-radius) * 1px) 0 0;
 }
 
 /* ---------- toast ---------- */
