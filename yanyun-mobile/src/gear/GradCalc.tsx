@@ -12,6 +12,7 @@ import {
 } from './bits';
 import { fmt1 } from './gearStore';
 import { allowedAffixKeys, mergeSlotAffixRows } from './gradSlotAffix';
+import { gradGearItemsForSlot, gradRowsFromGearItem, type GradGearItemLike, type GradGearLineLike } from './gradGearFill';
 import GearBench from './GearBench';
 import GearQuick from './GearQuick';
 import GearRefs from './GearRefs';
@@ -141,6 +142,13 @@ export default function GradCalc({ sectSlug, sectName }: { sectSlug: string; sec
     return n;
   });
 
+  // Library items are tagged with graduation slot ids by the backend;
+  // resolve this editor's slot id through the delivered slot table.
+  const gradSlotIdByLabel = useMemo(
+    () => new Map((t.gradSlots ?? []).map((s2) => [s2.label, s2.id])),
+    [t],
+  );
+
   const SlotEditor = openSlot != null ? (
     <SlotEditorSheet
       slotIdx={openSlot}
@@ -149,6 +157,8 @@ export default function GradCalc({ sectSlug, sectName }: { sectSlug: string; sec
       score={scoreOf(SLOTS[openSlot].name)}
       onChange={(st) => setSlots((prev) => prev.map((s, i) => (i === openSlot ? st : s)))}
       onClose={() => setOpenSlot(null)}
+      gearItems={t.gradGearItems ?? []}
+      slotId={gradSlotIdByLabel.get(SLOTS[openSlot].name) ?? ''}
       t={t}
     />
   ) : null;
@@ -352,13 +362,15 @@ function AffixMaxTable({ build, bigLabel, smallLabel, t }: {
   );
 }
 
-function SlotEditorSheet({ slotIdx, build, state, score, onChange, onClose, t }: {
+function SlotEditorSheet({ slotIdx, build, state, score, onChange, onClose, gearItems, slotId, t }: {
   slotIdx: number;
   build: Build;
   state: SlotState;
   score: number;
   onChange: (s: SlotState) => void;
   onClose: () => void;
+  gearItems: ReadonlyArray<GradGearItemLike>;
+  slotId: string;
   t: documentsGradCalcTextQuery['response']['gradPage'];
 }) {
   const slot = SLOTS[slotIdx];
@@ -378,6 +390,25 @@ function SlotEditorSheet({ slotIdx, build, state, score, onChange, onClose, t }:
     onChange({ rows: state.rows.map((r, j) => (j === i ? { ...r, ...patch } : r)) });
   };
 
+  // Library picker: items arrive pre-translated to calculator keys
+  // from the backend; picking one replaces this slot's rows with the
+  // item's rows (an explicit user action — hand-entered rows are
+  // otherwise never touched).
+  const [pickerOpen, setPickerOpen] = useState(false);
+  const slotItems = useMemo(
+    () => gradGearItemsForSlot(gearItems, slotId),
+    [gearItems, slotId],
+  );
+  const lineSummary = (l: GradGearLineLike) =>
+    `${maxByKey.get(l.key)?.name || l.key} ${Math.round(l.val * 10) / 10}`;
+  const itemSummary = (g: GradGearItemLike) =>
+    [...g.lines.map(lineSummary), ...(g.dingyin ? [lineSummary(g.dingyin)] : [])].join(' · ');
+  const pickItem = (g: GradGearItemLike) => {
+    onChange({ rows: gradRowsFromGearItem(g) });
+    setPickerOpen(false);
+    if (g.skipped > 0) gearToast(fill(t.gradLibrarySkippedTemplate, { n: g.skipped }));
+  };
+
   return (
     <Modal visible transparent animationType="slide" onRequestClose={onClose}>
       <View style={s.sheetWrap}>
@@ -392,6 +423,21 @@ function SlotEditorSheet({ slotIdx, build, state, score, onChange, onClose, t }:
           {score > 0 && (
             <Text style={s.itemScore}>{fill(t.gradItemScoreTemplate, { score })}</Text>
           )}
+          <View>
+            <BtnGhost label={t.gradPickFromLibraryLabel} onPress={() => setPickerOpen((p) => !p)} />
+            {pickerOpen && (
+              <View style={{ marginTop: 8, gap: 6 }}>
+                {slotItems.length === 0 ? (
+                  <Text style={s.emptyText}>{t.gradLibraryEmptyText}</Text>
+                ) : slotItems.map((g) => (
+                  <Pressable key={String(g.id)} onPress={() => pickItem(g)} style={s.pickRow}>
+                    <Text style={s.pickName}>{g.name || itemSummary(g)}</Text>
+                    {g.name !== '' && <Text style={s.pickSummary}>{itemSummary(g)}</Text>}
+                  </Pressable>
+                ))}
+              </View>
+            )}
+          </View>
           {state.rows.map((r, i) => {
             const max = r.key ? maxByKey.get(r.key) : undefined;
             const v = parseFloat(r.value);
@@ -568,6 +614,12 @@ const s = StyleSheet.create({
   },
   sheetTitle: { fontFamily: fonts.brush, color: theme.goldHi, fontSize: 19 },
   itemScore: { fontFamily: fonts.serif, color: theme.paper, fontSize: 12.5 },
+  pickRow: {
+    borderWidth: 1, borderColor: 'rgba(201,163,92,.25)', borderRadius: 9,
+    paddingVertical: 8, paddingHorizontal: 10, backgroundColor: 'rgba(201,163,92,.06)',
+  },
+  pickName: { fontFamily: fonts.serif, color: theme.goldHi, fontSize: 13.5 },
+  pickSummary: { fontFamily: fonts.serif, color: theme.muted, fontSize: 12, marginTop: 2 },
   rowEdit: { flexDirection: 'row', gap: 7, alignItems: 'flex-start' },
   rowChip: {
     fontFamily: fonts.serif, fontSize: 11, color: theme.seal,
