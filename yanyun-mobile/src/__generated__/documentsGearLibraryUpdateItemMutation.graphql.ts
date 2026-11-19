@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<eee1ed3b9414e0088fb499442317bc92>>
+ * @generated SignedSource<<621a3efb6ee348243804d5a852650dc9>>
  * @lightSyntaxTransform
  */
 
@@ -24,7 +24,7 @@ export type GearDingyinInput = {
   val: number;
 };
 export type documentsGearLibraryUpdateItemMutation$variables = {
-  id: number;
+  id: string;
   input: GearItemCreateInput;
 };
 export type documentsGearLibraryUpdateItemMutation$data = {
@@ -35,7 +35,7 @@ export type documentsGearLibraryUpdateItemMutation$data = {
         readonly name: string;
         readonly val: number;
       } | null | undefined;
-      readonly id: number;
+      readonly id: string;
       readonly lines: ReadonlyArray<{
         readonly key: string;
         readonly val: number;
@@ -208,16 +208,16 @@ return {
     "selections": (v3/*:: as any*/)
   },
   "params": {
-    "cacheID": "2cfbf4b312f2d715319110f936a95504",
+    "cacheID": "5d3a1aeec78b33e4973cb1bc489331ef",
     "id": null,
     "metadata": {},
     "name": "documentsGearLibraryUpdateItemMutation",
     "operationKind": "mutation",
-    "text": "mutation documentsGearLibraryUpdateItemMutation(\n  $id: Int!\n  $input: GearItemCreateInput!\n) {\n  updateGearItem(id: $id, input: $input) {\n    ok\n    error\n    item {\n      id\n      slot\n      name\n      lines {\n        key\n        val\n      }\n      dingyin {\n        name\n        val\n      }\n      schools\n      warnings\n    }\n  }\n}\n"
+    "text": "mutation documentsGearLibraryUpdateItemMutation(\n  $id: ID!\n  $input: GearItemCreateInput!\n) {\n  updateGearItem(id: $id, input: $input) {\n    ok\n    error\n    item {\n      id\n      slot\n      name\n      lines {\n        key\n        val\n      }\n      dingyin {\n        name\n        val\n      }\n      schools\n      warnings\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "4c864e31f4302c1ae597f2b77901622c";
+(node as any).hash = "6becc3210ed671395bf5103f8ee21496";
 
 export default node;

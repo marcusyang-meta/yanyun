@@ -7,6 +7,7 @@ import {
   BtnGold, BtnMini, CheckRow, Lbl, NumInput, SheetSelect, TextInp, fill, gearToast,
 } from './bits';
 import type { GearItem } from './gearStore';
+import { dingyinOptions, dingyinSlotChange } from './gearDingyin';
 import {
   gearContentKey,
   type OcrEngine, type OcrMaps, type OcrParsed, type PanelBox,
@@ -188,6 +189,7 @@ export default function GearOcrBatch(props: {
   const rowsRef = useRef<BatchRow[]>([]);
   useEffect(() => { rowsRef.current = rows; }, [rows]);
   const idRef = useRef(1);
+  const countedThroughRef = useRef(0);
   const pumpingRef = useRef(false);
 
   const libKeys = useMemo(
@@ -310,7 +312,11 @@ export default function GearOcrBatch(props: {
   const doImport = () => {
     if (!importable.length || importing) return;
     const picked = importable;
-    const readyCount = rows.filter((r) => r.status === 'ready').length;
+    const ids = new Set(picked.map((r) => r.id));
+    // Count new rows even if skipped, and count previously skipped rows only when picked again.
+    const batchRows = rows.filter((r) => r.id > countedThroughRef.current || ids.has(r.id));
+    const batchThrough = rows[rows.length - 1].id;
+    const readyCount = batchRows.filter((r) => r.status === 'ready').length;
     const list = picked.map((r) => ({
       slot: r.slot, name: r.name.trim(),
       lines: validLines(r),
@@ -319,11 +325,11 @@ export default function GearOcrBatch(props: {
     }));
     setImporting(true);
     props.onImport(list, (added) => {
+      countedThroughRef.current = batchThrough;
       setImporting(false);
-      const ids = new Set(picked.map((r) => r.id));
       setRows((prev) => prev.map((r) => (ids.has(r.id) ? { ...r, status: 'imported' as RowStatus } : r)));
       gearToast(fill(t.gearOcrBatchResultTemplate, { n: added, m: readyCount - picked.length }));
-    }, { source: 'ocr', imageCount: rows.length, onFailed: () => setImporting(false) });
+    }, { source: 'ocr', imageCount: batchRows.length, onFailed: () => setImporting(false) });
   };
 
   const statusText = (r: BatchRow): string => (
@@ -353,10 +359,6 @@ export default function GearOcrBatch(props: {
         const dup = dupOf(r, idx);
         const lines = validLines(r);
         const excluded = !!dup && !r.dupOverride;
-        const dyOptions = [
-          { value: '', label: '—' },
-          ...(r.slot === '武器' ? t.gearWuxueNames : t.gearDingyinLeft.map((d) => d.name)).map((n) => ({ value: n, label: n })),
-        ];
         return (
           <View key={r.id} style={s.row}>
             <View style={s.thumbCol}>
@@ -410,7 +412,7 @@ export default function GearOcrBatch(props: {
                       <SheetSelect
                         value={r.slot}
                         options={t.gearGearSlots.map((x) => ({ value: x, label: x }))}
-                        onChange={(v) => patch(r.id, { slot: v })}
+                        onChange={(v) => patch(r.id, dingyinSlotChange(t.gearDingyinGroups, r, v))}
                       />
                     </View>
                     <View style={s.gridCell}>
@@ -419,7 +421,7 @@ export default function GearOcrBatch(props: {
                     </View>
                     <View style={s.gridCell}>
                       <Lbl>{t.gearDyNameLabel}</Lbl>
-                      <SheetSelect value={r.dyName} options={dyOptions} onChange={(v) => patch(r.id, { dyName: v })} />
+                      <SheetSelect value={r.dyName} options={dingyinOptions(t.gearDingyinGroups, r.slot, r.dyName)} onChange={(v) => patch(r.id, { dyName: v })} />
                     </View>
                     <View style={s.gridCell}>
                       <Lbl>{t.gearDyValLabel}</Lbl>

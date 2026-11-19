@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<104d408cef4645f6e7aaf6d336e54822>>
+ * @generated SignedSource<<81be7ebbeb201c91be21665a74aae4b4>>
  * @lightSyntaxTransform
  */
 
@@ -9,7 +9,7 @@
 
 import { ConcreteRequest } from 'relay-runtime';
 export type documentsGearLibraryRevokeShareMutation$variables = {
-  id: number;
+  id: string;
 };
 export type documentsGearLibraryRevokeShareMutation$data = {
   readonly revokeGearBuildShare: {
@@ -81,16 +81,16 @@ return {
     "selections": (v1/*:: as any*/)
   },
   "params": {
-    "cacheID": "f9caf69817bec601b8c03773b60b6a73",
+    "cacheID": "bab018d6627234caa6f41dc574e2bf88",
     "id": null,
     "metadata": {},
     "name": "documentsGearLibraryRevokeShareMutation",
     "operationKind": "mutation",
-    "text": "mutation documentsGearLibraryRevokeShareMutation(\n  $id: Int!\n) {\n  revokeGearBuildShare(id: $id) {\n    ok\n    error\n  }\n}\n"
+    "text": "mutation documentsGearLibraryRevokeShareMutation(\n  $id: ID!\n) {\n  revokeGearBuildShare(id: $id) {\n    ok\n    error\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "340ee5f775e10ac11c4f14102056956e";
+(node as any).hash = "e7ed617323bce6a5688a6cdeac999970";
 
 export default node;

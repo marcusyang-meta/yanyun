@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<db3627e34c63a354fd49f789608af94c>>
+ * @generated SignedSource<<8b1abcfa16fe5ead6559ce448e04e7c2>>
  * @lightSyntaxTransform
  */
 
@@ -27,12 +27,12 @@ export type GearBaseValueInput = {
   val?: number | null | undefined;
 };
 export type GearSimInput = {
-  id: number;
+  id: string;
   tier: string;
 };
 export type GearItemInput = {
   dingyin?: GearDingyinInput | null | undefined;
-  id: number;
+  id: string;
   lines: ReadonlyArray<GearLineInput>;
   name?: string | null | undefined;
   schools?: ReadonlyArray<string> | null | undefined;
@@ -47,7 +47,7 @@ export type GearDingyinInput = {
   val: number;
 };
 export type GearLoadoutEntryInput = {
-  gearId: number;
+  gearId: string;
   slot: string;
 };
 export type documentsGearBenchPlanMutation$variables = {
@@ -63,7 +63,7 @@ export type documentsGearBenchPlanMutation$data = {
     }>;
     readonly gearEvals: ReadonlyArray<{
       readonly hits: number;
-      readonly id: number;
+      readonly id: string;
       readonly quality: number;
       readonly score: number;
       readonly verdict: string;
@@ -83,7 +83,7 @@ export type documentsGearBenchPlanMutation$data = {
       }>;
       readonly got: number;
       readonly lowLines: ReadonlyArray<{
-        readonly gearId: number;
+        readonly gearId: string;
         readonly key: string;
         readonly score: number;
         readonly val: number;
@@ -112,7 +112,7 @@ export type documentsGearBenchPlanMutation$data = {
       readonly finalCrit: number;
       readonly hp: number;
       readonly invalidLines: ReadonlyArray<{
-        readonly gearId: number;
+        readonly gearId: string;
         readonly key: string;
         readonly val: number;
       }>;
@@ -138,7 +138,7 @@ export type documentsGearBenchPlanMutation$data = {
       readonly list: ReadonlyArray<{
         readonly fromCls: string | null | undefined;
         readonly gain: number;
-        readonly gearId: number | null | undefined;
+        readonly gearId: string | null | undefined;
         readonly kind: string;
         readonly lineIdx: number | null | undefined;
         readonly name: string | null | undefined;

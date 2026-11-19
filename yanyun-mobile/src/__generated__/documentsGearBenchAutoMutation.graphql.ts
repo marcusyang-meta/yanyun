@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<51425789208d2c9e7d0f7a9c86674b13>>
+ * @generated SignedSource<<4c5793fb6d4874de9eb4714e8ad56023>>
  * @lightSyntaxTransform
  */
 
@@ -10,7 +10,7 @@
 import { ConcreteRequest } from 'relay-runtime';
 export type GearItemInput = {
   dingyin?: GearDingyinInput | null | undefined;
-  id: number;
+  id: string;
   lines: ReadonlyArray<GearLineInput>;
   name?: string | null | undefined;
   schools?: ReadonlyArray<string> | null | undefined;
@@ -32,7 +32,7 @@ export type documentsGearBenchAutoMutation$data = {
   readonly gearAutoCombine: {
     readonly fallbackUsed: boolean;
     readonly loadout: ReadonlyArray<{
-      readonly gearId: number;
+      readonly gearId: string;
       readonly slot: string;
     }>;
   };
