@@ -11,6 +11,7 @@ import {
   fill, gearToast,
 } from './bits';
 import { fmt1 } from './gearStore';
+import { allowedAffixKeys, mergeSlotAffixRows } from './gradSlotAffix';
 import GearBench from './GearBench';
 import GearQuick from './GearQuick';
 import GearRefs from './GearRefs';
@@ -363,9 +364,13 @@ function SlotEditorSheet({ slotIdx, build, state, score, onChange, onClose, t }:
   const slot = SLOTS[slotIdx];
   const affixData = useLazyLoadQuery<documentsGradCalcAffixQuery>(GradCalcAffixQuery, {}, { fetchPolicy: 'store-or-network' });
   const slotData = useLazyLoadQuery<documentsGradCalcSlotAffixQuery>(GradCalcSlotAffixQuery, { build }, { fetchPolicy: 'store-or-network' });
+  // Real gear can roll either layout's affixes, so the selectable set is
+  // the union of both layouts' rows for this slot (see gradSlotAffix.ts).
+  const otherBuild: Build = build === 'big' ? 'small' : 'big';
+  const otherSlotData = useLazyLoadQuery<documentsGradCalcSlotAffixQuery>(GradCalcSlotAffixQuery, { build: otherBuild }, { fetchPolicy: 'store-or-network' });
   const allowed = useMemo(
-    () => slotData.slotAffixList.filter((sa) => sa.slot === slot.name).map((sa) => sa.affixKey),
-    [slotData, slot.name],
+    () => allowedAffixKeys(mergeSlotAffixRows(slotData.slotAffixList, otherSlotData.slotAffixList), slot.name),
+    [slotData, otherSlotData, slot.name],
   );
   const maxByKey = useMemo(() => new Map(affixData.affixMaxList.map((a) => [a.key, a])), [affixData]);
 
