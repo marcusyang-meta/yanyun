@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<ded69ab64e0da0915f19a3f51b936662>>
+ * @generated SignedSource<<6ec3399a62e514963f27abf69c6d0fdf>>
  * @lightSyntaxTransform
  */
 
@@ -24,12 +24,29 @@ export type GradCalcTextQuery$data = {
     readonly gradConfirmLabel: string;
     readonly gradDeleteSchemeLabel: string;
     readonly gradEnteringText: string;
+    readonly gradGearItems: ReadonlyArray<{
+      readonly dingyin: {
+        readonly key: string;
+        readonly val: number;
+      } | null | undefined;
+      readonly gradSlots: ReadonlyArray<string>;
+      readonly id: string;
+      readonly lines: ReadonlyArray<{
+        readonly key: string;
+        readonly val: number;
+      }>;
+      readonly name: string;
+      readonly skipped: number;
+    }>;
     readonly gradItemScoreTemplate: string;
+    readonly gradLibraryEmptyText: string;
+    readonly gradLibrarySkippedTemplate: string;
     readonly gradLoadLabel: string;
     readonly gradMaxTableTitle: string;
     readonly gradMingjinNote: string;
     readonly gradNoSchemesText: string;
     readonly gradOverMaxTemplate: string;
+    readonly gradPickFromLibraryLabel: string;
     readonly gradRateGapTemplate: string;
     readonly gradRateOkTemplate: string;
     readonly gradRateOverflowTemplate: string;
@@ -82,10 +99,34 @@ var v0 = {
   "alias": null,
   "args": null,
   "kind": "ScalarField",
+  "name": "id",
+  "storageKey": null
+},
+v1 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "key",
+  "storageKey": null
+},
+v2 = [
+  (v1/*:: as any*/),
+  {
+    "alias": null,
+    "args": null,
+    "kind": "ScalarField",
+    "name": "val",
+    "storageKey": null
+  }
+],
+v3 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
   "name": "label",
   "storageKey": null
 },
-v1 = [
+v4 = [
   {
     "alias": null,
     "args": null,
@@ -427,6 +468,80 @@ v1 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
+        "name": "gradPickFromLibraryLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "gradLibraryEmptyText",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "gradLibrarySkippedTemplate",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "concreteType": "GradGearItem",
+        "kind": "LinkedField",
+        "name": "gradGearItems",
+        "plural": true,
+        "selections": [
+          (v0/*:: as any*/),
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "name",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "gradSlots",
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "concreteType": "GearLine",
+            "kind": "LinkedField",
+            "name": "lines",
+            "plural": true,
+            "selections": (v2/*:: as any*/),
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "concreteType": "GearLine",
+            "kind": "LinkedField",
+            "name": "dingyin",
+            "plural": false,
+            "selections": (v2/*:: as any*/),
+            "storageKey": null
+          },
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "skipped",
+            "storageKey": null
+          }
+        ],
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
         "name": "gradConfirmLabel",
         "storageKey": null
       },
@@ -445,14 +560,8 @@ v1 = [
         "name": "gradSlots",
         "plural": true,
         "selections": [
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "id",
-            "storageKey": null
-          },
           (v0/*:: as any*/),
+          (v3/*:: as any*/),
           {
             "alias": null,
             "args": null,
@@ -471,14 +580,8 @@ v1 = [
         "name": "gradRates",
         "plural": true,
         "selections": [
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "key",
-            "storageKey": null
-          },
-          (v0/*:: as any*/),
+          (v1/*:: as any*/),
+          (v3/*:: as any*/),
           {
             "alias": null,
             "args": null,
@@ -499,7 +602,7 @@ return {
     "kind": "Fragment",
     "metadata": null,
     "name": "GradCalcTextQuery",
-    "selections": (v1/*:: as any*/),
+    "selections": (v4/*:: as any*/),
     "type": "Query",
     "abstractKey": null
   },
@@ -508,19 +611,19 @@ return {
     "argumentDefinitions": [],
     "kind": "Operation",
     "name": "GradCalcTextQuery",
-    "selections": (v1/*:: as any*/)
+    "selections": (v4/*:: as any*/)
   },
   "params": {
-    "cacheID": "ac452224613305c6146bf895a0686c3a",
+    "cacheID": "39a9caac3b439dd35c6172f9f9d64914",
     "id": null,
     "metadata": {},
     "name": "GradCalcTextQuery",
     "operationKind": "query",
-    "text": "query GradCalcTextQuery {\n  gradPage {\n    gradEnteringText\n    gradTitle\n    gradSubtitle\n    gradMingjinNote\n    gradBuildBigLabel\n    gradBuildSmallLabel\n    gradRingLabel\n    gradScoreCountLabel\n    gradScoreValueLabel\n    gradScoreRateLabel\n    gradTier1\n    gradTier2\n    gradTier3\n    gradTier4\n    gradTier5\n    gradTier6\n    gradTapHint\n    gradRefTitle\n    gradMaxTableTitle\n    gradColAffixLabel\n    gradColMaxLabel\n    gradColResonanceLabel\n    gradSlotTableTitleTemplate\n    gradRateTitle\n    gradRateOkTemplate\n    gradRateGapTemplate\n    gradRateOverflowTemplate\n    gradCompareTitle\n    gradSaveSchemeLabel\n    gradSchemeNameTemplate\n    gradNoSchemesText\n    gradLoadLabel\n    gradDeleteSchemeLabel\n    gradCloseLabel\n    gradItemScoreTemplate\n    gradRowMainLabel\n    gradRowSubTemplate\n    gradRowResonanceLabel\n    gradAffixPlaceholder\n    gradAffixLoadingText\n    gradValuePlaceholderMaxTemplate\n    gradValuePlaceholder\n    gradResonanceLabel\n    gradOverMaxTemplate\n    gradToastSavedTemplate\n    gradToastLoadedTemplate\n    gradToastOldSchemeText\n    gradConfirmLabel\n    gradCancelLabel\n    gradSlots {\n      id\n      label\n      icon\n    }\n    gradRates {\n      key\n      label\n      cap\n    }\n  }\n}\n"
+    "text": "query GradCalcTextQuery {\n  gradPage {\n    gradEnteringText\n    gradTitle\n    gradSubtitle\n    gradMingjinNote\n    gradBuildBigLabel\n    gradBuildSmallLabel\n    gradRingLabel\n    gradScoreCountLabel\n    gradScoreValueLabel\n    gradScoreRateLabel\n    gradTier1\n    gradTier2\n    gradTier3\n    gradTier4\n    gradTier5\n    gradTier6\n    gradTapHint\n    gradRefTitle\n    gradMaxTableTitle\n    gradColAffixLabel\n    gradColMaxLabel\n    gradColResonanceLabel\n    gradSlotTableTitleTemplate\n    gradRateTitle\n    gradRateOkTemplate\n    gradRateGapTemplate\n    gradRateOverflowTemplate\n    gradCompareTitle\n    gradSaveSchemeLabel\n    gradSchemeNameTemplate\n    gradNoSchemesText\n    gradLoadLabel\n    gradDeleteSchemeLabel\n    gradCloseLabel\n    gradItemScoreTemplate\n    gradRowMainLabel\n    gradRowSubTemplate\n    gradRowResonanceLabel\n    gradAffixPlaceholder\n    gradAffixLoadingText\n    gradValuePlaceholderMaxTemplate\n    gradValuePlaceholder\n    gradResonanceLabel\n    gradOverMaxTemplate\n    gradToastSavedTemplate\n    gradToastLoadedTemplate\n    gradToastOldSchemeText\n    gradPickFromLibraryLabel\n    gradLibraryEmptyText\n    gradLibrarySkippedTemplate\n    gradGearItems {\n      id\n      name\n      gradSlots\n      lines {\n        key\n        val\n      }\n      dingyin {\n        key\n        val\n      }\n      skipped\n    }\n    gradConfirmLabel\n    gradCancelLabel\n    gradSlots {\n      id\n      label\n      icon\n    }\n    gradRates {\n      key\n      label\n      cap\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "f8d2f1a7674816fbff4d077950325c18";
+(node as any).hash = "153b641586307a83be19dcce54c1bdbc";
 
 export default node;

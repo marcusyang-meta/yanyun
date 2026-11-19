@@ -1432,6 +1432,7 @@ type GradPage {
   gradSlots: [GradSlot!]!
   gradRates: [GradRate!]!
   gearVocabRules: GearVocabRules!
+  gradGearItems: [GradGearItem!]!
   gradEnteringText: String!
   gradTitle: String!
   gradSubtitle: String!
@@ -1479,6 +1480,9 @@ type GradPage {
   gradToastSavedTemplate: String!
   gradToastLoadedTemplate: String!
   gradToastOldSchemeText: String!
+  gradPickFromLibraryLabel: String!
+  gradLibraryEmptyText: String!
+  gradLibrarySkippedTemplate: String!
   gradConfirmLabel: String!
   gradCancelLabel: String!
   gearSlots: [String!]!
@@ -4186,6 +4190,16 @@ type GearItem {
   dingyin: GearDingyin
   schools: [String!]!
   warnings: [String!]!
+}
+
+type GradGearItem {
+  id: ID!
+  slot: String!
+  name: String!
+  gradSlots: [String!]!
+  lines: [GearLine!]!
+  dingyin: GearLine
+  skipped: Int!
 }
 
 type GearBaseValue {
