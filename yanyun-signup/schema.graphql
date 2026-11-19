@@ -1859,6 +1859,7 @@ type GradPage {
   gearXinfa: [GearXinfaRow!]!
   gearTalentRows: [GearTalentRow!]!
   gearDingyinRows: [GearDingyinRow!]!
+  gearDingyinGroups: [GearDingyinGroup!]!
   gearDingyinLeft: [GearNameMax!]!
   gearDingyinRightMax: Float!
   gearWuxueNames: [String!]!
@@ -1918,6 +1919,7 @@ type GradPage {
   gearDyValLabel: String!
   gearSchoolsLabel: String!
   gearAddGearLabel: String!
+  gearEntryLabel: String!
   gearUpdateGearLabel: String!
   gearCancelEditLabel: String!
   gearDemoLabel: String!
@@ -4815,6 +4817,17 @@ type GearDingyinRow {
 
 type GearNameMax {
   name: String!
+  max: Float!
+}
+
+type GearDingyinGroup {
+  slots: [String!]!
+  options: [GearDingyinOption!]!
+}
+
+type GearDingyinOption {
+  name: String!
+  label: String!
   max: Float!
 }
 

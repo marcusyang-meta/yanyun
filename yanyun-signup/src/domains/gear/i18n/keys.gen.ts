@@ -111,6 +111,7 @@ export type GearStringKey =
   | 'gear_dyValLabel'
   | 'gear_schoolsLabel'
   | 'gear_addGearLabel'
+  | 'gear_entryLabel'
   | 'gear_updateGearLabel'
   | 'gear_cancelEditLabel'
   | 'gear_demoLabel'
@@ -410,6 +411,7 @@ export const GEAR_STRING_KEYS: readonly GearStringKey[] = [
   'gear_dyValLabel',
   'gear_schoolsLabel',
   'gear_addGearLabel',
+  'gear_entryLabel',
   'gear_updateGearLabel',
   'gear_cancelEditLabel',
   'gear_demoLabel',

@@ -5641,6 +5641,18 @@
       ],
       "types": []
     },
+    "/Ye+yxySi5h+1hMcEm49yw==": {
+      "description": "Button label that opens the equipment entry panel in the gear library.",
+      "id": "gear/gear_entryLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Ajouter un équipement",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
     "wHsmUzYdGYUQqkXy5krysA==": {
       "description": "Button label for the gear entry form, used to save a new item into the library.",
       "id": "gear/gear_addGearLabel",

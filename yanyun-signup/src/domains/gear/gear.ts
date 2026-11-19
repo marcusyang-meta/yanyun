@@ -11,9 +11,10 @@
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
-import { mintPublicId } from '../platform/id-mint.ts';
+import { mintPublicId, reservePublicIdRange } from '../platform/id-mint.ts';
+import { METRIC_GEAR_OCR_BATCHES, usageDayKey } from '../platform/limits.ts';
 
-const { userGearItems, userGearBuilds, buildShareLinks } = schema;
+const { userGearItems, userGearBuilds, buildShareLinks, usageCounters } = schema;
 const col = (name: string) => sql.identifier(name);
 
 interface RunMeta {
@@ -58,10 +59,57 @@ export async function countGearItemRows(d1: D1Database, userId: number): Promise
 export async function insertGearItemRow(
   d1: D1Database,
   row: { userId: number; slot: string; name: string; payload: string; createdAt: number },
+  capacity?: number,
 ): Promise<RunMeta> {
   const db = createDb(d1);
-  const r = await db.run(sql`INSERT INTO ${userGearItems} (${col('id')}, ${col('user_id')}, ${col('slot')}, ${col('name')}, ${col('payload')}, ${col('created_at')}) VALUES (${await mintPublicId(d1, 'gearItem')}, ${row.userId}, ${row.slot}, ${row.name}, ${row.payload}, ${row.createdAt})`);
+  const id = await mintPublicId(d1, 'gearItem');
+  const values = sql`${id}, ${row.userId}, ${row.slot}, ${row.name}, ${row.payload}, ${row.createdAt}`;
+  const input = capacity === undefined
+    ? sql`VALUES (${values})`
+    : sql`SELECT ${values} WHERE (SELECT COUNT(*) FROM ${userGearItems} WHERE ${col('user_id')} = ${row.userId}) < ${capacity}`;
+  const r = await db.run(sql`INSERT INTO ${userGearItems} (${col('id')}, ${col('user_id')}, ${col('slot')}, ${col('name')}, ${col('payload')}, ${col('created_at')}) ${input}`);
   return metaOf(r);
+}
+
+export async function insertGearItemRows(
+  d1: D1Database,
+  userId: number,
+  rows: { slot: string; name: string; payload: string }[],
+  capacity: number,
+  now: number,
+  ocrDailyLimit?: number,
+): Promise<number | null> {
+  const db = createDb(d1);
+  const firstId = await reservePublicIdRange(d1, 'gearItem', rows.length, now);
+  const encoded = JSON.stringify(rows.map((row, index) => [firstId + index, row.slot, row.name, row.payload]));
+  const day = usageDayKey(now);
+  const ocrGuard = ocrDailyLimit === undefined ? sql.empty() : sql`AND COALESCE((
+    SELECT ${col('count')} FROM ${usageCounters}
+    WHERE ${col('user_id')} = ${userId} AND ${col('metric')} = ${METRIC_GEAR_OCR_BATCHES} AND ${col('day')} = ${day}
+  ), 0) < ${ocrDailyLimit}`;
+
+  // One statement for the entire import, with JSON keeping the bind count flat.
+  // Recheck quotas in the write so concurrent imports cannot overfill the library.
+  const insert = db.insert(userGearItems).select(sql`
+    SELECT json_extract(value, '$[0]'), ${userId}, json_extract(value, '$[1]'),
+           json_extract(value, '$[2]'), json_extract(value, '$[3]'), ${now}
+    FROM json_each(${encoded})
+    WHERE (SELECT COUNT(*) FROM ${userGearItems} WHERE ${col('user_id')} = ${userId}) + ${rows.length} <= ${capacity}
+    ${ocrGuard}`);
+  if (ocrDailyLimit === undefined) {
+    return metaOf(await insert.run()).changes ? firstId : null;
+  }
+
+  // Update the daily total in the same transaction, only if the insert landed.
+  const meter = db.insert(usageCounters).select(sql`
+    SELECT ${userId}, ${METRIC_GEAR_OCR_BATCHES}, ${day}, 1, ${now}
+    WHERE EXISTS (SELECT 1 FROM ${userGearItems} WHERE ${col('id')} = ${firstId})
+  `).onConflictDoUpdate({
+    target: [usageCounters.userId, usageCounters.metric, usageCounters.day],
+    set: { count: sql`${usageCounters.count} + 1`, updatedAt: now },
+  });
+  const [result] = await db.batch([insert, meter]);
+  return metaOf(result).changes ? firstId : null;
 }
 
 export async function updateGearItemRow(

@@ -220,6 +220,34 @@ describe('gear-parity', () => {
     }
   });
 
+  it('keeps repeated equipment slots separate when pasting more than eight items', () => {
+    const headings = ['主武器', '副武器', '冠胄', '胸甲', '环', '佩', '胫甲', '腕甲', '环', '主武器'];
+    const text = headings.map((slot, index) => `${slot}\n劲 ${40 + index}`).join('\n\n');
+    const result = GP.gpParsePaste(text);
+
+    expect(result.gears).toEqual(headings.map((slot, index) => ({
+      slot: slot.endsWith('武器') ? '武器' : slot,
+      name: '',
+      lines: [{ key: 'jin', val: 40 + index }],
+    })));
+    expect(result.unknown).toBe(0);
+  });
+
+  it('returns the complete library and full mode for pasted exports', () => {
+    const exported = {
+      app: 'gear-planner-100',
+      lib: Array.from({ length: 10 }, (_, index) => ({
+        slot: '环', name: `环 ${index + 1}`, lines: [{ key: 'jin', val: 40 + index }],
+      })),
+    };
+    const text = JSON.stringify(exported);
+    const inputs = [text, Buffer.from(text, 'utf8').toString('base64')];
+
+    for (const input of inputs) {
+      expect(GP.gpParsePaste(input)).toEqual({ mode: 'full', fullExport: exported, gears: [], unknown: 0 });
+    }
+  });
+
   it('normalize parity (legacy keys, dup ids, wuxue tags)', () => {
     // ---- normalize parity (legacy keys, dup ids, wuxue tags) ----
     const messy = [
