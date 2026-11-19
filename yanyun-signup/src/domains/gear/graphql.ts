@@ -28,7 +28,7 @@ import {
   updateSignupWeaponRoleByUid,
 } from '../groupings/index.ts';
 import {
-  listGearItems, insertGearItem, updateGearItemRow, deleteGearItemRow,
+  listGearItems, insertGearItem, insertGearItems, updateGearItemRow, deleteGearItemRow,
   listGearBuilds, insertGearBuild, deleteGearBuildRow, countGearItemRows,
   getBuildShareLink, buildShareUrl, resolveSharedBuild,
   shareGearBuild as shareGearBuildSvc, revokeBuildShare,
@@ -36,12 +36,12 @@ import {
 import {
   GP_SLOTS, GP_GEAR_SLOTS, GP_AFFIX, GP_BUILDS, GP_SLOTS_BIG, GP_SLOTS_SMALL,
   GP_BASE_FIELDS, GP_BASE_PRESET, GP_BASE_FIELD_LABELS, GP_XINFA, GP_TALENT_ROWS,
-  GP_BUILD_DINGYIN, GP_DINGYIN_LEFT, GP_DINGYIN_RIGHT_MAX, GP_BOW_JUE_VALUES,
+  GP_BUILD_DINGYIN, GP_DINGYIN_LEFT, GP_DINGYIN_LEFT_SLOTS, GP_DINGYIN_RIGHT_MAX, GP_BOW_JUE_VALUES,
   GP_BOW_RECOMMEND, GP_PASTE_NAME_TO_KEY, GP_NAME_TO_CLASS, GP_CLASS_LABEL,
   GP_SLOT_ALIAS, GP_OCR_EXTRA_ALIAS, GP_LEGACY_KEY, GP_SCHOOL_TAG_LIST,
   GP_DEMO_KIT, GP_DIM_ROWS, GP_QUICK_BAR_NAMES, GP_BUILD_SECT, GP_WUXUE_NAMES,
   gpTalentText, gpClassOf, gpSanitizeGearData, gpPlan, gpAutoCombine,
-  gpParsePaste, gpQuickCalc,
+  gpParsePaste, gpQuickCalc, gpIsLeftDingyinSlot,
   TL_SUIT_OPTIONS, TL_BOW_OPTIONS, TL_WUKU_OPTIONS, TL_SECT_WUXUE, TL_TUNE_ROWS,
   tlSuitName, tlBowName, tlWukuName, GRAD_SLOTS, GRAD_RATES, gearVocabRules,
 } from './index.ts';
@@ -151,6 +151,9 @@ export const TIAOLV_TEXT_RESOLVERS = defineTextGens(TiaolvPageShell, [
  * data is served through this shell's gen methods; computation goes
  * through the gearPlan / gearAutoCombine / gearParsePaste /
  * gearQuickCalc mutations. */
+type GearDingyinOption = { name: string; label: string; max: number };
+type GearDingyinGroup = { slots: readonly string[]; options: readonly GearDingyinOption[] };
+
 export class GradPageShell extends ShellBase {
   genGearSlots(){ return GP_SLOTS; }
   genGearGearSlots(){ return GP_GEAR_SLOTS; }
@@ -207,6 +210,21 @@ export class GradPageShell extends ShellBase {
       return { school: enBuildSchool(this.locale, school), name: o.name ? enAffixName(this.locale, o.name) : null, wuxue: o.wuxue ? enMartialArtName(this.locale, o.wuxue) : null, verified: !!o.verified, category: o.category || null };
     });
   }
+  genGearDingyinGroups(): GearDingyinGroup[] {
+    const buildDingyin = Object.values(GP_BUILD_DINGYIN) as { name: string | null; verified: boolean }[];
+    const armorNames = new Set(buildDingyin.flatMap(({ name, verified }) => verified && name ? [name] : []));
+    const option = (name: string, max: number) => ({ name, label: enAffixName(this.locale, name) ?? name, max });
+    return [
+      {
+        slots: GP_DINGYIN_LEFT_SLOTS,
+        options: Object.keys(GP_DINGYIN_LEFT).map((name) => option(name, GP_DINGYIN_LEFT[name])),
+      },
+      {
+        slots: (GP_GEAR_SLOTS as string[]).filter((slot) => !gpIsLeftDingyinSlot(slot)),
+        options: [...armorNames].map((name) => option(name, GP_DINGYIN_RIGHT_MAX)),
+      },
+    ];
+  }
   genGearDingyinLeft(){ return Object.keys(GP_DINGYIN_LEFT).map((name: any) => ({ name: enAffixName(this.locale, name), max: GP_DINGYIN_LEFT[name] })); }
   genGearDingyinRightMax(){ return GP_DINGYIN_RIGHT_MAX; }
   genGearWuxueNames(){ return [...GP_WUXUE_NAMES]; }
@@ -255,7 +273,7 @@ export class GradPageShell extends ShellBase {
 
 export const GEAR_DATA_RESOLVERS: Record<string, any> = {};
 for (const f of ['gearSlots', 'gearGearSlots', 'gearAffixes', 'gearBuilds', 'gearSlotsBig', 'gearSlotsSmall',
-  'gearBaseFields', 'gearXinfa', 'gearTalentRows', 'gearDingyinRows', 'gearDingyinLeft', 'gearDingyinRightMax', 'gearWuxueNames',
+  'gearBaseFields', 'gearXinfa', 'gearTalentRows', 'gearDingyinRows', 'gearDingyinGroups', 'gearDingyinLeft', 'gearDingyinRightMax', 'gearWuxueNames',
   'gearBows', 'gearPasteNames', 'gearNameToClass', 'gearSlotAliases', 'gearOcrAliases', 'gearLegacyKeys',
   'gearClassLabels', 'gearSchoolTags', 'gearDemoKit', 'gearDimRows', 'gearQuickBarNames', 'gearResDefault',
   'gearUsageCount', 'gearUsageLimit', 'gradSlots', 'gradRates', 'gearVocabRules']) {
@@ -358,6 +376,7 @@ export const GEAR_TEXT_RESOLVERS = defineTextGens(GradPageShell, [
   ['gearDyValLabel', 'gear_dyValLabel'],
   ['gearSchoolsLabel', 'gear_schoolsLabel'],
   ['gearAddGearLabel', 'gear_addGearLabel'],
+  ['gearEntryLabel', 'gear_entryLabel'],
   ['gearUpdateGearLabel', 'gear_updateGearLabel'],
   ['gearCancelEditLabel', 'gear_cancelEditLabel'],
   ['gearDemoLabel', 'gear_demoLabel'],
@@ -679,15 +698,14 @@ export const gearResolvers = {
         return { ok: false, item: null, error: errText(ctx, 'rateLimited'), errorCode: 'rateLimited' };
       }
       const limits = await getEffectiveLimits(ctx.env.DB, { userId: ctx.user.userId });
-      const stored = await countGearItemRows(ctx.env.DB, ctx.user.userId);
-      if (stored >= limits.gearItemCapacity) {
-        return { ok: false, item: null, error: errTextP(ctx, 'gearCapacityReached', { limit: limits.gearItemCapacity }), errorCode: 'gearCapacityReached' };
-      }
+      const capacityError = () => ({ ok: false, item: null, error: errTextP(ctx, 'gearCapacityReached', { limit: limits.gearItemCapacity }), errorCode: 'gearCapacityReached' });
+      if (await countGearItemRows(ctx.env.DB, ctx.user.userId) >= limits.gearItemCapacity) return capacityError();
       const gear = gpSanitizeGearData({
         slot: input.slot, name: input.name || '', lines: input.lines || [],
         dingyin: input.dingyin || null, schools: input.schools || [],
       }).gear;
-      const saved = await insertGearItem(ctx.env.DB, ctx.user.userId, gear);
+      const saved = await insertGearItem(ctx.env.DB, ctx.user.userId, gear, limits.gearItemCapacity);
+      if (!saved) return capacityError();
       return { ok: true, item: saved, error: null, errorCode: null };
     },
 
@@ -727,10 +745,12 @@ export const gearResolvers = {
         return { ok: false, items: [], autoSelect: [], error: errText(ctx, 'rateLimited'), errorCode: 'rateLimited' };
       }
       const db = ctx.env.DB, did = ctx.user.userId;
-      const list = items || [];
+      const list: Parameters<typeof gpSanitizeGearData>[0][] = items || [];
       const limits = await getEffectiveLimits(db, { userId: did });
       const isOcr = source === 'ocr';
       const now = Date.now();
+      const dailyLimitError = () => ({ ok: false, items: [], autoSelect: [], error: errTextP(ctx, 'gearOcrDailyLimit', { limit: limits.ocrBatchesPerDay }), errorCode: 'gearOcrDailyLimit' });
+      const overflowError = (stored: number) => ({ ok: false, items: [], autoSelect: [], error: errTextP(ctx, 'gearImportOverflow', { n: list.length, total: stored + list.length, limit: limits.gearItemCapacity }), errorCode: 'gearImportOverflow' });
       if (isOcr) {
         // Batch-OCR metering (limits service values; the daily count is
         // server-side in usage_counters). A missing/garbled imageCount
@@ -742,22 +762,23 @@ export const gearResolvers = {
         }
         const usedToday = await getOcrBatchesUsedToday(db, did, now);
         if (usedToday >= limits.ocrBatchesPerDay) {
-          return { ok: false, items: [], autoSelect: [], error: errTextP(ctx, 'gearOcrDailyLimit', { limit: limits.ocrBatchesPerDay }), errorCode: 'gearOcrDailyLimit' };
+          return dailyLimitError();
         }
       }
       // Capacity: the whole batch lands or none of it does — the old
       // silent slice(0, 200) truncation is gone.
       const stored = await countGearItemRows(db, did);
       if (stored + list.length > limits.gearItemCapacity) {
-        return { ok: false, items: [], autoSelect: [], error: errTextP(ctx, 'gearImportOverflow', { n: list.length, total: stored + list.length, limit: limits.gearItemCapacity }), errorCode: 'gearImportOverflow' };
+        return overflowError(stored);
       }
-      const saved = [];
-      for (const input of list) {
-        const gear = gpSanitizeGearData({
-          slot: input.slot, name: input.name || '', lines: input.lines || [],
-          dingyin: input.dingyin || null, schools: input.schools || [],
-        }).gear;
-        saved.push(await insertGearItem(db, did, gear));
+      const gears = list.map((input) => gpSanitizeGearData({
+        slot: input.slot, name: input.name || '', lines: input.lines || [],
+        dingyin: input.dingyin || null, schools: input.schools || [],
+      }).gear);
+      const saved = await insertGearItems(db, did, gears, limits.gearItemCapacity, now, isOcr ? limits.ocrBatchesPerDay : undefined);
+      if (!saved) {
+        if (isOcr && await getOcrBatchesUsedToday(db, did, now) >= limits.ocrBatchesPerDay) return dailyLimitError();
+        return overflowError(await countGearItemRows(db, did));
       }
       // Auto-select (per the original importParsedGears): weapons fill main hand then off hand; everything else takes an empty slot
       const lo: Record<string, any> = {};
@@ -769,7 +790,7 @@ export const gearResolvers = {
           else if (!lo['副武器']) { lo['副武器'] = it.id; autoSelect.push({ slot: '副武器', gearId: it.id }); }
         } else if (!lo[it.slot]) { lo[it.slot] = it.id; autoSelect.push({ slot: it.slot, gearId: it.id }); }
       }
-      if (isOcr) await recordOcrBatch(db, did, now);
+      if (isOcr && !saved.length) await recordOcrBatch(db, did, now);
       return { ok: true, items: saved, autoSelect, error: null, errorCode: null };
     },
 
@@ -991,6 +1012,8 @@ export const gearResolvers = {
     GearDemoItem: { slot: (p: any) => p.slot, name: (p: any) => p.name, keys: (p: any) => p.keys, dingyinName: (p: any) => p.dingyinName, dingyinVal: (p: any) => p.dingyinVal },
     GearDimRow: { name: (p: any) => p.name, conv: (p: any) => p.conv, full: (p: any) => p.full },
     GearDingyin: { name: (p: any) => p.name, val: (p: any) => p.val },
+    GearDingyinGroup: { slots: (p: GearDingyinGroup) => p.slots, options: (p: GearDingyinGroup) => p.options },
+    GearDingyinOption: { name: (p: GearDingyinOption) => p.name, label: (p: GearDingyinOption) => p.label, max: (p: GearDingyinOption) => p.max },
     GearDingyinRow: { school: (p: any) => p.school, name: (p: any) => p.name, wuxue: (p: any) => p.wuxue, verified: (p: any) => p.verified, category: (p: any) => p.category },
     GearDingyinScoreRow: { slot: (p: any) => p.slot, name: (p: any) => p.name, val: (p: any) => p.val, max: (p: any) => p.max, correct: (p: any) => p.correct, score: (p: any) => p.score, has: (p: any) => p.has },
     GearEval: { id: (p: any) => p.id, score: (p: any) => p.score, quality: (p: any) => p.quality, hits: (p: any) => p.hits, verdict: (p: any) => p.verdict },

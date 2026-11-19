@@ -434,6 +434,24 @@ if (want('gear')) {
   check('gearstore listGearBuilds maps payload', gbList.length === 1 && gbList[0].buildLabel === '裂石钧'
     && gbList[0].targetIdx === 1 && gbList[0].gradDingyinOn === true);
   eq('gearstore deleteGearBuildRow', await store.deleteGearBuildRow(db, U9, gb.id), true);
+
+  const { getOcrBatchesUsedToday } = await import('../src/domains/platform/limits.ts');
+  const now = Date.now();
+  const gearBatch = (size) => Array.from({ length: size }, (_, i) => ({
+    slot: '环', name: `测试环 ${i + 1}`, lines: [{ key: 'jin', val: 50 }],
+  }));
+  const ocrResults = await Promise.all([
+    store.insertGearItems(db, U9, gearBatch(20), 200, now, 1),
+    store.insertGearItems(db, U9, gearBatch(20), 200, now, 1),
+  ]);
+  eq('only one concurrent OCR import consumes the last batch', ocrResults.map((result) => result?.length ?? 0).sort(), [0, 20]);
+  eq('OCR batch records usage exactly once', await getOcrBatchesUsedToday(db, U9, now), 1);
+  const ocrItems = await store.listGearItems(db, U9);
+  eq('all 20 items are stored with unique IDs', new Set(ocrItems.map((item) => item.id)).size, 20);
+  eq('batch payload roundtrip', ocrItems[19]?.lines, [{ key: 'jin', val: 50 }]);
+  eq('file import fills the remaining 180 library slots', (await store.insertGearItems(db, U9, gearBatch(180), 200, now))?.length, 180);
+  eq('batch exceeding capacity writes no items', await store.insertGearItems(db, U9, gearBatch(9), 200, now), null);
+  eq('library stays at capacity', await repo.countGearItemRows(db, U9), 200);
 }
 
 /* ---------------- guild_members ---------------- */

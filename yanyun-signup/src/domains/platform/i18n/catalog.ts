@@ -2823,6 +2823,13 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "Enregistrer",
       "zh-TW": "存入裝備庫"
     },
+    "entryLabel": {
+      "zh-CN": "录入装备",
+      "en": "Add gear",
+      "es": "Añadir equipo",
+      "fr": "Ajouter un équipement",
+      "zh-TW": "錄入裝備"
+    },
     "updateGearLabel": {
       "zh-CN": "保存修改",
       "en": "Save changes",

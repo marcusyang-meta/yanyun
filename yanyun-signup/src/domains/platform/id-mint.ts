@@ -14,6 +14,7 @@ import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
 import {
   PUBLIC_ID_TYPE_CODES,
+  SEQUENCE_MAX,
   PublicIdError,
   composePublicId,
   dayIndexFromMs,
@@ -34,6 +35,16 @@ export async function mintPublicId(
   type: PublicIdType,
   nowMs: number = Date.now(),
 ): Promise<number> {
+  return reservePublicIdRange(d1, type, 1, nowMs);
+}
+
+/** Reserve consecutive IDs in one counter update and return the first ID. */
+export async function reservePublicIdRange(
+  d1: D1Database,
+  type: PublicIdType,
+  count: number,
+  nowMs: number,
+): Promise<number> {
   const typeCode = PUBLIC_ID_TYPE_CODES[type];
   const dayIndex = dayIndexFromMs(nowMs);
   if (dayIndex < 0 || dayIndex > 9_999) {
@@ -42,16 +53,21 @@ export async function mintPublicId(
       `mint day index ${dayIndex} outside 0..9999`,
     );
   }
+  if (!Number.isInteger(count) || count < 1 || count > SEQUENCE_MAX) {
+    throw new PublicIdError('sequence-out-of-range', `invalid ID reservation size ${count}`);
+  }
   const db = createDb(d1);
   const row = await db.get<{ seq: number }>(
     sql`INSERT INTO ${idMintCounters} (${col('type_code')}, ${col('day_index')}, ${col('seq')})
-        VALUES (${typeCode}, ${dayIndex}, 1)
+        VALUES (${typeCode}, ${dayIndex}, ${count})
         ON CONFLICT (${col('type_code')}, ${col('day_index')})
-        DO UPDATE SET ${col('seq')} = ${idMintCounters.seq} + 1
+        DO UPDATE SET ${col('seq')} = ${idMintCounters.seq} + excluded.seq
+        WHERE ${idMintCounters.seq} + excluded.seq <= ${SEQUENCE_MAX}
         RETURNING ${col('seq')}`,
   );
   const seq = row ? Number(row.seq) : NaN;
   // composePublicId re-validates the sequence range (1..99999); an
   // exhausted day throws PublicIdError('sequence-out-of-range').
-  return composePublicId(typeCode, dayIndex, seq);
+  const last = composePublicId(typeCode, dayIndex, seq);
+  return last - count + 1;
 }

@@ -1243,22 +1243,31 @@ export function gpParsePaste(raw: any) {
 const dec = gpDecodePasteCode(raw);
 if (!dec) return { mode: '', gears: [], unknown: 0};
 if (dec.data && dec.data.app === 'gear-planner-100' && Array.isArray(dec.data.lib)) {
-return { mode: dec.mode, fullExport: dec.data, gears: [], unknown: 0};
+ return { mode: 'full', fullExport: dec.data, gears: [], unknown: 0};
 }
 let found: any = null;
 if (dec.data) found = gpExtractGearsFromJson(dec.data);
 if ((!found ||!found.gears.length) && dec.text) {
-const tg: any = { gears: [], unknown: 0};
-let cur: any = null;
-dec.text.split(/\r?\n/).forEach((line: any) => {
-const s = line.trim(); if (!s) return;
-let slotHit = gpSlotFromValue(s);
-if (!slotHit && s.length <= 16) { GP_SLOTS.forEach((sl: any) => { if (s.indexOf(sl) > -1) slotHit = sl;});}
-if (slotHit) slotHit = gpGearSlotOf(slotHit);
-if (slotHit) { cur = null; tg.gears.forEach((g: any) => { if (g.slot === slotHit) cur = g;}); if (!cur) { cur = { slot: slotHit, name: '', lines: []}; tg.gears.push(cur);} return;}
-if (cur) { const st = { unknown: 0}; const ls = gpExtractLines([s], st); cur.lines = cur.lines.concat(ls); tg.unknown += st.unknown;}
-});
-found = { gears: tg.gears.filter((g: any) => g.lines.length), unknown: tg.unknown};
+  const gears: { slot: string; name: string; lines: { key: string; val: number }[] }[] = [];
+  const stat = { unknown: 0 };
+  let current: (typeof gears)[number] | undefined;
+  for (const line of dec.text.split(/\r?\n/)) {
+    const text = line.trim();
+    if (!text) continue;
+    let slot = gpSlotFromValue(text);
+    if (!slot && text.length <= 16) {
+      for (const candidate of GP_SLOTS) {
+        if (text.includes(candidate)) slot = candidate;
+      }
+    }
+    if (slot) {
+      current = { slot: gpGearSlotOf(slot), name: '', lines: [] };
+      gears.push(current);
+    } else if (current) {
+      current.lines.push(...gpExtractLines([text], stat));
+    }
+  }
+  found = { gears: gears.filter((gear) => gear.lines.length), unknown: stat.unknown };
 }
 if (!found) return { mode: dec.mode, gears: [], unknown: 0};
 return { mode: dec.mode, gears: found.gears, unknown: found.unknown};

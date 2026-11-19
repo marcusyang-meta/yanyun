@@ -56,7 +56,7 @@ function stmt(sql) {
     async first() {
       if (sql.includes('INSERT INTO id_mint_counters')) {
         const key = `${q._b[0]}|${q._b[1]}`;
-        const seq = (tables.mint.get(key) || 0) + 1;
+        const seq = (tables.mint.get(key) || 0) + q._b[2];
         tables.mint.set(key, seq);
         return { seq };
       }
@@ -65,7 +65,7 @@ function stmt(sql) {
     async all() {
       if (sql.includes('INSERT INTO id_mint_counters')) {
         const key = `${q._b[0]}|${q._b[1]}`;
-        const seq = (tables.mint.get(key) || 0) + 1;
+        const seq = (tables.mint.get(key) || 0) + q._b[2];
         tables.mint.set(key, seq);
         return { results: [{ seq }] };
       }
@@ -89,15 +89,32 @@ function stmt(sql) {
     },
     async run() {
       if (sql.startsWith('CREATE')) return { meta: { changes: 0 } };
+      if (/^insert into user_gear_items.*from json_each/is.test(sql)) {
+        const [userId, createdAt, encoded, , batchSize, capacity, , metric, day, dailyLimit] = q._b;
+        const count = tables.user_gear_items.filter((row) => row.user_id === userId).length;
+        const used = tables.usage_counters.find((row) => row.user_id === userId && row.metric === metric && row.day === day)?.count ?? 0;
+        if (count + batchSize > capacity || used >= dailyLimit) return { meta: { changes: 0 } };
+        const rows = JSON.parse(encoded);
+        for (const [id, slot, name, payload] of rows) {
+          tables.user_gear_items.push({ id, user_id: userId, slot, name, payload, created_at: createdAt });
+        }
+        return { meta: { changes: rows.length } };
+      }
       if (sql.startsWith('INSERT INTO user_gear_items')) {
+        const [, , , , , , userId, capacity] = q._b;
+        if (tables.user_gear_items.filter((row) => row.user_id === userId).length >= capacity) return { meta: { changes: 0 } };
         const cols = /INSERT INTO user_gear_items \(([^)]+)\)/.exec(sql)[1].split(',').map((c) => c.trim());
         const row = {};
         cols.forEach((c, i) => { row[c] = q._b[i]; });
         tables.user_gear_items.push(row);
         return { meta: { changes: 1, last_row_id: row.id } };
       }
-      if (sql.startsWith('INSERT INTO usage_counters')) {
-        const [userId, metric, day, by, now] = q._b;
+      if (/^insert into usage_counters/i.test(sql)) {
+        const guarded = sql.includes('WHERE EXISTS');
+        const [userId, metric, day, byOrNow, nowOrFirstId] = q._b;
+        if (guarded && !tables.user_gear_items.some((row) => row.id === nowOrFirstId)) return { meta: { changes: 0 } };
+        const by = guarded ? 1 : byOrNow;
+        const now = guarded ? byOrNow : nowOrFirstId;
         const row = tables.usage_counters.find((r) => r.user_id === Number(userId) && r.metric === metric && r.day === day);
         if (row) { row.count += by; row.updated_at = now; } else { tables.usage_counters.push({ user_id: Number(userId), metric, day, count: by, updated_at: now }); }
         return { meta: { changes: 1 } };
@@ -135,7 +152,14 @@ function stmt(sql) {
   };
   return q;
 }
-const db = { prepare: (sql) => stmt(sql) };
+const db = {
+  prepare: (sql) => stmt(sql),
+  async batch(statements) {
+    const results = [];
+    for (const statement of statements) results.push(await statement.run());
+    return results;
+  },
+};
 const env = { DB: db };
 
 async function gql(query, { user = null, locale = 'zh-CN', variables } = {}) {
@@ -379,8 +403,9 @@ eq('non-OCR imports never touch the OCR counter', tables.usage_counters.filter((
 r = await importAs(E, bulkItems(3, 'e'), { source: 'ocr', imageCount: 21 });
 eq('OCR batch of 21 images rejected', [r.data.importGearItems.ok, r.data.importGearItems.errorCode], [false, 'gearOcrBatchTooLarge']);
 check('too-large copy states limit and batch size', ['20', '21'].every((s) => (r.data.importGearItems.error || '').includes(s)), r.data.importGearItems.error);
-r = await importAs(E, bulkItems(3, 'e'), { source: 'ocr', imageCount: 20 });
+r = await importAs(E, bulkItems(20, 'e'), { source: 'ocr', imageCount: 20 });
 check('OCR batch of 20 images ok', r.data.importGearItems.ok === true, JSON.stringify(r.data.importGearItems).slice(0, 200));
+eq('all 20 screenshots yield distinct stored gear IDs', new Set(r.data.importGearItems.items.map((item) => item.id)).size, 20);
 for (let i = 0; i < 9; i++) {
   r = await importAs(E, bulkItems(1, 'e' + i), { source: 'ocr', imageCount: 1 });
   if (!r.data.importGearItems.ok) break;
@@ -455,6 +480,43 @@ eq('calcTiaolv id-input rows == canonical-name-input rows (bit-identical)', byId
 const byIdsNone = await gql(TL_MUT, { variables: { i: { ...TL_BASE, suit: 'none', bowSkill: null, wuku: 'self' } } });
 const byNamesNone = await gql(TL_MUT, { variables: { i: { ...TL_BASE, suit: '无', bowSkill: null, wuku: '本系' } } });
 eq('calcTiaolv none/self rows == 无/本系 rows', byIdsNone.data?.calcTiaolv?.rows, byNamesNone.data?.calcTiaolv?.rows);
+  });
+
+  it('offers valid, localized attunements for equipment slots and saves their canonical names', async () => {
+    const locale = 'en';
+    const response = await gql('{ gradPage { gearDingyinGroups { slots options { name label max } } } }', { locale });
+    expect(response.errors).toBeUndefined();
+    const [offense, armor] = response.data.gradPage.gearDingyinGroups;
+    expect(offense.slots).toEqual(['武器', '主武器', '副武器', '环', '佩']);
+    expect(offense.options).toEqual([
+      { name: '外功穿透', label: 'Physical Penetration', max: 12.8 },
+      { name: '外功抗性', label: 'Physical Resistance', max: 12.8 },
+      { name: '无相穿透', label: 'Formless Penetration', max: 15.2 },
+    ]);
+    expect(armor.slots).toEqual(['冠胄', '胸甲', '胫甲', '腕甲']);
+    expect(armor.options).toContainEqual({ name: '明川药典·治疗技增疗', label: 'Panacea Fan - Healing Skill Boost', max: 6 });
+    const armorNames = armor.options.map((option) => option.name);
+    expect(new Set(armorNames).size).toBe(armorNames.length);
+    for (const { name, max } of armor.options) {
+      expect(GP.gpDingyinMax(name, '冠胄')).toBe(max);
+      expect(GP.gpDingyinMax(name, '武器')).toBeNull();
+    }
+
+    const add = 'mutation($input: GearItemCreateInput!) { addGearItem(input: $input) { item { id } } }';
+    const update = 'mutation($id: ID!, $input: GearItemCreateInput!) { updateGearItem(id: $id, input: $input) { ok item { dingyin { name val } } } }';
+    const expected = [];
+    for (const slot of ['武器', '环', '佩', ...armor.slots]) {
+      const option = (offense.slots.includes(slot) ? offense : armor).options[0];
+      const input = { slot, lines: [] };
+      const created = await gql(add, { user: B, locale, variables: { input } });
+      const id = created.data.addGearItem.item.id;
+      const dingyin = { name: option.name, val: option.max };
+      const updated = await gql(update, { user: B, locale, variables: { id, input: { ...input, dingyin } } });
+      expect(updated.data.updateGearItem).toEqual({ ok: true, item: { dingyin } });
+      expected.push({ id, slot, dingyin });
+    }
+    const stored = await gql('{ myGearItems { id slot dingyin { name val } } }', { user: B, locale });
+    expect(stored.data.myGearItems).toEqual(expect.arrayContaining(expected));
   });
 
 });

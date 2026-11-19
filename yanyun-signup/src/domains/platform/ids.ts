@@ -21,7 +21,7 @@
 export const PUBLIC_ID_EPOCH_MS = Date.UTC(2026, 0, 1);
 
 const DAY_MS = 86_400_000;
-const SEQUENCE_MAX = 99_999;
+export const SEQUENCE_MAX = 99_999;
 const DAY_INDEX_MAX = 9_999;
 
 /** The type-code registry. Single source: docs/ID_SYSTEM.md mirrors it. */

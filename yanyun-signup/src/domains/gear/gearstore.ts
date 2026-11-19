@@ -8,7 +8,8 @@
 // field state + a server-computed snapshot).
 // Every read/write is scoped by discord_id: a miss means "does not
 // exist" — another user's row is indistinguishable from no row.
-import { listGearItemRows, insertGearItemRow, updateGearItemRow as updateGearItemRowData, deleteGearItemRow as deleteGearItemRowData, listGearBuildRows, insertGearBuildRow, deleteGearBuildRow as deleteGearBuildRowData } from './gear.ts';
+import { listGearItemRows, insertGearItemRow, insertGearItemRows, updateGearItemRow as updateGearItemRowData, deleteGearItemRow as deleteGearItemRowData, listGearBuildRows, insertGearBuildRow, deleteGearBuildRow as deleteGearBuildRowData } from './gear.ts';
+import type { gpSanitizeGearData } from './gearplanner.ts';
 
 function itemRowToGear(row: any) {
   let p: any = {};
@@ -37,13 +38,26 @@ export async function listGearItems(db: any, userId: number) {
   return rows.map(itemRowToGear);
 }
 
-export async function insertGearItem(db: any, userId: number, gear: any) {
+export async function insertGearItem(db: any, userId: number, gear: any, capacity?: number) {
   const meta = await insertGearItemRow(db, {
     userId, slot: gear.slot || '', name: gear.name || '',
     payload: gearPayload(gear), createdAt: Date.now(),
-  });
-  const id = meta.last_row_id || null;
-  return { ...gear, id };
+  }, capacity);
+  return meta.changes > 0 ? { ...gear, id: meta.last_row_id } : null;
+}
+
+export async function insertGearItems(
+  db: D1Database,
+  userId: number,
+  gears: ReturnType<typeof gpSanitizeGearData>['gear'][],
+  capacity: number,
+  now: number,
+  ocrDailyLimit?: number,
+) {
+  if (!gears.length) return [];
+  const rows = gears.map((gear) => ({ slot: gear.slot, name: gear.name, payload: gearPayload(gear) }));
+  const firstId = await insertGearItemRows(db, userId, rows, capacity, now, ocrDailyLimit);
+  return firstId === null ? null : gears.map((gear, index) => ({ ...gear, id: firstId + index }));
 }
 
 export async function updateGearItemRow(db: any, userId: number, id: number, gear: any) {

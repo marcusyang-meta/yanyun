@@ -1367,6 +1367,9 @@ export abstract class GearFbtUtils {
 	static addGearLabel(fbs: FbsRuntime) {
 		return fbs._("存入装备库", null, { hk: "2U7Vve" });
 	}
+	static entryLabel(fbs: FbsRuntime) {
+		return fbs._("录入装备", null, { hk: "3wSLgY" });
+	}
 	static updateGearLabel(fbs: FbsRuntime) {
 		return fbs._("保存修改", null, { hk: "1hIpLR" });
 	}
@@ -5948,6 +5951,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"gear_dyValLabel": GearFbtUtils.dyValLabel,
 	"gear_schoolsLabel": GearFbtUtils.schoolsLabel,
 	"gear_addGearLabel": GearFbtUtils.addGearLabel,
+	"gear_entryLabel": GearFbtUtils.entryLabel,
 	"gear_updateGearLabel": GearFbtUtils.updateGearLabel,
 	"gear_cancelEditLabel": GearFbtUtils.cancelEditLabel,
 	"gear_demoLabel": GearFbtUtils.demoLabel,

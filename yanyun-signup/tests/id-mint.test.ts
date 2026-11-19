@@ -5,7 +5,7 @@
  * D1's per-database write serialization. */
 import { DatabaseSync } from 'node:sqlite';
 import { describe, expect, it } from 'vitest';
-import { mintPublicId } from '../src/domains/platform/id-mint.ts';
+import { mintPublicId, reservePublicIdRange } from '../src/domains/platform/id-mint.ts';
 import { parsePublicId } from '../src/domains/platform/ids.ts';
 
 function makeFakeD1() {
@@ -95,6 +95,24 @@ describe('mintPublicId', () => {
       .run();
     const id = await mintPublicId(db, 'grouping', T0);
     expect(parsePublicId(id)).toMatchObject({ dayIndex: 300, sequence: 42 });
+  });
+
+  it('reserves consecutive IDs alongside single mints', async () => {
+    const db = makeFakeD1();
+    const [first, next] = await Promise.all([
+      reservePublicIdRange(db, 'gearItem', 20, T0),
+      mintPublicId(db, 'gearItem', T0),
+    ]);
+    expect(parsePublicId(first)).toMatchObject({ sequence: 1 });
+    expect(parsePublicId(next)).toMatchObject({ sequence: 21 });
+  });
+
+  it('preserves remaining sequences when a range would overflow', async () => {
+    const db = makeFakeD1();
+    db.sqlite.prepare('INSERT INTO id_mint_counters VALUES (30, 300, 99998)').run();
+    await expect(reservePublicIdRange(db, 'gearItem', 2, T0)).rejects.toMatchObject({ code: 'sequence-out-of-range' });
+    const last = await mintPublicId(db, 'gearItem', T0);
+    expect(parsePublicId(last)).toMatchObject({ sequence: 99_999 });
   });
 
   it('refuses days outside the layout range', async () => {

@@ -147,6 +147,7 @@ export abstract class GearFbtUtils {
   static dyValLabel(fbs: FbsAPI) { return fbs("定音数值", "Field label for the dingyin affix editor, used for the dingyin value input."); }
   static schoolsLabel(fbs: FbsAPI) { return fbs("流派标签（武器）", "Field label for the gear entry form, used for the sect tag selector shown on weapon entries."); }
   static addGearLabel(fbs: FbsAPI) { return fbs("存入装备库", "Button label for the gear entry form, used to save a new item into the library."); }
+  static entryLabel(fbs: FbsAPI) { return fbs("录入装备", "Button label that opens the equipment entry panel in the gear library."); }
   static updateGearLabel(fbs: FbsAPI) { return fbs("保存修改", "Button label for the gear entry form, used to save changes to the item being edited."); }
   static cancelEditLabel(fbs: FbsAPI) { return fbs("取消编辑", "Button label for the gear entry form, used to cancel editing and return to adding new items."); }
   static demoLabel(fbs: FbsAPI) { return fbs("载入示例套", "Button label for the gear library, used to load the demo gear set."); }
