@@ -46,6 +46,12 @@ function toRawRows(sqlText, rows) {
 /* ---------------- FakeDB (in-memory tables routed by SQL shape) ---------------- */
 const SECT_NAMES = ['鸣金·虹', '鸣金·影', '牵丝·玉', '牵丝·霖', '牵丝·翊', '裂石·威', '裂石·钧', '破竹·樽', '破竹·鸢', '破竹·尘', '破竹·风'];
 const schoolRows = SECT_NAMES.map((name, i) => ({ name, slug: 'sect-' + i, short: '', family: name.split('·')[0], color: null, attr: '', talent_desc: null }));
+const graduationRecipe = new Map([['鸣金·虹', '劲、劲'], ['鸣金·影', '劲、大属攻'], ['牵丝·玉', '劲、劲']]);
+const graduationAffixMax = [
+  { affix_key: 'power', max_value: 57.4 },
+  { affix_key: 'class_atk_max', max_value: 51.4 },
+  { affix_key: 'class_atk_min', max_value: 51.4 },
+];
 const tables = { user_gear_items: [], user_gear_builds: [], usage_counters: [], mint: new Map() };
 function stmt(sql) {
   // Data-layer (Drizzle) SQL normalization: strip quotes (routing match only; assertions unchanged).
@@ -82,8 +88,15 @@ function stmt(sql) {
       if (sql.includes('FROM user_gear_builds')) {
         return { results: tables.user_gear_builds.filter((r) => r.user_id === Number(q._b[0])) };
       }
+      if (sql.includes('FROM school_bis')) {
+        const recipe = graduationRecipe.get(q._b[0]);
+        return { results: recipe ? [{ bis_json: JSON.stringify([['冠胄', recipe]]) }] : [] };
+      }
+      if (sql.includes('FROM affix_max')) {
+        return { results: graduationAffixMax };
+      }
       if (sql.includes('FROM schools')) {
-        return { results: schoolRows };
+        return { results: sql.includes('WHERE slug =') ? schoolRows.filter((row) => row.slug === q._b[0]) : schoolRows };
       }
       return { results: [] };
     },
@@ -482,9 +495,26 @@ const byNamesNone = await gql(TL_MUT, { variables: { i: { ...TL_BASE, suit: '无
 eq('calcTiaolv none/self rows == 无/本系 rows', byIdsNone.data?.calcTiaolv?.rows, byNamesNone.data?.calcTiaolv?.rows);
   });
 
+  it('counts max elemental attack with power for both Mingjin builds in the legacy calculator', async () => {
+    const query = 'mutation($input: GraduationInput!) { calcGraduation(input: $input) { countScore valueScore } }';
+    const maxElemental = { key: 'class_atk_max', value: 25.7, resonance: false };
+    const power = { key: 'power', value: 28.7, resonance: false };
+    const calc = async (sectSlug: string, affixes: typeof maxElemental[]) => {
+      const response = await gql(query, { variables: { input: { sectSlug, items: [{ slot: 'head', affixes }] } } });
+      expect(response.errors).toBeUndefined();
+      return response.data.calcGraduation;
+    };
+
+    expect(await calc('sect-0', [maxElemental])).toEqual({ countScore: 50, valueScore: 53 });
+    expect(await calc('sect-1', [maxElemental])).toEqual({ countScore: 50, valueScore: 53 });
+    expect(await calc('sect-1', [power, maxElemental])).toEqual({ countScore: 100, valueScore: 53 });
+    expect(await calc('sect-0', [{ ...maxElemental, key: 'class_atk_min' }])).toEqual({ countScore: 0, valueScore: 53 });
+    expect(await calc('sect-2', [maxElemental])).toEqual({ countScore: 0, valueScore: 53 });
+  });
+
   it('offers valid, localized attunements for equipment slots and saves their canonical names', async () => {
     const locale = 'en';
-    const response = await gql('{ gradPage { gearDingyinGroups { slots options { name label max } } } }', { locale });
+    const response = await gql('{ gradPage { gearDingyinRightMax gearDingyinGroups { slots options { name label max } } } }', { locale });
     expect(response.errors).toBeUndefined();
     const [offense, armor] = response.data.gradPage.gearDingyinGroups;
     expect(offense.slots).toEqual(['武器', '主武器', '副武器', '环', '佩']);
@@ -494,10 +524,12 @@ eq('calcTiaolv none/self rows == 无/本系 rows', byIdsNone.data?.calcTiaolv?.r
       { name: '无相穿透', label: 'Formless Penetration', max: 15.2 },
     ]);
     expect(armor.slots).toEqual(['冠胄', '胸甲', '胫甲', '腕甲']);
-    expect(armor.options).toContainEqual({ name: '明川药典·治疗技增疗', label: 'Panacea Fan - Healing Skill Boost', max: 6 });
+    expect(response.data.gradPage.gearDingyinRightMax).toBe(7);
+    expect(armor.options).toContainEqual({ name: '明川药典·治疗技增疗', label: 'Panacea Fan - Healing Skill Boost', max: 7 });
     const armorNames = armor.options.map((option) => option.name);
     expect(new Set(armorNames).size).toBe(armorNames.length);
     for (const { name, max } of armor.options) {
+      expect(max).toBe(7);
       expect(GP.gpDingyinMax(name, '冠胄')).toBe(max);
       expect(GP.gpDingyinMax(name, '武器')).toBeNull();
     }
@@ -517,6 +549,57 @@ eq('calcTiaolv none/self rows == 无/本系 rows', byIdsNone.data?.calcTiaolv?.r
     }
     const stored = await gql('{ myGearItems { id slot dingyin { name val } } }', { user: B, locale });
     expect(stored.data.myGearItems).toEqual(expect.arrayContaining(expected));
+  });
+
+  it('treats 7 as a full martial attunement roll when scoring graduation', () => {
+    const name = '无名剑法·蓄力技增伤';
+    const panel = { dingyin: [{ slot: '冠胄', name, val: 7 }, { slot: '胸甲', name, val: 6 }] };
+    const result = GP.gpDingyinScore(panel, GP.gpBuild(0));
+
+    expect(result.rows).toEqual(expect.arrayContaining([
+      expect.objectContaining({ slot: '冠胄', max: 7, score: 1 }),
+      expect.objectContaining({ slot: '胸甲', max: 7, score: 6 / 7 }),
+    ]));
+  });
+
+  it('calculates and saves the graduation snapshot for the complete Mingjin Hong loadout', async () => {
+    const user = { userId: 2030100006, discordId: 'user-f', name: 'F' };
+    const equipment: [string, [string, number][]][] = [
+      ['主武器', [['dawai', 85.2], ['dawai', 85.2], ['shi', 54], ['jin', 54], ['wuqizeng', 7]]],
+      ['副武器', [['dawai', 85.2], ['dawai', 85.2], ['shi', 54], ['jin', 54], ['huiyi', 4.9]]],
+      ['环', [['dawai', 85.2], ['dawai', 85.2], ['huiyi', 4.9], ['quanwu', 3.4], ['shi', 54]]],
+      ['佩', [['dawai', 85.2], ['dawai', 85.2], ['quanwu', 3.4], ['jin', 48.3], ['shi', 54]]],
+      ['冠胄', [['huiyi', 4.9], ['huiyi', 4.9], ['dawai', 85.2], ['jin', 54], ['shi', 54]]],
+      ['胸甲', [['huiyi', 4.9], ['huiyi', 4.6], ['shu_mj_da', 48.3], ['shi', 54], ['dawai', 85.2]]],
+      ['胫甲', [['jin', 54], ['jin', 54], ['dawai', 85.2], ['shi', 54], ['shouling', 3.6]]],
+      ['腕甲', [['jin', 54], ['jin', 54], ['shu_mj_da', 48.3], ['shouling', 3.6], ['dawai', 85.2]]],
+    ];
+    const items = equipment.map(([position, affixes], index) => ({
+      slot: GP.gpGearSlotOf(position),
+      lines: affixes.map(([key, val]) => ({ key, val })),
+      dingyin: index < 4 ? { name: '外功穿透', val: 12.8 } : { name: '无名剑法·蓄力技增伤', val: 7 },
+    }));
+    const imported = await gql('mutation($items: [GearItemCreateInput!]!) { importGearItems(items: $items) { ok items { id slot lines { key val } dingyin { name val } } } }', { user, variables: { items } });
+    expect(imported.data.importGearItems.ok).toBe(true);
+    const lib = imported.data.importGearItems.items;
+    const loadout = equipment.map(([slot], index) => ({ slot, gearId: lib[index].id }));
+    const input = { targetIdx: 0, loadout, res: 1.85, gradDingyinOn: true };
+    const planned = await gql('mutation($input: GearPlanInput!) { gearPlan(input: $input) { realGrad { total a b d got totalBars } loanGrad { total } } }', { variables: { input: { ...input, lib } } });
+    const { realGrad, loanGrad } = planned.data.gearPlan;
+    const valueScore = (38 + 48.3 / 54 + 4.6 / 4.9) / 40;
+    const total = (40 + 24 * valueScore + 20) / 84;
+    expect(realGrad).toMatchObject({ a: 1, d: 1, got: 40, totalBars: 40 });
+    expect(realGrad.b).toBeCloseTo(valueScore, 12);
+    expect(realGrad.total).toBeCloseTo(total, 12);
+    expect(loanGrad.total).toBeCloseTo(1, 12);
+
+    const fields = 'id snapTotal snapA snapB snapD snapLoan';
+    const saved = await gql(`mutation($input: GearBuildSaveInput!) { saveGearBuild(input: $input) { ok build { ${fields} } } }`, { user, variables: { input: { ...input, name: '鸣金·虹' } } });
+    expect(saved.data.saveGearBuild.ok).toBe(true);
+    const build = saved.data.saveGearBuild.build;
+    expect(build).toMatchObject({ snapTotal: realGrad.total, snapA: realGrad.a, snapB: realGrad.b, snapD: realGrad.d, snapLoan: loanGrad.total });
+    const read = await gql(`{ myGearBuilds { ${fields} } }`, { user });
+    expect(read.data.myGearBuilds).toEqual([build]);
   });
 
 });

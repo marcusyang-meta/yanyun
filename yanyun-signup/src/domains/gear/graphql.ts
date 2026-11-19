@@ -904,6 +904,10 @@ export const gearResolvers = {
       const schoolRow = await getSchoolNameBySlug(db, input.sectSlug).catch(() => null);
       if (schoolRow) schoolName = schoolRow.name;
 
+      // The legacy editor supplies one max elemental attack key for the selected school.
+      const isMingjin = /^(?:鸣金(?:[·-]?[虹影])?|mingjin-(?:hong|ying))$/.test(schoolName);
+      const countKey = (key: string) => isMingjin && key === 'class_atk_max' ? 'power' : key;
+
       // Target recipe's affix classes (from school_bis)
       const bisRow = await getSchoolBisJsonBySchool(db, schoolName).catch(() => null);
       let targetCats: Record<string, any> = {};
@@ -929,7 +933,10 @@ export const gearResolvers = {
               affixStr.split('、').forEach((a: any) => {
                 const clean = a.replace(/（[^）]*）/g, '').trim();
                 const key = nameToKey[clean];
-                if (key) targetCats[key] = (targetCats[key] || 0) + 1;
+                if (key) {
+                  const category = countKey(key);
+                  targetCats[category] = (targetCats[category] || 0) + 1;
+                }
               });
             });
           }
@@ -945,7 +952,8 @@ export const gearResolvers = {
         for (const affix of (item.affixes || [])) {
           if (!affix.key || !affix.value) continue;
           // Line counts (grouped by key)
-          userCats[affix.key] = (userCats[affix.key] || 0) + 1;
+          const category = countKey(affix.key);
+          userCats[category] = (userCats[category] || 0) + 1;
           // Value attainment: value / resonance value (95% of max)
           const max = maxMap[affix.key];
           if (max) {
