@@ -46,6 +46,20 @@ export const AGENT_SCOPE_CREATE = 'create';
  * read/signup/create order; `read` is always present). */
 export const AGENT_SCOPE_SETS = ['read', 'read signup', 'read create', 'read signup create'] as const;
 
+/** The scope set a registration lands on when the client omits
+ * the `scope` member. RFC 7591 makes that member optional and
+ * real hosted-connector clients omit it, then ask at authorize
+ * time for what the discovery metadata advertises — while the
+ * authorize endpoint requires the requested set to fit inside
+ * the registered set. Defaulting an omitted scope to the read
+ * tier therefore made every such client unauthorizable for the
+ * advertised scopes (`read signup` failed invalid_scope as a
+ * whole), so an omitted scope registers for the full supported
+ * set: the canonical form of the atoms discovery lists as
+ * scopes_supported. An explicit registration scope keeps its
+ * exact behavior, and already-registered clients are untouched. */
+export const AGENT_REGISTRATION_DEFAULT_SCOPES = 'read signup create';
+
 export function parseScopes(scopes: string | null | undefined): Set<string> {
   return new Set(String(scopes || '').split(/\s+/).filter(Boolean));
 }

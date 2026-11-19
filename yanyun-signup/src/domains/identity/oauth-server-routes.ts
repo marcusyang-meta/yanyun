@@ -19,8 +19,9 @@
  * every use and die with the grant's revocation (settings page).
  */
 import { Hono } from 'hono';
-import { getSessionUser, getUserLocalePref, hasCompleteDiscordGrant, signJwt, verifyJwt } from './auth.ts';
+import { getSessionUser, getUserLocalePref, hasCompleteDiscordGrant, signJwt, verifyJwt, LOGIN_STATE_TTL_SEC } from './auth.ts';
 import {
+  AGENT_REGISTRATION_DEFAULT_SCOPES,
   canonicalAgentScopes,
   clientRedirectUriAllowed,
   consumeAuthCode,
@@ -167,7 +168,13 @@ oauthRoutes.post('/oauth/register', async (c) => {
       return oauthError('invalid_redirect_uri', 'Redirect URIs must be https, or http on a loopback host.');
     }
   }
-  const scopes = canonicalAgentScopes(typeof body?.scope === 'string' ? body.scope : null);
+  // `scope` is optional in RFC 7591 and real clients omit it:
+  // those register for the full supported set (see
+  // AGENT_REGISTRATION_DEFAULT_SCOPES in the data layer). A
+  // blank scope reads as omitted; an explicit one keeps its
+  // exact canonicalization.
+  const rawScope = typeof body?.scope === 'string' && body.scope.trim() ? body.scope : null;
+  const scopes = canonicalAgentScopes(rawScope ?? AGENT_REGISTRATION_DEFAULT_SCOPES);
   if (scopes === null) {
     return oauthError('invalid_client_metadata', 'scope must stay within the read / signup / create atoms.');
   }
@@ -265,6 +272,12 @@ oauthRoutes.get('/oauth/authorize', async (c) => {
   const client = await getOAuthClient(c.env.DB, facts.clientId);
   const locale = await consentLocale(c, user.userId);
   const t = (name: string, params?: Record<string, unknown>) => translate(name, locale, params as any);
+  // The consent blob rides the same human-paced window as the
+  // Discord login state (LOGIN_STATE_TTL_SEC): it is minted when
+  // the consent page renders and verified on the approval POST,
+  // and a member reading the scope list slowly — or detouring
+  // through the login first on a second tab — must not find it
+  // expired at 600s.
   const blob = await signJwt(c.env.SESSION_SECRET, {
     kind: 'oauth-consent',
     uid: user.userId,
@@ -274,7 +287,7 @@ oauthRoutes.get('/oauth/authorize', async (c) => {
     chal: facts.challenge,
     res: facts.resource,
     st: facts.state,
-  }, 600);
+  }, LOGIN_STATE_TTL_SEC);
   const wantsSignup = parseScopes(facts.scopes).has('signup');
   const wantsCreate = parseScopes(facts.scopes).has('create');
   const body = `

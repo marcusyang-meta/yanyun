@@ -371,9 +371,21 @@ ${bodyHtml}
 </div></body></html>`, { status, headers: { 'content-type': 'text/html; charset=utf-8' } });
 }
 
-// returnTo allows only in-site absolute paths (open-redirect guard)
-function safeReturnTo(raw: any) {
-  const v = String(raw || '/').slice(0, 300);
+// returnTo allows only in-site absolute paths (open-redirect guard).
+// The length cap stays — it bounds what rides in the login state
+// and the post-login redirect — but at 2048, not 300: the OAuth
+// authorization endpoint carries its full request (client_id,
+// redirect_uri, resource, code_challenge, state, scope) as the
+// returnTo through this login, and real hosted-connector requests
+// run 303–330 chars. The old 300 cap cut them mid-parameter at
+// login start and again at the callback, and the mangled URL then
+// failed authorize validation (invalid_scope / invalid_request)
+// or its PKCE check (invalid_grant) — only hand-rolled clients
+// with short URLs survived. The guard's security properties are
+// unchanged: in-site absolute paths only, protocol-relative and
+// backslash forms refused.
+export function safeReturnTo(raw: any) {
+  const v = String(raw || '/').slice(0, 2048);
   if (!v.startsWith('/') || v.startsWith('//') || v.includes('\\')) return '/';
   return v;
 }
@@ -412,6 +424,18 @@ async function readSignedReturnTo(secret: string, param: string): Promise<string
   return validateReturnToTarget(payload.rto);
 }
 
+/* Lifetime of the Discord login state JWT. The state is minted
+ * when the login starts and verified when the callback lands, so
+ * it has to cover a slow human first-time Discord sign-in end to
+ * end (password, 2FA, Discord's own consent screen). At 600s real
+ * members routinely overran it: the callback answered "login
+ * session expired", the returnTo died with the state, and an
+ * OAuth authorization that had bounced into this login failed
+ * silently. 1800s covers the slow case while keeping the state —
+ * which carries a return target — a bounded artifact. The OAuth
+ * consent blob uses the same window (oauth-server-routes). */
+export const LOGIN_STATE_TTL_SEC = 1800;
+
 export async function handleDiscordLogin(request: any, env: any) {
   const url = new URL(request.url);
   if (!env.DISCORD_CLIENT_ID || !env.DISCORD_CLIENT_SECRET) {
@@ -447,7 +471,7 @@ export async function handleDiscordLogin(request: any, env: any) {
     rt: returnTo, kind: 'oauth-state',
     ...(crossReturnTo ? { rto: crossReturnTo } : {}),
     ...(appAuth ? { app: 1 } : {}),
-  }, 600);
+  }, LOGIN_STATE_TTL_SEC);
   const redirectUri = `${url.origin}/auth/discord/callback`;
   const auth = new URL('https://discord.com/api/oauth2/authorize');
   auth.searchParams.set('client_id', env.DISCORD_CLIENT_ID);
