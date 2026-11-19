@@ -149,14 +149,21 @@ const weaponDingyin = [
   { name: '无相穿透', label: '无相穿透', max: 15.2 },
 ];
 const armorDingyin = [
-  { name: '无名剑法·蓄力技增伤', label: '无名剑法·蓄力技增伤', max: 6 },
-  { name: '明川药典·治疗技增疗', label: '明川药典·治疗技增疗', max: 6 },
+  { name: '无名剑法·蓄力技增伤', label: '无名剑法·蓄力技增伤', max: 7 },
+  { name: '明川药典·治疗技增疗', label: '明川药典·治疗技增疗', max: 7 },
 ];
 const armorSlots = ['冠胄', '胸甲', '胫甲', '腕甲'];
 const gearItems = [
   { id: '30000000001', slot: '武器', name: '测试长剑', dingyin: { name: '外功抗性', val: 9.2 }, lines: [], schools: [], warnings: [] },
   { id: '30000000002', slot: '冠胄', name: '旧版冠胄', dingyin: { name: '九重春色·蓄力技增伤', val: 4.3 }, lines: [], schools: [], warnings: [] },
 ] satisfies GearLibraryQuery$data['myGearItems'];
+const savedBuilds = [{
+  id: '31000000001', name: '保存的方案', buildLabel: '鸣金-虹 · 玉斗', school: '鸣金-虹', targetIdx: 0,
+  baseValues: [], bowKind: '', extraAcc: 0, extraCrit: 0, extraInt: 0, gradDingyinOn: true,
+  loadout: [{ slot: '主武器', gearId: gearItems[0].id }], res: 1.85, shareUrl: null, xinfa: [],
+  snapTotal: 0.82, snapA: 1, snapB: 0.996, snapD: 0.25, snapLoan: 1,
+  snapYAcc: 83.5, snapYCrit: 20.7, snapYInt: 37.7, snapDawai: 1120, snapXiaowai: 620,
+}] satisfies GearLibraryQuery$data['myGearBuilds'];
 const gearPage: Partial<GearLibraryQuery$data['gradPage']> = {
   gearMyLibTitle: '我的装备库',
   gearEntryLabel: '录入装备',
@@ -175,12 +182,17 @@ const gearPage: Partial<GearLibraryQuery$data['gradPage']> = {
   gearDyNameLabel: '定音',
   gearDyValLabel: '定音数值',
   gearFillMaxLabel: '填满值',
+  gearGradLabel: '毕业度',
+  gearYAccLabel: '黄字精准',
+  gearYCritLabel: '黄字会心',
+  gearYIntLabel: '黄字会意',
   gearSavedToastTemplate: '已保存 {name}',
   gearSchoolTags: [],
   gearUsageCount: 0,
   gearUsageLimit: 200,
   gearUsageTemplate: '{n}/{limit}',
   gearSchemeNameTemplate: '配装 {n}',
+  gearSchemeGroupCountTemplate: '{n} 套',
 };
 
 function synth(selections: readonly any[], typeName: string | null): any {
@@ -227,6 +239,7 @@ function installFetchStub() {
       data = synth(GearLibraryQueryNode.operation.selections, 'Query');
       data.viewer.user.discordId = '2001';
       data.myGearItems = items;
+      data.myGearBuilds = savedBuilds;
       Object.assign(data.gradPage, gearPage);
       Object.assign(data.gradPage.gearVocabRules, { weaponSlot: '武器', weaponPositions: [] });
     } else if (name === 'GearLibraryUpdateItemMutation') {
@@ -327,6 +340,11 @@ describe('rail profile entry (IG web shape, DOM)', () => {
     click(gearNav!);
     await flush(150);
 
+    const savedBuild = document.querySelector('[data-build-school="鸣金-虹"]');
+    expect(savedBuild?.textContent).toContain('82.0%');
+    expect(savedBuild?.textContent).toContain('毕业度 100.0% / 99.6% / 25.0%');
+    expect(savedBuild?.textContent).toContain('黄字精准 83.5% · 黄字会心 20.7% · 黄字会意 37.7%');
+
     const buttonFor = (scope: ParentNode, label: string): HTMLButtonElement => {
       const button = [...scope.querySelectorAll('button')].find((node) => node.textContent === label);
       expect(button, label).toBeDefined();
@@ -383,7 +401,7 @@ describe('rail profile entry (IG web shape, DOM)', () => {
     }
     selectValue(dingyin, armorDingyin[1].name);
     click(buttonFor(panel, '填满值'));
-    expect(value.value).toBe('6');
+    expect(value.value).toBe('7');
 
     selectValue(slot, '武器');
     expect(dingyin.value).toBe('');

@@ -2,7 +2,7 @@ import { graphql, usePreloadedQuery } from 'react-relay';
 import type { PreloadedQuery } from 'react-relay';
 import { Link } from 'react-router-dom';
 import { theme } from './lib/format.ts';
-import { pct1, fmt1 } from './guild/components/gearStore.ts';
+import { pct1, ratioPct1, fmt1 } from './guild/components/gearStore.ts';
 import type { BuildSharePageQuery as BuildSharePageQueryType } from './__generated__/BuildSharePageQuery.graphql';
 
 /* Public build share page (/b/:code): the anonymous visiting surface
@@ -144,11 +144,11 @@ export default function BuildSharePage({ queries }: {
             <div style={{ color: theme.muted, fontSize: 13, marginTop: 4 }}>{page.buildLabel}</div>
             <div style={{ ...card, marginTop: 16, display: 'flex', alignItems: 'center', gap: 22, flexWrap: 'wrap' }}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
-                <span style={{ fontFamily: 'var(--font-serif)', color: theme.goldHi, fontSize: 34, fontWeight: 700 }}>{pct1(page.snapTotal)}</span>
+                <span style={{ fontFamily: 'var(--font-serif)', color: theme.goldHi, fontSize: 34, fontWeight: 700 }}>{ratioPct1(page.snapTotal)}</span>
                 <span style={{ color: theme.muted, fontSize: 12 }}>{grad.gearGradLabel}</span>
               </div>
               <div style={{ color: theme.muted, fontSize: 12.5, lineHeight: 1.8 }}>
-                {grad.gearGradLabel} {pct1(page.snapA)} / {pct1(page.snapB)} / {pct1(page.snapD)}
+                {grad.gearGradLabel} {ratioPct1(page.snapA)} / {ratioPct1(page.snapB)} / {ratioPct1(page.snapD)}
                 <br />
                 {grad.gearYAccLabel} {pct1(page.snapYAcc)} · {grad.gearYCritLabel} {pct1(page.snapYCrit)} · {grad.gearYIntLabel} {pct1(page.snapYInt)}
               </div>

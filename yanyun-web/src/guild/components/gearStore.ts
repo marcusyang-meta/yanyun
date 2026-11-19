@@ -256,3 +256,4 @@ export function onOcrSlotRequest(f: (pos: string) => void): () => void {
 
 export const fmt1 = (n: number): string => (Math.round(n * 10) / 10).toFixed(1);
 export const pct1 = (n: number): string => (Math.round(n * 10) / 10).toFixed(1) + '%';
+export const ratioPct1 = (ratio: number): string => pct1(ratio * 100);

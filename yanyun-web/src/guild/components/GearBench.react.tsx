@@ -3,7 +3,7 @@ import { graphql, useLazyLoadQuery, useMutation } from 'react-relay';
 import { theme, fill } from '../../lib/format.ts';
 import {
   type GearItem, type GearWorkState, type SavedBuild, loadWorkState, saveWorkState, hasWorkState,
-  fmt1, pct1, poolOf, consumePendingGearTarget, onGearTarget, requestOcrSlot,
+  fmt1, pct1, ratioPct1, poolOf, consumePendingGearTarget, onGearTarget, requestOcrSlot,
 } from './gearStore.ts';
 import GearLibrary from './GearLibrary.react.tsx';
 import { VerdictSeal, JadePendant, heirloomDustFromClick, createHeirloomParty, fireHeirloomCelebration } from './GearSeal.react.tsx';
@@ -342,7 +342,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
     if (!plan || !build) return;
     const lines = [
       `${build.school} · ${build.set}`,
-      `${t.gearGradLabel} ${pct1(plan.grad.total)}`,
+      `${t.gearGradLabel} ${ratioPct1(plan.grad.total)}`,
       `${t.gearYAccLabel} ${pct1(plan.panel.yAcc)} · ${t.gearYCritLabel} ${pct1(plan.panel.yCrit)} · ${t.gearYIntLabel} ${pct1(plan.panel.yInt)}`,
       ...positions.map((pos) => {
         const g = libById.get(work.loadout[pos] || -1);
@@ -547,19 +547,19 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
             <div style={card}>
               <div style={{ display: 'flex', alignItems: 'baseline', gap: 10, flexWrap: 'wrap' }}>
                 <span style={{ color: theme.goldHi, fontSize: 14 }}>{t.gearGradLabel}</span>
-                <b ref={scoreRef} style={{ color: theme.goldHi, fontSize: 26 }}>{pct1(grad.total)}</b>
+                <b ref={scoreRef} style={{ color: theme.goldHi, fontSize: 26 }}>{ratioPct1(grad.total)}</b>
                 <label style={{ marginLeft: 'auto', color: theme.muted, fontSize: 12, display: 'flex', gap: 5, alignItems: 'center' }}>
                   <input type="checkbox" checked={work.gradDy} onChange={(e) => patchWork({ gradDy: e.target.checked })} />
                   {t.gearGradDyToggleLabel}
                 </label>
               </div>
               <div style={{ color: theme.paper, fontSize: 12.5, marginTop: 4 }}>
-                {t.gearGradCountLabel} {pct1(grad.a)} · {t.gearGradValueLabel} {pct1(grad.b)} · {t.gearGradDyLabel} {pct1(grad.d)}
+                {t.gearGradCountLabel} {ratioPct1(grad.a)} · {t.gearGradValueLabel} {ratioPct1(grad.b)} · {t.gearGradDyLabel} {ratioPct1(grad.d)}
                 <span style={{ color: theme.muted }}> · {grad.got}/{grad.totalBars}</span>
               </div>
               <div style={{ color: theme.muted, fontSize: 12.5, marginTop: 2 }}>
-                {t.gearLoanLabel}：{pct1(plan.loanGrad.total)}
-                {simActive && <span> · {t.gearSimActiveTag}（{pct1(plan.realGrad.total)}）</span>}
+                {t.gearLoanLabel}：{ratioPct1(plan.loanGrad.total)}
+                {simActive && <span> · {t.gearSimActiveTag}（{ratioPct1(plan.realGrad.total)}）</span>}
               </div>
               <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '4px 14px', fontSize: 13, color: theme.paper }}>
                 <span>{t.gearYAccLabel} <b style={{ color: theme.goldHi }}>{pct1(plan.panel.yAcc)}</b></span>

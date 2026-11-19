@@ -4,7 +4,7 @@ import { theme, fill } from '../../lib/format.ts';
 import { refetchGearLibraryQueries } from '../../lib/relay.ts';
 import {
   type GearItem, type GearWorkState, type SavedBuild, loadWorkState, saveWorkState,
-  buildExportFile, parseImportFile, fmt1, pct1, poolOf,
+  buildExportFile, parseImportFile, fmt1, pct1, ratioPct1, poolOf,
   dingyinOptionsForSlot, dingyinSlotChange,
   applyEquipToSavedWork, mergeAutoSelectIntoSavedWork, applyBuildToSavedWork,
   clearSavedWorkLoadout, onOcrSlotRequest,
@@ -1233,11 +1233,11 @@ export default function GearLibrary(props: {
                     <span style={{ color: theme.muted, fontSize: 11.5 }}>{b.buildLabel}</span>
                   </div>
                   <div style={{ display: 'flex', alignItems: 'baseline', gap: 8, marginTop: 6 }}>
-                    <span style={{ fontFamily: 'var(--font-serif)', color: theme.goldHi, fontSize: 23, fontWeight: 700 }}>{pct1(b.snapTotal)}</span>
+                    <span style={{ fontFamily: 'var(--font-serif)', color: theme.goldHi, fontSize: 23, fontWeight: 700 }}>{ratioPct1(b.snapTotal)}</span>
                     <span style={{ color: theme.muted, fontSize: 11.5 }}>{t.gearGradLabel}</span>
                   </div>
                   <div style={{ color: theme.muted, fontSize: 11.5, marginTop: 3, lineHeight: 1.7 }}>
-                    {t.gearGradLabel} {pct1(b.snapA)} / {pct1(b.snapB)} / {pct1(b.snapD)}
+                    {t.gearGradLabel} {ratioPct1(b.snapA)} / {ratioPct1(b.snapB)} / {ratioPct1(b.snapD)}
                     <br />
                     {t.gearYAccLabel} {pct1(b.snapYAcc)} · {t.gearYCritLabel} {pct1(b.snapYCrit)} · {t.gearYIntLabel} {pct1(b.snapYInt)}
                   </div>
