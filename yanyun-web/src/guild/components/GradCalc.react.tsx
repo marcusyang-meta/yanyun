@@ -8,6 +8,7 @@ import GearBench from './GearBench.react.tsx';
 import GearRefs from './GearRefs.react.tsx';
 import GearQuick from './GearQuick.react.tsx';
 import { mergeSlotAffixRows } from './gradSlotAffix';
+import { gradGearItemsForSlot, gradRowsFromGearItem, type GradGearItemLike } from './gradGearFill';
 import type { GradCalcAffixQuery as GradCalcAffixQueryType } from './__generated__/GradCalcAffixQuery.graphql';
 import type { GradCalcSlotAffixQuery as GradCalcSlotAffixQueryType } from './__generated__/GradCalcSlotAffixQuery.graphql';
 import type { GradCalcMutation as GradCalcMutationType } from './__generated__/GradCalcMutation.graphql';
@@ -63,6 +64,17 @@ const GradCalcTextQueryNode = graphql`
       gradToastSavedTemplate
       gradToastLoadedTemplate
       gradToastOldSchemeText
+      gradPickFromLibraryLabel
+      gradLibraryEmptyText
+      gradLibrarySkippedTemplate
+      gradGearItems {
+        id
+        name
+        gradSlots
+        lines { key val }
+        dingyin { key val }
+        skipped
+      }
       gradConfirmLabel
       gradCancelLabel
       gradSlots { id label icon }
@@ -291,6 +303,8 @@ function GradCalcMain({
   const [rates, setRates] = useState<Rates>({ precision: '', crit: '', affinity: '' });
   const [result, setResult] = useState<GradResult | null>(null);
   const [openSlot, setOpenSlot] = useState<number | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
+  useEffect(() => { setPickerOpen(false); }, [openSlot]);
   const [openSec, setOpenSec] = useState({ ref: false, rate: false, cmp: false });
   const [commit] = useMutation<GradCalcMutationType>(GradCalcMutationNode);
 
@@ -360,6 +374,26 @@ function GradCalcMain({
         i === si ? rows.map((r, j) => (j === ri ? { ...r, ...patch } : r)) : rows
       )
     );
+
+  // Library picker: the backend serves the caller's library items
+  // pre-translated to calculator keys (gradGearItems); picking one
+  // replaces this slot's rows with the item's rows (an explicit user
+  // action — hand-entered rows are otherwise never touched).
+  const gearItems: GradGearItemLike[] = text.gradGearItems ?? [];
+  const lineSummary = (l: { key: string; val: number }) =>
+    `${affixNameMap[l.key] || l.key} ${Math.round(l.val * 10) / 10}`;
+  const itemSummary = (g: GradGearItemLike) =>
+    [...g.lines.map(lineSummary), ...(g.dingyin ? [lineSummary(g.dingyin)] : [])].join(' · ');
+  const pickGearItem = (g: GradGearItemLike) => {
+    if (openSlot === null) return;
+    const rows = gradRowsFromGearItem(g);
+    setSlotData((prev) => prev.map((r, i) => (i === openSlot ? rows : r)));
+    setPickerOpen(false);
+    if (g.skipped > 0) toast(fill(text.gradLibrarySkippedTemplate ?? '', { n: g.skipped }));
+  };
+  const openSlotGearItems = openSlot !== null
+    ? gradGearItemsForSlot(gearItems, slots[openSlot]?.id ?? '')
+    : [];
 
   const changeBuild = (b: Build) => {
     setOpenSlot(null);
@@ -723,6 +757,42 @@ function GradCalcMain({
             </div>
             <div style={{ textAlign: 'right', fontSize: 13, color: theme.gold, marginBottom: 12 }}>
               {scoreOf(slots[openSlot]?.id ?? '') > 0 ? fill(text.gradItemScoreTemplate ?? '', { score: scoreOf(slots[openSlot]?.id ?? '') }) : ''}
+            </div>
+            <div style={{ marginBottom: 12 }}>
+              <button
+                onClick={() => setPickerOpen((p) => !p)}
+                className="yy-btn yy-btn-ghost"
+                style={{ width: '100%', padding: '8px 12px', fontSize: 13 }}
+              >{text.gradPickFromLibraryLabel}</button>
+              {pickerOpen && (
+                <div style={{ marginTop: 8, display: 'flex', flexDirection: 'column', gap: 6 }}>
+                  {openSlotGearItems.length === 0 ? (
+                    <div style={{ fontSize: 13, color: theme.muted, padding: '6px 2px' }}>
+                      {text.gradLibraryEmptyText}
+                    </div>
+                  ) : openSlotGearItems.map((g) => (
+                    <button
+                      key={g.id}
+                      onClick={() => pickGearItem(g)}
+                      style={{
+                        textAlign: 'left', cursor: 'pointer', padding: '8px 10px',
+                        background: 'rgba(201,163,92,.06)', color: theme.paper,
+                        border: '1px solid rgba(201,163,92,.25)', borderRadius: 8,
+                        fontFamily: 'inherit',
+                      }}
+                    >
+                      <div style={{ fontSize: 13.5, color: theme.goldHi }}>
+                        {g.name || itemSummary(g)}
+                      </div>
+                      {g.name !== '' && (
+                        <div style={{ fontSize: 12, color: theme.muted, marginTop: 2 }}>
+                          {itemSummary(g)}
+                        </div>
+                      )}
+                    </button>
+                  ))}
+                </div>
+              )}
             </div>
             {(slotData[openSlot] ?? []).map((d, ri) => {
               const allowed = unionSlotAffixMap[slots[openSlot]?.id ?? ''] || [];
