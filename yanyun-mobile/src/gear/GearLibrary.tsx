@@ -19,7 +19,7 @@ import {
   type GearItem, type GearWorkState, type SavedBuild,
   applyBuildToSavedWork, applyEquipToSavedWork, buildExportFile, clearSavedWorkLoadout,
   fmt1, hydrateGearWorkState, loadWorkState, mergeAutoSelectIntoSavedWork, onOcrSlotRequest,
-  parseImportFile, pct1, poolOf, saveWorkState,
+  parseImportFile, pct1, poolOf, ratioPct1, saveWorkState,
 } from './gearStore';
 import { dingyinMax, dingyinOptions, dingyinSlotChange } from './gearDingyin';
 import type { OcrMaps, OcrParsed , OcrEngine } from './GearOcr';
@@ -980,11 +980,11 @@ export default function GearLibrary(props: {
                     <Text style={s.buildTarget}>{b.buildLabel}</Text>
                   </View>
                   <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 8, marginTop: 4 }}>
-                    <Text style={s.buildTotal}>{pct1(b.snapTotal)}</Text>
+                    <Text style={s.buildTotal}>{ratioPct1(b.snapTotal)}</Text>
                     <Text style={s.buildMeta}>{t.gearGradLabel}</Text>
                   </View>
                   <Text style={s.buildMeta}>
-                    {t.gearGradLabel} {pct1(b.snapA)} / {pct1(b.snapB)} / {pct1(b.snapD)}
+                    {t.gearGradLabel} {ratioPct1(b.snapA)} / {ratioPct1(b.snapB)} / {ratioPct1(b.snapD)}
                   </Text>
                   <Text style={s.buildMeta}>
                     {t.gearYAccLabel} {pct1(b.snapYAcc)} · {t.gearYCritLabel} {pct1(b.snapYCrit)} · {t.gearYIntLabel} {pct1(b.snapYInt)}

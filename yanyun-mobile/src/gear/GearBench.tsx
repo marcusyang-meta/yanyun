@@ -12,7 +12,7 @@ import {
 import {
   type GearItem, type GearWorkState, type SavedBuild,
   consumePendingGearTarget, fmt1, hasWorkState, hydrateGearWorkState, loadWorkState,
-  onGearTarget, pct1, poolOf, requestOcrSlot, saveWorkState,
+  onGearTarget, pct1, poolOf, ratioPct1, requestOcrSlot, saveWorkState,
 } from './gearStore';
 import GearLibrary from './GearLibrary';
 import {
@@ -225,7 +225,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
     if (!plan || !build) return;
     const lines = [
       `${build.school} · ${build.set}`,
-      `${t.gearGradLabel} ${pct1(plan.grad.total)}`,
+      `${t.gearGradLabel} ${ratioPct1(plan.grad.total)}`,
       `${t.gearYAccLabel} ${pct1(plan.panel.yAcc)} · ${t.gearYCritLabel} ${pct1(plan.panel.yCrit)} · ${t.gearYIntLabel} ${pct1(plan.panel.yInt)}`,
       ...positions.map((pos) => {
         const g = libById.get(work.loadout[pos] || -1);
@@ -476,7 +476,7 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
               <View style={s.gradHead}>
                 <Text style={{ color: theme.goldHi, fontSize: 14, fontFamily: fonts.serif }}>{t.gearGradLabel}</Text>
                 <View ref={scoreRef} collapsable={false}>
-                  <Text style={{ color: theme.goldHi, fontSize: 26, fontWeight: '700', fontFamily: fonts.serif }}>{pct1(grad.total)}</Text>
+                  <Text style={{ color: theme.goldHi, fontSize: 26, fontWeight: '700', fontFamily: fonts.serif }}>{ratioPct1(grad.total)}</Text>
                 </View>
                 <View style={{ marginLeft: 'auto' }}>
                   <CheckRow
@@ -487,12 +487,12 @@ export default function GearBench({ onWhites, defaultTargetSect }: {
                 </View>
               </View>
               <Text style={s.gradLine}>
-                {t.gearGradCountLabel} {pct1(grad.a)} · {t.gearGradValueLabel} {pct1(grad.b)} · {t.gearGradDyLabel} {pct1(grad.d)}
+                {t.gearGradCountLabel} {ratioPct1(grad.a)} · {t.gearGradValueLabel} {ratioPct1(grad.b)} · {t.gearGradDyLabel} {ratioPct1(grad.d)}
                 <Text style={{ color: theme.muted }}> · {grad.got}/{grad.totalBars}</Text>
               </Text>
               <Text style={[s.gradLine, { color: theme.muted }]}>
-                {t.gearLoanLabel}：{pct1(plan.loanGrad.total)}
-                {simActive && <Text> · {t.gearSimActiveTag}（{pct1(plan.realGrad.total)}）</Text>}
+                {t.gearLoanLabel}：{ratioPct1(plan.loanGrad.total)}
+                {simActive && <Text> · {t.gearSimActiveTag}（{ratioPct1(plan.realGrad.total)}）</Text>}
               </Text>
               <View style={s.panelGrid}>
                 <Text style={s.panelCell}>{t.gearYAccLabel} <Text style={s.panelVal}>{pct1(plan.panel.yAcc)}</Text></Text>
