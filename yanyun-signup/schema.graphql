@@ -1799,6 +1799,7 @@ type GradPage {
   gradSlots: [GradSlot!]!        # 8 槽位 (顺序 = 客户端方案按位对齐序, 不可变)
   gradRates: [GradRate!]!        # 三率行 (精准/会心/会意)
   gearVocabRules: GearVocabRules!
+  gradGearItems: [GradGearItem!]!  # 我的装备库 (已桥接为鉴宝口径; 未登录为空)
   gradEnteringText: String!
   gradTitle: String!
   gradSubtitle: String!
@@ -1846,6 +1847,9 @@ type GradPage {
   gradToastSavedTemplate: String!
   gradToastLoadedTemplate: String!
   gradToastOldSchemeText: String!
+  gradPickFromLibraryLabel: String!
+  gradLibraryEmptyText: String!
+  gradLibrarySkippedTemplate: String!
   gradConfirmLabel: String!
   gradCancelLabel: String!
   # ---- 配装台 (gear-planner 移植; 并入本页, 数据/文案均由 GradPage shell gen) ----
@@ -5125,6 +5129,17 @@ type GearItem {
   dingyin: GearDingyin
   schools: [String!]!
   warnings: [String!]!
+}
+
+# 装备库条目 (已由后端桥接为鉴宝口径): lines/dingyin 的 key 已是鉴宝词条 key
+type GradGearItem {
+  id: ID!
+  slot: String!            # 装备库部位 (GP 部位名)
+  name: String!
+  gradSlots: [String!]!    # 可填入的鉴宝部位 id (武器件同时含主武器/副武器)
+  lines: [GearLine!]!      # 词条行 (顺序 = 库内顺序, 最多 5 行)
+  dingyin: GearLine        # 定音行 (无可对应定音时为 null)
+  skipped: Int!            # 无对应项而跳过的行数 (含溢出的词条行与不可对应的定音)
 }
 
 type GearBaseValue {

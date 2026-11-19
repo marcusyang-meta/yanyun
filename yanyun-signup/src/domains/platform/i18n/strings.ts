@@ -1239,6 +1239,15 @@ export abstract class GradFbtUtils {
 	static toastOldScheme(fbs: FbsRuntime) {
 		return fbs._("旧方案只保存了分数，无法载入配装", null, { hk: "2WTMMU" });
 	}
+	static pickFromLibrary(fbs: FbsRuntime) {
+		return fbs._("从装备库选", null, { hk: "3pEykw" });
+	}
+	static libraryEmpty(fbs: FbsRuntime) {
+		return fbs._("这个部位在装备库里还没有装备", null, { hk: "4jl8FK" });
+	}
+	static librarySkipped(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("有 {n} 条词条在鉴宝里没有对应项，已跳过", [fbs._param("n", pv(p, "n"))], { hk: "13ClDS" });
+	}
 }
 export abstract class GearFbtUtils {
 	static calcLabel(fbs: FbsRuntime) {
@@ -5909,6 +5918,9 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"grad_toastSaved": GradFbtUtils.toastSaved,
 	"grad_toastLoaded": GradFbtUtils.toastLoaded,
 	"grad_toastOldScheme": GradFbtUtils.toastOldScheme,
+	"grad_pickFromLibrary": GradFbtUtils.pickFromLibrary,
+	"grad_libraryEmpty": GradFbtUtils.libraryEmpty,
+	"grad_librarySkipped": GradFbtUtils.librarySkipped,
 	"gear_calcLabel": GearFbtUtils.calcLabel,
 	"gear_benchTitle": GearFbtUtils.benchTitle,
 	"gear_benchIntro": GearFbtUtils.benchIntro,

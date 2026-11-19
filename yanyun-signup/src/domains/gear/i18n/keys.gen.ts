@@ -69,6 +69,9 @@ export type GearStringKey =
   | 'grad_toastSaved'
   | 'grad_toastLoaded'
   | 'grad_toastOldScheme'
+  | 'grad_pickFromLibrary'
+  | 'grad_libraryEmpty'
+  | 'grad_librarySkipped'
   | 'gear_calcLabel'
   | 'gear_benchTitle'
   | 'gear_benchIntro'
@@ -369,6 +372,9 @@ export const GEAR_STRING_KEYS: readonly GearStringKey[] = [
   'grad_toastSaved',
   'grad_toastLoaded',
   'grad_toastOldScheme',
+  'grad_pickFromLibrary',
+  'grad_libraryEmpty',
+  'grad_librarySkipped',
   'gear_calcLabel',
   'gear_benchTitle',
   'gear_benchIntro',

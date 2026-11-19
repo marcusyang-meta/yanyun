@@ -44,6 +44,7 @@ import {
   gpParsePaste, gpQuickCalc, gpIsLeftDingyinSlot,
   TL_SUIT_OPTIONS, TL_BOW_OPTIONS, TL_WUKU_OPTIONS, TL_SECT_WUXUE, TL_TUNE_ROWS,
   tlSuitName, tlBowName, tlWukuName, GRAD_SLOTS, GRAD_RATES, gearVocabRules,
+  gradRowsForGearItem, gradSlotIdsForGearSlot,
 } from './index.ts';
 import {
   enDungeonName, enBossName, enSectName, enBuildSchool, enAffixName,
@@ -269,6 +270,21 @@ export class GradPageShell extends ShellBase {
     const limits = await getEffectiveLimits(this.db, { userId: user ? user.userId : 0 });
     return limits.gearItemCapacity;
   }
+  /* The caller's gear library, pre-translated into graduation
+   * calculator rows (gradlink.ts is the GP -> canonical key bridge):
+   * the slot editor picks an item and fills its rows verbatim, so the
+   * clients never map keys themselves. Anonymous callers have no
+   * library -> empty. */
+  async genGradGearItems(){
+    const user = this.ctx.user;
+    if (!user) return [];
+    const items = await listGearItems(this.db, user.userId);
+    return items.map((g) => ({
+      id: g.id, slot: g.slot, name: g.name,
+      gradSlots: gradSlotIdsForGearSlot(g.slot),
+      ...gradRowsForGearItem(g),
+    }));
+  }
 }
 
 export const GEAR_DATA_RESOLVERS: Record<string, any> = {};
@@ -276,7 +292,7 @@ for (const f of ['gearSlots', 'gearGearSlots', 'gearAffixes', 'gearBuilds', 'gea
   'gearBaseFields', 'gearXinfa', 'gearTalentRows', 'gearDingyinRows', 'gearDingyinGroups', 'gearDingyinLeft', 'gearDingyinRightMax', 'gearWuxueNames',
   'gearBows', 'gearPasteNames', 'gearNameToClass', 'gearSlotAliases', 'gearOcrAliases', 'gearLegacyKeys',
   'gearClassLabels', 'gearSchoolTags', 'gearDemoKit', 'gearDimRows', 'gearQuickBarNames', 'gearResDefault',
-  'gearUsageCount', 'gearUsageLimit', 'gradSlots', 'gradRates', 'gearVocabRules']) {
+  'gearUsageCount', 'gearUsageLimit', 'gradSlots', 'gradRates', 'gearVocabRules', 'gradGearItems']) {
   const genName = 'gen' + f[0].toUpperCase() + f.slice(1);
   GEAR_DATA_RESOLVERS[f] = (p: any) => p[genName]();
 }
@@ -329,6 +345,9 @@ export const GRAD_TEXT_RESOLVERS = defineTextGens(GradPageShell, [
   ['gradToastSavedTemplate', 'grad_toastSaved'],
   ['gradToastLoadedTemplate', 'grad_toastLoaded'],
   ['gradToastOldSchemeText', 'grad_toastOldScheme'],
+  ['gradPickFromLibraryLabel', 'grad_pickFromLibrary'],
+  ['gradLibraryEmptyText', 'grad_libraryEmpty'],
+  ['gradLibrarySkippedTemplate', 'grad_librarySkipped'],
   ['gradConfirmLabel', 'common_confirm'],
   ['gradCancelLabel', 'common_cancel'],
 ]);
@@ -1030,6 +1049,7 @@ export const gearResolvers = {
     GearImportResult: { ok: (p: any) => p.ok, items: (p: any) => p.items, autoSelect: (p: any) => p.autoSelect, error: (p: any) => p.error, errorCode: (p: any) => p.errorCode },
     GearInvalidLine: { gearId: (p: any) => p.gearId, key: (p: any) => p.key, val: (p: any) => p.val },
     GearItem: { id: (p: any) => p.id, slot: (p: any) => p.slot, name: (p: any) => p.name, lines: (p: any) => p.lines, dingyin: (p: any) => p.dingyin, schools: (p: any) => p.schools, warnings: (p: any) => p.warnings },
+    GradGearItem: { id: (p: any) => p.id, slot: (p: any) => p.slot, name: (p: any) => p.name, gradSlots: (p: any) => p.gradSlots, lines: (p: any) => p.lines, dingyin: (p: any) => p.dingyin, skipped: (p: any) => p.skipped },
     GearItemPayload: { ok: (p: any) => p.ok, item: (p: any) => p.item, error: (p: any) => p.error, errorCode: (p: any) => p.errorCode },
     GearKV: { key: (p: any) => p.key, val: (p: any) => p.val },
     GearLine: { key: (p: any) => p.key, val: (p: any) => p.val },

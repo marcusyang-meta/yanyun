@@ -2017,6 +2017,42 @@
       ],
       "types": []
     },
+    "eXOxsiETFesQ4ugfJoyx5Q==": {
+      "description": "Button label for the appraisal item editor, used to open the gear library picker that fills the edited slot from a stored library item.",
+      "id": "gear/grad_pickFromLibrary",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Pick from gear library",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "0n0miEwT2ppvoILJGXlwew==": {
+      "description": "Empty-state text for the appraisal item editor's gear library picker, used when the library holds no item for the slot being edited.",
+      "id": "gear/grad_libraryEmpty",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "No gear for this slot in your library yet",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "hyx1eu+CKjAEbFnQNKwvOQ==": {
+      "description": "Toast message for the appraisal item editor, used after filling a slot from a library item when some of its lines have no counterpart in the appraisal vocabulary and were skipped, where {n} is the number of skipped lines.",
+      "id": "gear/grad_librarySkipped",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "{n} affix lines have no appraisal counterpart and were skipped",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
     "3IWqCqwegmMhNYfjEJUvfg==": {
       "description": "Title text for the leave-seat confirmation, used as the confirmation dialog heading.",
       "id": "groupings/seat_leaveConfirmTitle",

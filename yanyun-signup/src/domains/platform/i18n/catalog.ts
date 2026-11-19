@@ -2532,6 +2532,18 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Esta configuración antigua solo guardó la puntuación; no se puede cargar el equipo",
       "fr": "Cet ancien build n’a gardé que son score — l’équipement ne peut pas être chargé",
       "zh-TW": "舊方案只儲存了分數，無法載入配裝"
+    },
+    "pickFromLibrary": {
+      "zh-CN": "从装备库选",
+      "en": "Pick from gear library"
+    },
+    "libraryEmpty": {
+      "zh-CN": "这个部位在装备库里还没有装备",
+      "en": "No gear for this slot in your library yet"
+    },
+    "librarySkipped": {
+      "zh-CN": "有 {n} 条词条在鉴宝里没有对应项，已跳过",
+      "en": "{n} affix lines have no appraisal counterpart and were skipped"
     }
   },
   "gear": {
