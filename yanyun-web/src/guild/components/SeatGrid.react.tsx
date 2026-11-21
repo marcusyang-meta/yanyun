@@ -7,6 +7,7 @@ import type { SeatGridReadyMutation as SeatGridReadyMutationType } from './__gen
 import type { SeatGridRosterQuery as SeatGridRosterQueryType } from './__generated__/SeatGridRosterQuery.graphql';
 import { theme, fill } from '../../lib/format';
 import { applySeatsToGrouping } from '../../lib/groupingStore';
+import { isWeekDuplicateRefusal } from './weekDuplicate';
 import { toast, ConfirmDialog } from './Toast.react.tsx';
 
 
@@ -27,6 +28,7 @@ const SeatGridJoinMutationNode = graphql`
     joinGrouping(input: $input) {
       ok
       error
+      errorCode
       seats {
         index
         nickname
@@ -133,6 +135,7 @@ export interface SeatText {
   seatToastLeaveFailedTemplate: string;
   seatLeaveConfirmTitle: string;
   seatLeaveConfirmMessageTemplate: string;
+  seatWeekDuplicateTitle: string;
   seatReadyLabel: string;
   seatReadyActionLabel: string;
   seatUnreadyActionLabel: string;
@@ -357,13 +360,16 @@ function JoinModal({ groupingId, slug, seatIndex, selfName, text, customFields, 
   // field data (creator-written), rendered verbatim.
   const [answers, setAnswers] = useState<Record<string, string>>({});
   const [commitJoin, joining] = useMutation<SeatGridJoinMutationType>(SeatGridJoinMutationNode);
+  // Weekly-duplicate confirmation: the server's refusal message
+  // (it names the already-booked car) while the dialog is open.
+  const [weekConfirm, setWeekConfirm] = useState<string | null>(null);
 
   const q = search.trim().toLowerCase();
   const filtered = q
     ? roster.filter((m) => m.displayName.toLowerCase().includes(q) || (m.globalName || '').toLowerCase().includes(q))
     : roster;
 
-  const submitJoin = () => {
+  const submitJoin = (confirmWeekDuplicate = false) => {
     if (!sect) { toast(text.seatToastSect); return; }
     if (mode === 'proxy' && !selected) { toast(text.seatProxyPickRequired); return; }
     const answerInputs = customFields
@@ -371,7 +377,7 @@ function JoinModal({ groupingId, slug, seatIndex, selfName, text, customFields, 
       .map((f) => ({ fieldId: f.id, value: answers[f.id].trim() }));
     const input = mode === 'proxy'
       ? { groupingId, nickname: selected!.displayName, weapon: sect, seatIndex, forDiscordId: selected!.discordId, answers: answerInputs }
-      : { groupingId, nickname: selfName, weapon: sect, seatIndex, answers: answerInputs };
+      : { groupingId, nickname: selfName, weapon: sect, seatIndex, answers: answerInputs, ...(confirmWeekDuplicate ? { confirmWeekDuplicate: true } : {}) };
     commitJoin({
       variables: { input },
       updater: (store) => { applySeatsToGrouping(store, 'joinGrouping', groupingId); },
@@ -379,6 +385,10 @@ function JoinModal({ groupingId, slug, seatIndex, selfName, text, customFields, 
         if (res.joinGrouping?.ok) {
           toast(text.seatToastJoined);
           onJoined();
+        } else if (!confirmWeekDuplicate && isWeekDuplicateRefusal(res.joinGrouping)) {
+          // Already booked into another car this week: ask before
+          // booking a second one. Cancelling writes nothing.
+          setWeekConfirm(res.joinGrouping?.error || text.unknownErrorText);
         } else {
           toast(fill(text.seatToastJoinFailedTemplate, { error: res.joinGrouping?.error || text.unknownErrorText }));
         }
@@ -387,7 +397,7 @@ function JoinModal({ groupingId, slug, seatIndex, selfName, text, customFields, 
     });
   };
 
-  return createPortal(
+  const modal = createPortal(
     <div style={modalOverlay} onClick={onClose}>
       <div style={modalBox} onClick={(e) => e.stopPropagation()}>
         <div style={{ fontSize: 18, color: theme.goldHi, marginBottom: 4 }}>{fill(text.seatModalTitleTemplate, { n: seatIndex + 1 })}</div>
@@ -506,13 +516,30 @@ function JoinModal({ groupingId, slug, seatIndex, selfName, text, customFields, 
         </div>
         <div style={{ display: 'flex', gap: 12, justifyContent: 'flex-end' }}>
           <button onClick={onClose} style={cancelBtn}>{text.seatCancelLabel}</button>
-          <button onClick={submitJoin} disabled={joining} style={okBtn}>
+          <button onClick={() => submitJoin()} disabled={joining} style={okBtn}>
             {joining ? text.seatJoiningLabel : text.seatConfirmJoinLabel}
           </button>
         </div>
       </div>
     </div>,
     document.body
+  );
+  // The duplicate-week confirmation rides above the join modal
+  // (ConfirmDialog portals itself with a higher z-index).
+  return (
+    <>
+      {modal}
+      {weekConfirm != null && (
+        <ConfirmDialog
+          title={text.seatWeekDuplicateTitle}
+          message={weekConfirm}
+          onOk={() => { setWeekConfirm(null); submitJoin(true); }}
+          onCancel={() => setWeekConfirm(null)}
+          okLabel={text.confirmOkLabel}
+          cancelLabel={text.confirmCancelLabel}
+        />
+      )}
+    </>
   );
 }
 
