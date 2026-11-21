@@ -252,10 +252,28 @@ describe('agent MCP resource server', () => {
   });
 
   it('joins on the caller stamp (proxy arguments are inert), readies, and audits', async () => {
+    // Weekly-duplicate gate first: A already holds a fixture seat
+    // in EV3, which starts in the same week as EV1, so the first
+    // attempt must be refused as needs-confirmation, write nothing
+    // and audit nothing.
+    const refused = await callTool(grantA.accessToken, 'join_grouping', {
+      groupingId: String(EV1), weapon: '裂石·威',
+    });
+    check('refusal is not a transport error', refused.isError !== true, JSON.stringify(refused).slice(0, 300));
+    const refusedJson = toolJson(refused);
+    eq('first attempt refused', refusedJson.ok, false);
+    eq('refusal code', refusedJson.errorCode, 'alreadyBookedThisWeek');
+    eq('refusal asks for confirmation', refusedJson.needsConfirmation, true);
+    check('refusal names the booked car', String(refusedJson.error || '').includes('MCP退报车'), refusedJson.error);
+    const seatsBefore = await db.prepare(`SELECT COUNT(*) AS n FROM signups WHERE event_id = ?`).bind(EV1).first<{ n: number }>();
+    eq('refusal wrote no seat', seatsBefore?.n, 1);
+    eq('refusal not audited', await auditActions('agent.join'), 0);
+
     // The arguments try to smuggle a proxy target; the pinned
     // document has no such variable, so the seat must land on A.
+    // confirm:true is the member's consent to the second signup.
     const joined = await callTool(grantA.accessToken, 'join_grouping', {
-      groupingId: String(EV1), weapon: '裂石·威', forDiscordId: DISCORD_B, uid: 'uid-b-1',
+      groupingId: String(EV1), weapon: '裂石·威', forDiscordId: DISCORD_B, uid: 'uid-b-1', confirm: true,
     });
     check('join not an error', joined.isError !== true, JSON.stringify(joined).slice(0, 300));
     const joinedJson = toolJson(joined);

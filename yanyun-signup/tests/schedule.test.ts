@@ -276,6 +276,17 @@ function makeDb(fx = {}) {
       const rows = tables.signups.filter((x) => x.event_id === Number(b[0]));
       return first({ c: rows.length, h: rows.filter((x) => x.role === '奶' || x.role === '治疗').length, m: ev ? ev.max_slots : null });
     }
+    if (/FROM signups JOIN events/i.test(sql) && /discord_id = \?/i.test(sql)) {
+      const rows = tables.signups
+        .filter((x) => x.discord_id === String(b[0]))
+        .map((x) => {
+          const ev = tables.events.find((e) => e.id === x.event_id);
+          return ev ? { event_id: ev.id, event_title: ev.title, event_status: ev.status, starts_at: ev.starts_at, starts_at_utc: ev.starts_at_utc } : null;
+        })
+        .filter(Boolean)
+        .sort((x, y) => x.event_id - y.event_id);
+      return all(rows);
+    }
     if (/FROM signups WHERE event_id = \?/i.test(sql)) {
       return all(tables.signups.filter((x) => x.event_id === Number(b[0])).sort((x, y) => x.id - y.id));
     }
