@@ -48,6 +48,13 @@ const GroupingDetailQueryNode = graphql`
         toastSkippedTemplate
         defaultStartsAt
       }
+      recurrence {
+        buttonLabel
+        confirmTitle
+        confirmMessageTemplate
+        toastStopped
+        toastFailedTemplate
+      }
       nudgeCopy {
         buttonLabel
         dialogTitle
@@ -161,6 +168,8 @@ const GroupingDetailQueryNode = graphql`
       formToastPosted
       formToastCreateFailedTemplate
       formTitleTemplate
+      formWeeklyLabel
+      formWeeklyHint
       rosterAnswersTitle
       recap {
         __typename
@@ -430,6 +439,22 @@ const GroupingDetailReopenMutationNode = graphql`
   }
 `;
 
+// Stop this grouping's weekly recurring series (future instances
+// only; the page's recurrence object exists only for managers of a
+// grouping in an active series, and stopGroupingRecurrence
+// re-verifies the manage verdict server-side).
+const GroupingDetailStopRecurrenceMutationNode = graphql`
+  mutation GroupingDetailStopRecurrenceMutation($input: StopGroupingRecurrenceInput!) {
+    stopGroupingRecurrence(input: $input) {
+      ok
+      error
+      grouping {
+        id
+      }
+    }
+  }
+`;
+
 // Merge another grouping into this one (free feature): the page's
 // merge object exists only when this grouping can take a merge and
 // the viewer may run it (server-composed candidates included), so
@@ -634,6 +659,28 @@ onError: (e: Error) => toast(fill(page.detailToastCompleteFailedTemplate ?? '', 
 // reopenGrouping): no confirmation; on success, refetch.
 const [commitReopen, restoring] = useMutation(GroupingDetailReopenMutationNode);
 
+// Stop the weekly recurring series this grouping belongs to: the
+// confirmation explains that already-generated instances stay
+// untouched; on success the page refetches (the recurrence control
+// disappears with the stopped series).
+const [showStopRecurrence, setShowStopRecurrence] = useState(false);
+const [commitStopRecurrence, stoppingRecurrence] = useMutation(GroupingDetailStopRecurrenceMutationNode);
+const doStopRecurrence = () => {
+if (!page.recurrence) return;
+commitStopRecurrence({
+variables: { input: { groupingId: g!.id } },
+onCompleted: (res: any) => {
+if (res.stopGroupingRecurrence?.ok) {
+toast(page.recurrence!.toastStopped);
+onChanged();
+} else {
+toast(fill(page.recurrence!.toastFailedTemplate ?? '', { error: res.stopGroupingRecurrence?.error || unknownErrorText }));
+}
+},
+onError: (e: Error) => toast(fill(page.recurrence!.toastFailedTemplate ?? '', { error: e.message })),
+});
+};
+
 // Merge picker: two steps inside one overlay — pick a source
 // grouping from the server-composed candidate list, then confirm
 // with the consequence copy. On success the SOURCE grouping is
@@ -816,6 +863,9 @@ verticalAlign: 'middle',
 {page.cloneAction && (
 <button onClick={openClone} style={smBtn}>{page.cloneAction.buttonLabel}</button>
 )}
+{page.recurrence && (
+<button onClick={() => setShowStopRecurrence(true)} disabled={stoppingRecurrence} style={smBtn}>{page.recurrence.buttonLabel}</button>
+)}
 {page.nudgeCopy && (
 <button onClick={() => setShowNudge(true)} style={smBtn}>{page.nudgeCopy.buttonLabel}</button>
 )}
@@ -978,6 +1028,16 @@ title={ma.completeConfirmTitle}
 message={fill(ma.completeConfirmMessageTemplate ?? '', { title: g.title })}
 onOk={() => { setConfirmComplete(false); doComplete();}}
 onCancel={() => setConfirmComplete(false)}
+okLabel={page.confirmOkLabel}
+cancelLabel={page.confirmCancelLabel}
+/>
+)}
+{showStopRecurrence && page.recurrence && (
+<ConfirmDialog
+title={page.recurrence.confirmTitle}
+message={fill(page.recurrence.confirmMessageTemplate ?? '', { title: g.title })}
+onOk={() => { setShowStopRecurrence(false); doStopRecurrence();}}
+onCancel={() => setShowStopRecurrence(false)}
 okLabel={page.confirmOkLabel}
 cancelLabel={page.confirmCancelLabel}
 />

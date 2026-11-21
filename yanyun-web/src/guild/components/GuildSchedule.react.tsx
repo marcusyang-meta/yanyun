@@ -90,6 +90,8 @@ const ScheduleQueryNode = graphql`
       formCustomFieldRequiredLabel
       formCustomFieldRemoveLabel
       formCustomFieldEmptyText
+      formWeeklyLabel
+      formWeeklyHint
       typeShortActivity
       typeShortTalent
       typeShortRace

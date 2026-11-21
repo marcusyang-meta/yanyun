@@ -268,6 +268,10 @@ export interface GroupingFormText {
   formCustomFieldEmptyText?: string;
   templateToastDeleteFailedTemplate?: string;
   templateMetaTemplate?: string;
+  // Weekly-recurrence switch copy (create mode only; the switch
+  // renders only when the hosting page selected these fields).
+  formWeeklyLabel?: string;
+  formWeeklyHint?: string;
 }
 
 interface Props {
@@ -356,6 +360,11 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
   // fields (the backend copies them onto the car at creation).
   const [fieldDrafts, setFieldDrafts] = useState<CustomFieldDraft[]>([]);
 
+  // Weekly recurrence (create mode only): when on, the created
+  // grouping becomes the first instance of a weekly series and the
+  // backend snapshots its configuration into a recurrence rule.
+  const [weekly, setWeekly] = useState(false);
+
   const dexData = useLazyLoadQuery<GroupingFormDungeonsQueryType>(
     GroupingFormDungeonsQueryNode,
     {},
@@ -420,6 +429,7 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
             slug, title: t, type: type as any, startsAt,
             dungeonId: type === 'ACTIVITY' || type === 'TOWER' || type === 'EXPLORE' ? null : (dungeonId || null),
             ...(type === 'EXPLORE' ? { maxSlots: exploreSize } : {}),
+            ...(weekly ? { weeklyRecurring: true } : {}),
             seats: [{ nickname: nickname.trim(), weapon: sect }],
             customFields: fieldInputsFromDrafts(fieldDrafts),
           },
@@ -680,6 +690,18 @@ export default function GroupingForm({ slug, text, mode, groupingId, initial, de
                 ))}
               </div>
             </div>
+            {text.formWeeklyLabel && (
+              <div style={{ marginBottom: 20 }}>
+                <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: 14, color: theme.paper, cursor: 'pointer' }}>
+                  <input type="checkbox" checked={weekly}
+                    onChange={(e) => setWeekly(e.target.checked)} />
+                  {text.formWeeklyLabel}
+                </label>
+                {text.formWeeklyHint && (
+                  <div style={{ fontSize: 12.5, color: theme.muted, marginTop: 6 }}>{text.formWeeklyHint}</div>
+                )}
+              </div>
+            )}
           </>
         )}
 

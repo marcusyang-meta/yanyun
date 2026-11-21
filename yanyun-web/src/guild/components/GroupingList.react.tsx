@@ -117,6 +117,8 @@ const GroupingListQueryNode = graphql`
             formCustomFieldRequiredLabel
             formCustomFieldRemoveLabel
             formCustomFieldEmptyText
+            formWeeklyLabel
+            formWeeklyHint
             templateSectionTitle
             templateNameLabel
             templateNamePlaceholder
