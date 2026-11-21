@@ -49,6 +49,7 @@ export const GUILD_AUDIT_ACTIONS = [
   'event.update',
   'event.delete',
   'event.merge',
+  'event.recurrence',
   'agent.join',
   'agent.leave',
   'agent.ready',

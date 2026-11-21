@@ -111,6 +111,7 @@ export abstract class ErrorsFbtUtils {
   static startTimeTooFar(fbs: FbsAPI) { return fbs("出发时间不能超过 60 天后", "Error message for squad forms, used when the departure time is more than sixty days ahead."); }
   static badMaxSlots(fbs: FbsAPI) { return fbs("联机探索人数只能选 5 或 10 人", "Error message for squad forms, used when a co-op exploration squad is submitted with a seat count other than five or ten."); }
   static groupingNotFound(fbs: FbsAPI) { return fbs("组队不存在", "Error message for missing squads, used when an operation references a squad that does not exist."); }
+  static recurrenceNotActive(fbs: FbsAPI) { return fbs("该车队没有进行中的每周固定", "Error message for stopping a weekly recurring series, used when the squad does not belong to an active weekly series."); }
   static officialEvent(fbs: FbsAPI) { return fbs("官方活动请联系管理员", "Error message for official events, used when a user tries to act on an official event squad that only admins may manage."); }
   static noCreatorRecorded(fbs: FbsAPI) { return fbs("该车队未记录车头，无法解散，请联系管理员处理", "Error message for legacy squads, used when disbanding a squad that has no recorded leader."); }
   static leaderOnlyDisband(fbs: FbsAPI) { return fbs("只有车头可以解散车队", "Error message for squad disbanding, used when someone other than the squad leader or a guild admin tries to disband the squad."); }

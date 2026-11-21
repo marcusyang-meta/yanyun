@@ -21454,6 +21454,114 @@
         }
       ],
       "types": []
+    },
+    "e9AUcW9g167wME+7ec45vQ==": {
+      "description": "Switch label for the squad form, used to make the new squad recur weekly at the same time, shown only when creating a squad.",
+      "id": "groupings/groupingForm_weeklyLabel",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Weekly recurring",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "9KhIjXs2dinDz+dmP5BuAQ==": {
+      "description": "Hint text for the weekly switch on the squad form, used to explain that a new squad is generated at the same time every week and seats open for signup again.",
+      "id": "groupings/groupingForm_weeklyHint",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "When on, the next squad is generated at the same time every week and seats open for signup again",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "X10Z5fIexb8t8jRgonOnaQ==": {
+      "description": "Button label for the squad detail page, used to stop this squad's weekly recurring series, shown to the leader or a guild admin.",
+      "id": "groupings/groupingDetail_recurrenceStopButton",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Stop weekly recurrence",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "wCSabgf7Wa7SdpU/aRb5rw==": {
+      "description": "Title text for the stop-recurrence confirmation on the squad detail page, used as the confirmation dialog heading.",
+      "id": "groupings/groupingDetail_recurrenceConfirmTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Stop weekly recurrence",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "iZLfoBXTus8qU8IRkflbKw==": {
+      "description": "Confirmation message for stopping a weekly recurring series, used in the dialog to explain that no further weekly squads are generated while squads already generated stay untouched, where {title} is the squad title.",
+      "id": "groupings/groupingDetail_recurrenceConfirmMessage",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Stop the weekly recurrence for “{title}”? No further weekly squads will be generated; squads already generated are unaffected.",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "Bn/b4EBwr4BRC27lJR7bsQ==": {
+      "description": "Toast message for the squad detail page, used after the weekly recurring series is stopped.",
+      "id": "groupings/groupingDetail_recurrenceToastStopped",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Weekly recurrence stopped",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "34K+Su7+qq8Ua3yxmrVoqg==": {
+      "description": "Toast message for the squad detail page, used when stopping the weekly recurring series fails, where {error} is the failure reason.",
+      "id": "groupings/groupingDetail_recurrenceToastFailed",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Stop failed: {error}",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "jertnq72RIlwnVoBxtBb5w==": {
+      "description": "Audit action label for the guild audit log, used when the weekly recurring series generates its next squad automatically.",
+      "id": "guilds/governance_actionEventRecurrence",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Weekly squad generated",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "RE7VoyZjA0mKak4GulO6wQ==": {
+      "description": "Error message for stopping a weekly recurring series, used when the squad does not belong to an active weekly series.",
+      "id": "platform/errors_recurrenceNotActive",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "This squad has no active weekly recurrence",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

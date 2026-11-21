@@ -80,6 +80,7 @@ export const AUDIT_ACTION_LABEL_FIELD: Record<string, string> = {
   'event.update': 'actionEventUpdate',
   'event.delete': 'actionEventDelete',
   'event.merge': 'actionEventMerge',
+  'event.recurrence': 'actionEventRecurrence',
   'agent.join': 'actionAgentJoin',
   'agent.leave': 'actionAgentLeave',
   'agent.ready': 'actionAgentReady',

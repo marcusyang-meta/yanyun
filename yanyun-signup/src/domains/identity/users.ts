@@ -22,6 +22,21 @@ export async function getUserIdByDiscordId(d1: D1Database, discordId: string): P
   return row ? Number(row.id) : null;
 }
 
+/* The audit-actor face of a user row: the Discord identity the
+ * guild audit log records (class-A Discord ID + display name).
+ * Used by system-driven writes (the weekly-recurrence cron) that
+ * act in the name of the member who set the series up. */
+export async function getUserIdentityById(
+  d1: D1Database, userId: number,
+): Promise<{ discordId: string; name: string } | null> {
+  const db = createDb(d1);
+  const row = await db.get<{ discord_id: string; username: string }>(
+    sql`SELECT ${col('discord_id')}, ${col('username')} FROM ${users} WHERE ${col('id')} = ${userId}`,
+  );
+  if (!row) return null;
+  return { discordId: String(row.discord_id || ''), name: String(row.username || '') };
+}
+
 export async function listUserIdsByDiscordIds(
   d1: D1Database, discordIds: string[],
 ): Promise<Map<string, number>> {

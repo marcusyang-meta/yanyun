@@ -118,6 +118,11 @@ export abstract class GroupingDetailFbtUtils {
   static cloneToastCloned(fbs: FbsAPI) { return fbs("已复制为新车", "Toast message for the squad detail page, used after the squad is cloned into a new squad."); }
   static cloneToastFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["复制失败：", fbs.param("error", pv(p, "error"))], "Toast message for the squad detail page, used when cloning fails, where {error} is the failure reason."); }
   static cloneToastSkipped(fbs: FbsAPI, p?: StringParams) { return fbs(["以下成员未能带入新车（请先加入名册）：", fbs.param("names", pv(p, "names"))], "Toast message for the squad detail page, used after a clone where some roster names resolved to nobody and their seats were skipped, where {names} lists the skipped members."); }
+  static recurrenceStopButton(fbs: FbsAPI) { return fbs("停止每周固定", "Button label for the squad detail page, used to stop this squad's weekly recurring series, shown to the leader or a guild admin."); }
+  static recurrenceConfirmTitle(fbs: FbsAPI) { return fbs("停止每周固定", "Title text for the stop-recurrence confirmation on the squad detail page, used as the confirmation dialog heading."); }
+  static recurrenceConfirmMessage(fbs: FbsAPI, p?: StringParams) { return fbs(["确定停止「", fbs.param("title", pv(p, "title")), "」的每周固定吗？之后不再自动生成下一周的车；已经生成的车不受影响。"], "Confirmation message for stopping a weekly recurring series, used in the dialog to explain that no further weekly squads are generated while squads already generated stay untouched, where {title} is the squad title."); }
+  static recurrenceToastStopped(fbs: FbsAPI) { return fbs("已停止每周固定", "Toast message for the squad detail page, used after the weekly recurring series is stopped."); }
+  static recurrenceToastFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["停止失败：", fbs.param("error", pv(p, "error"))], "Toast message for the squad detail page, used when stopping the weekly recurring series fails, where {error} is the failure reason."); }
   static nudgeButton(fbs: FbsAPI) { return fbs("催报名", "Button label for the squad detail page, used to open the sign-up nudge dialog with copyable text mentioning roster members who have not signed up, shown to the leader or a guild admin."); }
   static nudgeDialogTitle(fbs: FbsAPI) { return fbs("催报名", "Title text for the sign-up nudge dialog on the squad detail page, used as the heading above the generated mention text."); }
   static nudgeHintText(fbs: FbsAPI) { return fbs("复制下面的文案到 Discord 发送，就能 @ 到还没报名的伙伴。", "Hint text for the sign-up nudge dialog on the squad detail page, used to explain that copying the text into Discord mentions the members who have not signed up yet."); }
@@ -174,6 +179,8 @@ export abstract class GroupingFormFbtUtils {
   static customFieldRequiredLabel(fbs: FbsAPI) { return fbs("必填", "Checkbox label for the custom field editor, used to mark a signup field as required."); }
   static customFieldRemoveLabel(fbs: FbsAPI) { return fbs("删除", "Button label for the custom field editor, used to remove a signup field."); }
   static customFieldEmptyText(fbs: FbsAPI) { return fbs("未设置自定义字段时，成员报名只填固定信息。", "Empty-state text for the custom field editor, used when no custom fields are set to explain that signups then collect only the standard information."); }
+  static weeklyLabel(fbs: FbsAPI) { return fbs("每周固定时间", "Switch label for the squad form, used to make the new squad recur weekly at the same time, shown only when creating a squad."); }
+  static weeklyHint(fbs: FbsAPI) { return fbs("开启后，每周同一时间自动生成下一期，座位重新开放报名", "Hint text for the weekly switch on the squad form, used to explain that a new squad is generated at the same time every week and seats open for signup again."); }
 }
 
 export abstract class SeatFbtUtils {

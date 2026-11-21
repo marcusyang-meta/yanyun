@@ -536,6 +536,21 @@ export abstract class GroupingDetailFbtUtils {
 	static cloneToastSkipped(fbs: FbsRuntime, p?: StringParams) {
 		return fbs._("以下成员未能带入新车（请先加入名册）：{names}", [fbs._param("names", pv(p, "names"))], { hk: "39eOzZ" });
 	}
+	static recurrenceStopButton(fbs: FbsRuntime) {
+		return fbs._("停止每周固定", null, { hk: "48c5UA" });
+	}
+	static recurrenceConfirmTitle(fbs: FbsRuntime) {
+		return fbs._("停止每周固定", null, { hk: "3n4y3J" });
+	}
+	static recurrenceConfirmMessage(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("确定停止「{title}」的每周固定吗？之后不再自动生成下一周的车；已经生成的车不受影响。", [fbs._param("title", pv(p, "title"))], { hk: "2qLtGT" });
+	}
+	static recurrenceToastStopped(fbs: FbsRuntime) {
+		return fbs._("已停止每周固定", null, { hk: "zYpPc" });
+	}
+	static recurrenceToastFailed(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("停止失败：{error}", [fbs._param("error", pv(p, "error"))], { hk: "3J42Q1" });
+	}
 	static nudgeButton(fbs: FbsRuntime) {
 		return fbs._("催报名", null, { hk: "2kzmsk" });
 	}
@@ -707,6 +722,12 @@ export abstract class GroupingFormFbtUtils {
 	}
 	static customFieldEmptyText(fbs: FbsRuntime) {
 		return fbs._("未设置自定义字段时，成员报名只填固定信息。", null, { hk: "2PhC18" });
+	}
+	static weeklyLabel(fbs: FbsRuntime) {
+		return fbs._("每周固定时间", null, { hk: "4G5KuG" });
+	}
+	static weeklyHint(fbs: FbsRuntime) {
+		return fbs._("开启后，每周同一时间自动生成下一期，座位重新开放报名", null, { hk: "26Tghp" });
 	}
 }
 export abstract class SeatFbtUtils {
@@ -2127,6 +2148,9 @@ export abstract class ErrorsFbtUtils {
 	}
 	static groupingNotFound(fbs: FbsRuntime) {
 		return fbs._("组队不存在", null, { hk: "2pu7yf" });
+	}
+	static recurrenceNotActive(fbs: FbsRuntime) {
+		return fbs._("该车队没有进行中的每周固定", null, { hk: "21rJEG" });
 	}
 	static officialEvent(fbs: FbsRuntime) {
 		return fbs._("官方活动请联系管理员", null, { hk: "2HWqG3" });
@@ -4684,6 +4708,9 @@ export abstract class GovernanceFbtUtils {
 	static actionEventMerge(fbs: FbsRuntime) {
 		return fbs._("合并车队", null, { hk: "12Z1VP" });
 	}
+	static actionEventRecurrence(fbs: FbsRuntime) {
+		return fbs._("生成每周固定车", null, { hk: "2A9Q6E" });
+	}
 	static actionAgentJoin(fbs: FbsRuntime) {
 		return fbs._("经 Agent 报名", null, { hk: "2GbMtA" });
 	}
@@ -5700,6 +5727,11 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"groupingDetail_cloneToastCloned": GroupingDetailFbtUtils.cloneToastCloned,
 	"groupingDetail_cloneToastFailed": GroupingDetailFbtUtils.cloneToastFailed,
 	"groupingDetail_cloneToastSkipped": GroupingDetailFbtUtils.cloneToastSkipped,
+	"groupingDetail_recurrenceStopButton": GroupingDetailFbtUtils.recurrenceStopButton,
+	"groupingDetail_recurrenceConfirmTitle": GroupingDetailFbtUtils.recurrenceConfirmTitle,
+	"groupingDetail_recurrenceConfirmMessage": GroupingDetailFbtUtils.recurrenceConfirmMessage,
+	"groupingDetail_recurrenceToastStopped": GroupingDetailFbtUtils.recurrenceToastStopped,
+	"groupingDetail_recurrenceToastFailed": GroupingDetailFbtUtils.recurrenceToastFailed,
 	"groupingDetail_nudgeButton": GroupingDetailFbtUtils.nudgeButton,
 	"groupingDetail_nudgeDialogTitle": GroupingDetailFbtUtils.nudgeDialogTitle,
 	"groupingDetail_nudgeHintText": GroupingDetailFbtUtils.nudgeHintText,
@@ -5753,6 +5785,8 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"groupingForm_customFieldRequiredLabel": GroupingFormFbtUtils.customFieldRequiredLabel,
 	"groupingForm_customFieldRemoveLabel": GroupingFormFbtUtils.customFieldRemoveLabel,
 	"groupingForm_customFieldEmptyText": GroupingFormFbtUtils.customFieldEmptyText,
+	"groupingForm_weeklyLabel": GroupingFormFbtUtils.weeklyLabel,
+	"groupingForm_weeklyHint": GroupingFormFbtUtils.weeklyHint,
 	"seat_emptyJoin": SeatFbtUtils.emptyJoin,
 	"seat_empty": SeatFbtUtils.empty,
 	"seat_modalTitle": SeatFbtUtils.modalTitle,
@@ -6206,6 +6240,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors_startTimeTooFar": ErrorsFbtUtils.startTimeTooFar,
 	"errors_badMaxSlots": ErrorsFbtUtils.badMaxSlots,
 	"errors_groupingNotFound": ErrorsFbtUtils.groupingNotFound,
+	"errors_recurrenceNotActive": ErrorsFbtUtils.recurrenceNotActive,
 	"errors_officialEvent": ErrorsFbtUtils.officialEvent,
 	"errors_noCreatorRecorded": ErrorsFbtUtils.noCreatorRecorded,
 	"errors_leaderOnlyDisband": ErrorsFbtUtils.leaderOnlyDisband,
@@ -7042,6 +7077,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"governance_actionEventUpdate": GovernanceFbtUtils.actionEventUpdate,
 	"governance_actionEventDelete": GovernanceFbtUtils.actionEventDelete,
 	"governance_actionEventMerge": GovernanceFbtUtils.actionEventMerge,
+	"governance_actionEventRecurrence": GovernanceFbtUtils.actionEventRecurrence,
 	"governance_actionAgentJoin": GovernanceFbtUtils.actionAgentJoin,
 	"governance_actionAgentLeave": GovernanceFbtUtils.actionAgentLeave,
 	"governance_actionAgentReady": GovernanceFbtUtils.actionAgentReady,

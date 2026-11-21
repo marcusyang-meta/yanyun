@@ -47,6 +47,7 @@ id = typeCode * 1_000_000_000 + dayIndex * 100_000 + sequence
 | 15 | rotation advice record | `rotation_advice_records` |
 | 16 | grouping recap | `grouping_recaps` |
 | 17 | combat encounter | `combat_encounters` |
+| 18 | grouping recurrence | `grouping_recurrences` |
 | 20 | guild announcement | `guild_announcements` |
 | 30 | gear item | `user_gear_items` |
 | 31 | gear build | `user_gear_builds` |
@@ -74,8 +75,8 @@ id = typeCode * 1_000_000_000 + dayIndex * 100_000 + sequence
 | 83 | OAuth authorization code | `oauth_auth_codes` |
 | 90–99 | RESERVED extension segment | — |
 
-Free segments for future entities: 03–09 (platform roots), 17–19,
-21–29, 33–39, 49, 54–59, 63–69, 71–79, 81–89.
+Free segments for future entities: 03–09 (platform roots), 19,
+21–29, 33–39, 49, 54–59, 63–69, 71–79, 84–89.
 
 Codes 15, 16, 32, 47 and 48 were assigned when this migration was
 rebased over the premium wave (migrations 0027/0029/0034/0035 landed

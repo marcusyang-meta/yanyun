@@ -56,6 +56,8 @@ export const FORM_TEXT_SPEC = [
   ['formCustomFieldRequiredLabel', 'groupingForm_customFieldRequiredLabel'],
   ['formCustomFieldRemoveLabel', 'groupingForm_customFieldRemoveLabel'],
   ['formCustomFieldEmptyText', 'groupingForm_customFieldEmptyText'],
+  ['formWeeklyLabel', 'groupingForm_weeklyLabel'],
+  ['formWeeklyHint', 'groupingForm_weeklyHint'],
 ];
 export const TYPE_SHORT_SPEC = [
   ['typeShortActivity', 'groupingType_shortActivity'],

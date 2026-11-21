@@ -82,6 +82,11 @@ export type GroupingsStringKey =
   | 'groupingDetail_cloneToastCloned'
   | 'groupingDetail_cloneToastFailed'
   | 'groupingDetail_cloneToastSkipped'
+  | 'groupingDetail_recurrenceStopButton'
+  | 'groupingDetail_recurrenceConfirmTitle'
+  | 'groupingDetail_recurrenceConfirmMessage'
+  | 'groupingDetail_recurrenceToastStopped'
+  | 'groupingDetail_recurrenceToastFailed'
   | 'groupingDetail_nudgeButton'
   | 'groupingDetail_nudgeDialogTitle'
   | 'groupingDetail_nudgeHintText'
@@ -135,6 +140,8 @@ export type GroupingsStringKey =
   | 'groupingForm_customFieldRequiredLabel'
   | 'groupingForm_customFieldRemoveLabel'
   | 'groupingForm_customFieldEmptyText'
+  | 'groupingForm_weeklyLabel'
+  | 'groupingForm_weeklyHint'
   | 'seat_emptyJoin'
   | 'seat_empty'
   | 'seat_modalTitle'
@@ -457,6 +464,11 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingDetail_cloneToastCloned',
   'groupingDetail_cloneToastFailed',
   'groupingDetail_cloneToastSkipped',
+  'groupingDetail_recurrenceStopButton',
+  'groupingDetail_recurrenceConfirmTitle',
+  'groupingDetail_recurrenceConfirmMessage',
+  'groupingDetail_recurrenceToastStopped',
+  'groupingDetail_recurrenceToastFailed',
   'groupingDetail_nudgeButton',
   'groupingDetail_nudgeDialogTitle',
   'groupingDetail_nudgeHintText',
@@ -510,6 +522,8 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'groupingForm_customFieldRequiredLabel',
   'groupingForm_customFieldRemoveLabel',
   'groupingForm_customFieldEmptyText',
+  'groupingForm_weeklyLabel',
+  'groupingForm_weeklyHint',
   'seat_emptyJoin',
   'seat_empty',
   'seat_modalTitle',
