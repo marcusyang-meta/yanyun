@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<73bedb4864e7f800d6135cb717eaa1e3>>
+ * @generated SignedSource<<e2d57910993776b69780574c556257d5>>
  * @lightSyntaxTransform
  */
 
@@ -19,6 +19,7 @@ export type CreateGroupingInput = {
   startsAt: string;
   title: string;
   type: GroupingType;
+  weeklyRecurring?: boolean | null | undefined;
 };
 export type SeatInput = {
   nickname: string;
