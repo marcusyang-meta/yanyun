@@ -91,6 +91,7 @@ export type PlatformStringKey =
   | 'errors_groupingFull'
   | 'errors_lastSeatHealer'
   | 'errors_alreadyJoined'
+  | 'errors_alreadyBookedThisWeek'
   | 'errors_seatNotFound'
   | 'errors_notSeated'
   | 'errors_reminderOffsetsInvalid'
@@ -423,6 +424,7 @@ export const PLATFORM_STRING_KEYS: readonly PlatformStringKey[] = [
   'errors_groupingFull',
   'errors_lastSeatHealer',
   'errors_alreadyJoined',
+  'errors_alreadyBookedThisWeek',
   'errors_seatNotFound',
   'errors_notSeated',
   'errors_reminderOffsetsInvalid',

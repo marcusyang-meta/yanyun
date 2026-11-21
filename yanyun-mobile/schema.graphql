@@ -678,6 +678,7 @@ type GroupingDetailPage {
   seatToastLeaveFailedTemplate: String!
   seatLeaveConfirmTitle: String!
   seatLeaveConfirmMessageTemplate: String!
+  seatWeekDuplicateTitle: String!
   detailReadyProgressTemplate: String!
   seatReadyLabel: String!
   seatReadyActionLabel: String!
@@ -2136,6 +2137,7 @@ input JoinGroupingInput {
   weapon: String!
   seatIndex: Int!
   forDiscordId: ID
+  confirmWeekDuplicate: Boolean
   answers: [SignupAnswerInput!]
 }
 

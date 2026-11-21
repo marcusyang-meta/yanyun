@@ -136,6 +136,7 @@ export abstract class ErrorsFbtUtils {
   static groupingFull(fbs: FbsAPI) { return fbs("名额已满或报名已截止", "Error message for squad signup, used when the squad is full or its signup has closed."); }
   static lastSeatHealer(fbs: FbsAPI) { return fbs("最后一个名额需要奶", "Error message for squad signup, used when the last remaining seat must be filled by a healer and the signup is not one."); }
   static alreadyJoined(fbs: FbsAPI) { return fbs("已报过名", "Error message for squad signup, used when a member signs up for a squad they already sit in."); }
+  static alreadyBookedThisWeek(fbs: FbsAPI, p?: StringParams) { return fbs(["本周你已报名『", fbs.param("title", pv(p, "title")), "』（", fbs.param("time", pv(p, "time")), "），确定还要报名这辆吗？"], "Confirmation prompt for squad signup, used when a member who already holds a seat in another squad in the same week signs up for this one and must confirm the second signup, where {title} is the other squad's title and {time} is its start time."); }
   static seatNotFound(fbs: FbsAPI) { return fbs("未找到该报名", "Error message for seat operations, used when the referenced signup seat does not exist."); }
   static notSeated(fbs: FbsAPI) { return fbs("你还没有落座这辆车", "Error message for seat operations, used when a member acts on a squad they have not signed up for, such as toggling the ready state."); }
   static reminderOffsetsInvalid(fbs: FbsAPI) { return fbs("提醒提前量不在可选范围内", "Error message for reminder settings, used when submitted reminder lead times fall outside the allowed set."); }

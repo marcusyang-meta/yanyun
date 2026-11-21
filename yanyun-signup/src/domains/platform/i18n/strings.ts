@@ -779,6 +779,9 @@ export abstract class SeatFbtUtils {
 	static leaveConfirmMessage(fbs: FbsRuntime, p?: StringParams) {
 		return fbs._("确定取消「{nickname}」的报名吗？", [fbs._param("nickname", pv(p, "nickname"))], { hk: "TKeEq" });
 	}
+	static weekDuplicateTitle(fbs: FbsRuntime) {
+		return fbs._("本周已报名", null, { hk: "1IWVTP" });
+	}
 	static roleHealer(fbs: FbsRuntime) {
 		return fbs._("奶", null, { hk: "376NYU" });
 	}
@@ -2199,6 +2202,9 @@ export abstract class ErrorsFbtUtils {
 	}
 	static alreadyJoined(fbs: FbsRuntime) {
 		return fbs._("已报过名", null, { hk: "3FzZxW" });
+	}
+	static alreadyBookedThisWeek(fbs: FbsRuntime, p?: StringParams) {
+		return fbs._("本周你已报名『{title}』（{time}），确定还要报名这辆吗？", [fbs._param("title", pv(p, "title")), fbs._param("time", pv(p, "time"))], { hk: "gDes0" });
 	}
 	static seatNotFound(fbs: FbsRuntime) {
 		return fbs._("未找到该报名", null, { hk: "3fPe8z" });
@@ -5770,6 +5776,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"seat_toastLeaveFailed": SeatFbtUtils.toastLeaveFailed,
 	"seat_leaveConfirmTitle": SeatFbtUtils.leaveConfirmTitle,
 	"seat_leaveConfirmMessage": SeatFbtUtils.leaveConfirmMessage,
+	"seat_weekDuplicateTitle": SeatFbtUtils.weekDuplicateTitle,
 	"seat_roleHealer": SeatFbtUtils.roleHealer,
 	"seat_roleDps": SeatFbtUtils.roleDps,
 	"seat_roleFlex": SeatFbtUtils.roleFlex,
@@ -6224,6 +6231,7 @@ export const STRING_FNS: Record<string, StringFn> = {
 	"errors_groupingFull": ErrorsFbtUtils.groupingFull,
 	"errors_lastSeatHealer": ErrorsFbtUtils.lastSeatHealer,
 	"errors_alreadyJoined": ErrorsFbtUtils.alreadyJoined,
+	"errors_alreadyBookedThisWeek": ErrorsFbtUtils.alreadyBookedThisWeek,
 	"errors_seatNotFound": ErrorsFbtUtils.seatNotFound,
 	"errors_notSeated": ErrorsFbtUtils.notSeated,
 	"errors_reminderOffsetsInvalid": ErrorsFbtUtils.reminderOffsetsInvalid,

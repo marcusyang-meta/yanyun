@@ -1515,6 +1515,10 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "fr": "Annuler l’inscription de « {nickname} » ?",
       "zh-TW": "確定取消「{nickname}」的報名嗎？"
     },
+    "weekDuplicateTitle": {
+      "zh-CN": "本周已报名",
+      "en": "Already booked this week"
+    },
     "roleHealer": {
       "zh-CN": "奶",
       "en": "Healer",
@@ -4547,6 +4551,10 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Ya estás inscrito",
       "fr": "Déjà inscrit",
       "zh-TW": "已報過名"
+    },
+    "alreadyBookedThisWeek": {
+      "zh-CN": "本周你已报名『{title}』（{time}），确定还要报名这辆吗？",
+      "en": "You've already signed up for “{title}” ({time}) this week. Are you sure you want to sign up for this one too?"
     },
     "seatNotFound": {
       "zh-CN": "未找到该报名",

@@ -436,6 +436,33 @@ export async function listCalendarSeatsByDiscordId(d1: D1Database, discordId: st
   return rows || [];
 }
 
+export interface BookedCarRow {
+  event_id: number;
+  event_title: string;
+  event_status: string;
+  starts_at: string | null;
+  starts_at_utc: number | null;
+}
+
+/** Every seat stamped with this user's discord_id, joined with the
+ * car fields the weekly-duplicate signup check reads (title / status
+ * / start). Which cars count (the target car itself, drafts, the
+ * target's week window) is the caller's filter, mirroring
+ * listCalendarSeatsByDiscordId; this repo only reads. Disbanded cars
+ * have no rows at all (the disband cascade deletes them), so they can
+ * never appear here. */
+export async function listBookedCarsByDiscordId(d1: D1Database, discordId: string): Promise<BookedCarRow[]> {
+  const db = createDb(d1);
+  const rows = await db.all<BookedCarRow>(
+    sql`SELECT ${events.id} AS event_id, ${events.title} AS event_title,
+               ${events.status} AS event_status, ${events.startsAt} AS starts_at,
+               ${events.startsAtUtc} AS starts_at_utc
+        FROM ${signups} JOIN ${events} ON ${events.id} = ${signups.eventId}
+        WHERE ${signups.discordId} = ${discordId} ORDER BY ${events.id} ASC`,
+  );
+  return rows || [];
+}
+
 /** Deletion Q2: seats are anonymized in place, never removed — the
  * car's roster history stays intact, only the identity link is cut:
  * nickname becomes the tombstone text, the discord stamp is nulled,

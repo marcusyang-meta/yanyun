@@ -49,15 +49,23 @@ export function substituteForVersion(blocks: any, version: number, makeFallback:
 /* ---------- Time / week window ---------- */
 // Week window: Monday 05:00 Beijing time, half-open [start, start+7d);
 // same algorithm as ogWeekWindowUtc; weekOffset shifts whole weeks.
-export function weekWindowUtc(weekOffset = 0): [number, number] {
-  const now = Math.floor(Date.now() / 1000);
-  const cst = now + 8 * 3600;
+// weekWindowUtcAt is the same frame anchored at an arbitrary instant
+// (the week a given moment belongs to); weekWindowUtc is its
+// current-week form, so every consumer shares one week definition.
+export function weekWindowUtcAt(epochSec: number): [number, number] {
+  const cst = epochSec + 8 * 3600;
   const d = new Date(cst * 1000);
   const dayStart = Date.UTC(d.getUTCFullYear(), d.getUTCMonth(), d.getUTCDate()) / 1000;
   let monday = dayStart - ((d.getUTCDay() + 6) % 7) * 86400 + 5 * 3600;
   if (cst < monday) monday -= 7 * 86400;
-  const startUtc = monday - 8 * 3600 + (weekOffset | 0) * 7 * 86400;
+  const startUtc = monday - 8 * 3600;
   return [startUtc, startUtc + 7 * 86400];
+}
+
+export function weekWindowUtc(weekOffset = 0): [number, number] {
+  const [start, end] = weekWindowUtcAt(Math.floor(Date.now() / 1000));
+  const shift = (weekOffset | 0) * 7 * 86400;
+  return [start + shift, end + shift];
 }
 
 // events row -> epoch seconds (starts_at_utc first; text follows parseStartsAt semantics)

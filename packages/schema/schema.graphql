@@ -844,6 +844,7 @@ type GroupingDetailPage {
   seatToastLeaveFailedTemplate: String!
   seatLeaveConfirmTitle: String!
   seatLeaveConfirmMessageTemplate: String!
+  seatWeekDuplicateTitle: String!
   # 就位 (发车提醒) 文案
   detailReadyProgressTemplate: String!
   seatReadyLabel: String!
@@ -2449,6 +2450,10 @@ input JoinGroupingInput {
   # 代报名: 被代报成员的 Discord ID (必须在本百业名册内, 服务端复验);
   # 缺省 = 为自己报名, 座位恒落本人身份戳。
   forDiscordId: ID
+  # 本周重复报名确认: 自报时若本周内已在另一辆车落座, 服务端先以
+  # alreadyBookedThisWeek 拒绝; 客户端经用户二次确认后置 true 重发。
+  # 代报名不吃此检查。
+  confirmWeekDuplicate: Boolean
   # 自定义报名表答案 (按本车 customFields 的 fieldId 作答; 必填与
   # 单选合法性由服务端按字段定义复验)
   answers: [SignupAnswerInput!]
