@@ -58,6 +58,9 @@ import {
   updateSignupWeaponRoleByUid, updateSignupReadyByEventDiscord,
 } from './index.ts';
 import { planCloneSeats, nextCloneDefaultStart } from './clone.ts';
+import {
+  createRecurrenceRuleForEvent, getActiveRecurrenceForEvent, stopRecurrenceRule,
+} from './recurrence.ts';
 import { fmtCarTimeDualZones } from './car-tz.ts';
 import {
   listGearItems, insertGearItem, updateGearItemRow, deleteGearItemRow,
@@ -580,6 +583,24 @@ export class GroupingDetailPageShell extends ShellBase {
         this.data.starts_at_utc ? Number(this.data.starts_at_utc) : null,
         Math.floor(Date.now() / 1000), this.ctx.tz ?? '',
       )),
+    };
+  }
+  // Weekly recurrence control: composed only for viewers who may
+  // manage this car (the same verdict as manageActions) and only
+  // while the car belongs to an active series; everyone else gets
+  // null and the stop entry never renders. stopGroupingRecurrence
+  // re-verifies in the mutation.
+  async genRecurrence(){
+    const verdict = await this.genManageVerdict();
+    if (!verdict.canManage) return null;
+    const rule = await getActiveRecurrenceForEvent(this.db, this.data);
+    if (!rule) return null;
+    return {
+      buttonLabel: this.t('groupingDetail_recurrenceStopButton'),
+      confirmTitle: this.t('groupingDetail_recurrenceConfirmTitle'),
+      confirmMessageTemplate: this.t('groupingDetail_recurrenceConfirmMessage'),
+      toastStopped: this.t('groupingDetail_recurrenceToastStopped'),
+      toastFailedTemplate: this.t('groupingDetail_recurrenceToastFailed'),
     };
   }
   // Sign-up nudge action set: composed only for viewers who may
@@ -1202,6 +1223,18 @@ export const groupingsResolvers = {
           event_id: eventId, nickname: p.nickname, uid: newUid(), role: roleOf(p.weapon), weapon: p.weapon, discord_id: p.discord_id,
         })));
       }
+      // Weekly recurrence (migration 0044): the create form's
+      // weekly switch turns this car into a series — snapshot its
+      // configuration into a rule and link the car as the first
+      // instance; the daily cron materializes the following weeks
+      // from the rule (see recurrence.ts).
+      if (input.weeklyRecurring) {
+        await createRecurrenceRuleForEvent(db, {
+          tenant: tenantRow.id, eventId, title, type, dungeon: dungeonName,
+          maxSlots, fieldDefs: fieldParse.defs, startsAtUtc: utc,
+          tz: capturedTzOrNull(ctx.tz), creatorUserId: ctx.user!.userId, nowSec: now,
+        });
+      }
       const ev = await getEventRow(db, eventId);
       publishGroupingEvent(ctx, slug, eventId, 'created');
       return new GroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, ev) });
@@ -1276,6 +1309,32 @@ export const groupingsResolvers = {
       const nev = await getEventRow(db, eventId);
       publishGroupingEvent(ctx, slug, eventId, 'created');
       return new CloneGroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, nev), skippedNames: plan.skippedNames });
+    },
+
+    /* ---------- Stop a weekly recurrence series ----------
+     * Ends future materialization for the series this car belongs
+     * to; instances already on the calendar (including this car)
+     * stay ordinary cars. Gate: the car's own manage verdict — the
+     * same verdict the detail page's recurrence control is
+     * composed from — re-run here regardless of what the clients
+     * rendered. */
+    stopGroupingRecurrence: async (_: any, { input }: any, ctx: Context) => {
+      const db = ctx.env.DB;
+      if (!rateLimit('mut:stoprecurrence:' + getClientIp(ctx.request), 10)) {
+        return gFail(ctx, 'rateLimited');
+      }
+      const gid = parseInt(input.groupingId, 10) || 0;
+      const ev = await getEventRow(db, gid);
+      if (!ev) return gFail(ctx, 'groupingNotFound');
+      const manage = await groupingManageGate(db, ctx.user, ctx.request, vcOf(ctx), ev, ctx.env);
+      if (manage.writeCode) return gFail(ctx, manage.writeCode);
+      if (!manage.canManage) {
+        return gFail(ctx, ev.creator_user_id ? 'leaderOnlyEdit' : 'noCreatorRecordedEdit');
+      }
+      const rule = await getActiveRecurrenceForEvent(db, ev);
+      if (!rule) return gFail(ctx, 'recurrenceNotActive');
+      await stopRecurrenceRule(db, rule.id, Math.floor(Date.now() / 1000));
+      return new GroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, ev) });
     },
 
     /* ---------- Grouping templates (guild-shared) ---------- */
@@ -2130,6 +2189,7 @@ export const groupingsResolvers = {
     shareImageUrl: (p: GroupingDetailPageShell) => p.genShareImageUrl(),
     templateSave: (p: any) => p.genTemplateSave(),
     cloneAction: (p: any) => p.genCloneAction(),
+    recurrence: (p: any) => p.genRecurrence(),
     nudgeCopy: (p: any) => p.genNudgeCopy(),
     blocks: (p: any, args: any) => p.genBlocks(args),
     manageActions: (p: any) => p.genManageActions(),

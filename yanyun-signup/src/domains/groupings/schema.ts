@@ -52,9 +52,51 @@ export const events = sqliteTable('events', {
   // guilds + the leader-controlled visitor-seat quota (0 = closed).
   allyVisible: integer('ally_visible').notNull().default(0),
   visitorSlots: integer('visitor_slots').notNull().default(0),
+  // Weekly recurrence [alt: 0044]: the grouping_recurrences rule
+  // this instance was materialized from (the series' first instance
+  // carries it too); NULL for every non-series car. The unique
+  // (recurrence_id, starts_at_utc) index states the
+  // one-instance-per-week rule in the schema.
+  recurrenceId: integer('recurrence_id'),
 }, (t) => [
   index('idx_events_tenant').on(t.tenant, t.type, t.status),
   index('idx_events_utc').on(t.tenant, t.startsAtUtc),
+  uniqueIndex('events_recurrence_start_unique').on(t.recurrenceId, t.startsAtUtc),
+]);
+
+/* ---------------- grouping_recurrences [migration 0044] ---------
+ * Weekly recurring groupings: one row per series a leader switched
+ * on at car creation. The row snapshots the car's configuration
+ * (the clone-copy set: title / type / dungeon / capacity /
+ * ally-sharing, plus the F7 custom-field definitions as a JSON
+ * document — configuration data, never UI copy), the weekday and
+ * home timezone of the first instance, and last_starts_at_utc, the
+ * start of the chain's most recent instance. The daily cron keeps
+ * exactly one future instance per active rule (rolling one-ahead);
+ * instances are ordinary events rows linked back via
+ * events.recurrence_id and always start with empty seats. status
+ * 'active' | 'stopped' — stopping ends future materialization only,
+ * already-materialized instances stay ordinary cars. */
+export const groupingRecurrences = sqliteTable('grouping_recurrences', {
+  id: integer('id').primaryKey(),
+  tenant: integer('tenant').notNull().default(0),
+  sourceEventId: integer('source_event_id').notNull().default(0),
+  title: text('title').notNull().default(''),
+  type: text('type').notNull().default('activity'),
+  dungeon: text('dungeon').notNull().default(''),
+  maxSlots: integer('max_slots').notNull().default(10),
+  allyVisible: integer('ally_visible').notNull().default(0),
+  visitorSlots: integer('visitor_slots').notNull().default(0),
+  customFieldsJson: text('custom_fields_json').notNull().default('[]'),
+  weekday: integer('weekday').notNull().default(0),
+  tz: text('tz'),
+  lastStartsAtUtc: integer('last_starts_at_utc').notNull().default(0),
+  status: text('status').notNull().default('active'),
+  creatorUserId: integer('creator_user_id').notNull().default(0),
+  createdAt: integer('created_at').notNull().default(0),
+  updatedAt: integer('updated_at').notNull().default(0),
+}, (t) => [
+  index('idx_grouping_recurrences_tenant').on(t.tenant, t.status),
 ]);
 
 /* ---------------- signups [ddl chain baseline] --------------------- */

@@ -12,6 +12,7 @@ export * from './polls.ts';
 export * from './customfields.ts';
 export * from './signups.ts';
 export * from './results.ts';
+export * from './recurrence.ts';
 export * from './recaps.ts';
 export * from './recap-service.ts';
 export * from './combat-reports.ts';

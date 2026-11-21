@@ -43,6 +43,7 @@ export interface EventRow {
   reminder_error: string | null;
   ally_visible: number;
   visitor_slots: number;
+  recurrence_id: number | null;
 }
 
 /* System default creator label written by the member create-grouping
@@ -226,6 +227,17 @@ export async function listEventsByTenant(d1: D1Database, tenant: number): Promis
   return rows || [];
 }
 
+/* Weekly recurrence [0044]: every instance materialized from one
+ * rule, oldest first — the recurrence service walks this chain to
+ * find the latest start. Deleted (disbanded) instances simply do
+ * not appear; the rule's own last_starts_at_utc pointer is the
+ * chain's memory for those. */
+export async function listEventsByRecurrence(d1: D1Database, recurrenceId: number): Promise<EventRow[]> {
+  const db = createDb(d1);
+  const rows = await db.all<EventRow>(sql`SELECT * FROM ${events} WHERE ${col('recurrence_id')} = ${recurrenceId} ORDER BY ${col('starts_at_utc')} ASC, ${col('id')} ASC`);
+  return rows || [];
+}
+
 /* OG guild card: this week's recruiting activity count (completed/draft excluded). */
 export async function countActivityEventsInWindow(
   d1: D1Database, tenant: number, fromUtc: number, toUtc: number,
@@ -336,7 +348,7 @@ const EVENT_COLUMNS = new Set([
   'tenant', 'title', 'type', 'description', 'starts_at', 'starts_at_utc',
   'meet_info', 'max_slots', 'status', 'origin', 'created_by', 'manage_code',
   'dungeon', 'creator_user_id', 'created_tz', 'reminder_sent_at', 'reminder_error',
-  'ally_visible', 'visitor_slots',
+  'ally_visible', 'visitor_slots', 'recurrence_id',
 ]);
 
 function checkedColumns(row: Record<string, unknown>): string[] {

@@ -444,6 +444,8 @@ type GroupingListPage {
   formCustomFieldRequiredLabel: String!
   formCustomFieldRemoveLabel: String!
   formCustomFieldEmptyText: String!
+  formWeeklyLabel: String!
+  formWeeklyHint: String!
   # 车队模板区文案 (建车表单内): 模板行本身的改删文案在模板的 manageActions 上
   templateSectionTitle: String!
   templateNameLabel: String!
@@ -559,6 +561,18 @@ type GroupingCloneAction {
   defaultStartsAt: String!
 }
 
+# 详情页「停止每周固定」控制对象: 仅当观看者可管理本车、且本车属于
+# 一个进行中的每周系列时存在; 否则为 null, 客户端不渲染入口。
+# stopGroupingRecurrence mutation 处独立复验。停止只结束未来的自动
+# 生成, 已经生成的各期车 (含本车) 不受影响。
+type GroupingRecurrenceControl {
+  buttonLabel: String!
+  confirmTitle: String!
+  confirmMessageTemplate: String!
+  toastStopped: String!
+  toastFailedTemplate: String!
+}
+
 # 详情页「催报名」动作对象 (免费功能): 仅当观看者可管理本车时存在
 # (车头本人, 或本百业管理员), 否则为 null, 客户端不渲染入口。
 # text 是服务端整段生成好的催报名文案: 本百业名册中尚未报名本车
@@ -592,6 +606,11 @@ input CloneGroupingInput {
   title: String
   # 新车出发时刻 (epoch 秒字符串, 与 CreateGroupingInput.startsAt 同口径)。
   startsAt: String!
+}
+
+input StopGroupingRecurrenceInput {
+  # 任一属于该系列的车: 服务端由车找到它所属的进行中系列并停止。
+  groupingId: ID!
 }
 
 type GroupingTemplatePayload {
@@ -746,6 +765,9 @@ type GroupingDetailPage {
   # 再来一车动作对象: 仅当观看者可管理本车时存在 (车头 / 本百业管理员),
   # 否则 null; 默认出发时刻由服务端按观看者时区算好, mutation 处独立复验。
   cloneAction: GroupingCloneAction
+  # 停止每周固定控制对象: 仅当观看者可管理本车且本车属于进行中的
+  # 每周系列时存在, 否则为 null; mutation 处独立复验。
+  recurrence: GroupingRecurrenceControl
   # 催报名动作对象: 仅当观看者可管理本车时存在 (车头 / 本百业管理员),
   # 否则 null; 文案由服务端按名册减去本车已报名 (以座位上的身份戳
   # 判定, 与 P8 定向催报名的 'all' 段同一口径) 整段生成, 客户端只复制。
@@ -905,6 +927,8 @@ type GroupingDetailPage {
   formCustomFieldRequiredLabel: String!
   formCustomFieldRemoveLabel: String!
   formCustomFieldEmptyText: String!
+  formWeeklyLabel: String!
+  formWeeklyHint: String!
 }
 
 # ============ AI activity recaps (Premium T3, P18) ============
@@ -2207,6 +2231,8 @@ type GuildSchedulePage {
   formCustomFieldRequiredLabel: String!
   formCustomFieldRemoveLabel: String!
   formCustomFieldEmptyText: String!
+  formWeeklyLabel: String!
+  formWeeklyHint: String!
   typeShortActivity: String!
   typeShortTalent: String!
   typeShortRace: String!
@@ -2347,6 +2373,7 @@ type Mutation {
   # 组队（无管理码，人人可管；唯一例外：编辑/解散/完成/恢复仅车头或本百业管理员可为）
   createGrouping(input: CreateGroupingInput!): GroupingPayload!
   cloneGrouping(input: CloneGroupingInput!): CloneGroupingPayload!  # 再来一车: 复制配置与座位名单为新车; 仅原车车头或本百业管理员, 服务端复验
+  stopGroupingRecurrence(input: StopGroupingRecurrenceInput!): GroupingPayload!  # 停止每周固定: 只停未来生成, 已生成的车不受影响; 仅该车可管理者, 服务端复验
   updateGrouping(id: ID!, input: UpdateGroupingInput!): GroupingPayload!
   disbandGrouping(id: ID!): DeletePayload!  # 解散车队：仅车头或本百业管理员可为，服务端复验
   completeGrouping(id: ID!): GroupingPayload!  # 完成车队：仅车头或本百业管理员可为，服务端复验；完成车不进列表、不发提醒
@@ -2417,6 +2444,11 @@ input CreateGroupingInput {
   # 自定义报名表字段: 直接定义, 或由客户端从所选模板带入 (模板字段
   # 在建车时被复制为本车自己的字段行, 之后与模板互不影响)
   customFields: [CustomFieldInput!]
+  # 每周固定时间: true 时本车成为一个每周系列的第一期 — 服务端把
+  # 本车配置快照为一条周期规则, 之后每周同一时间 (以本车出发时刻
+  # 的时区墙钟为准) 自动生成下一期 (空座位重新报名); 缺省/ false
+  # 为普通单次车。系列可在任一期车的详情页由可管理者停止。
+  weeklyRecurring: Boolean
 }
 
 input SeatInput {

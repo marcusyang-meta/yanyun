@@ -612,6 +612,7 @@ export abstract class GovernanceFbtUtils {
   static actionEventUpdate(fbs: FbsAPI) { return fbs("修改活动", "Audit action label for the guild audit log, used when an admin event is edited."); }
   static actionEventDelete(fbs: FbsAPI) { return fbs("删除活动", "Audit action label for the guild audit log, used when an admin event is deleted."); }
   static actionEventMerge(fbs: FbsAPI) { return fbs("合并车队", "Audit action label for the guild audit log, used when one squad is merged into another and the source squad is disbanded."); }
+  static actionEventRecurrence(fbs: FbsAPI) { return fbs("生成每周固定车", "Audit action label for the guild audit log, used when the weekly recurring series generates its next squad automatically."); }
   static actionAgentJoin(fbs: FbsAPI) { return fbs("经 Agent 报名", "Audit action label for the guild audit log, used when a member's authorized agent signs them up for a squad."); }
   static actionAgentLeave(fbs: FbsAPI) { return fbs("经 Agent 退报", "Audit action label for the guild audit log, used when a member's authorized agent withdraws their signup from a squad."); }
   static actionAgentReady(fbs: FbsAPI) { return fbs("经 Agent 调整就位", "Audit action label for the guild audit log, used when a member's authorized agent toggles their ready state in a squad."); }

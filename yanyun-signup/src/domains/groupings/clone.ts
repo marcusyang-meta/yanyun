@@ -100,11 +100,11 @@ export async function planCloneSeats(
  * (the create form's default hour) today, or tomorrow when today's
  * 20:00 has already passed. */
 
-interface ZonedParts { year: number; month: number; day: number; weekday: number; hour: number; minute: number; second: number }
+export interface ZonedParts { year: number; month: number; day: number; weekday: number; hour: number; minute: number; second: number }
 
 const WEEKDAY_INDEX: Record<string, number> = { Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6 };
 
-function zonedParts(epochSec: number, tz: string): ZonedParts {
+export function zonedParts(epochSec: number, tz: string): ZonedParts {
   const fmt = new Intl.DateTimeFormat('en-US', {
     timeZone: tz, year: 'numeric', month: 'numeric', day: 'numeric',
     weekday: 'short', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23',
@@ -123,7 +123,7 @@ function zonedParts(epochSec: number, tz: string): ZonedParts {
  * reading as UTC, take the zone offset at the guess, subtract, then
  * re-check the offset at the result (a DST seam between the two
  * readings is the only way the first pass is off). */
-function zonedToUtc(year: number, month: number, day: number, hour: number, minute: number, second: number, tz: string): number {
+export function zonedToUtc(year: number, month: number, day: number, hour: number, minute: number, second: number, tz: string): number {
   const asUtc = Date.UTC(year, month - 1, day, hour, minute, second) / 1000;
   let utc = asUtc - tzOffsetMinutes(asUtc, tz) * 60;
   const again = asUtc - tzOffsetMinutes(utc, tz) * 60;

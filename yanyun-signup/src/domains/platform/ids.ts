@@ -36,6 +36,7 @@ export const PUBLIC_ID_TYPE_CODES = {
   rotationAdviceRecord: 15,
   groupingRecap: 16,
   combatEncounter: 17,
+  groupingRecurrence: 18,
   announcement: 20,
   gearItem: 30,
   gearBuild: 31,

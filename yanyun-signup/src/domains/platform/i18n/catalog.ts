@@ -1039,6 +1039,26 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "以下成员未能带入新车（请先加入名册）：{names}",
       "en": "These members could not be carried into the new squad (add them to the roster first): {names}"
     },
+    "recurrenceStopButton": {
+      "zh-CN": "停止每周固定",
+      "en": "Stop weekly recurrence"
+    },
+    "recurrenceConfirmTitle": {
+      "zh-CN": "停止每周固定",
+      "en": "Stop weekly recurrence"
+    },
+    "recurrenceConfirmMessage": {
+      "zh-CN": "确定停止「{title}」的每周固定吗？之后不再自动生成下一周的车；已经生成的车不受影响。",
+      "en": "Stop the weekly recurrence for “{title}”? No further weekly squads will be generated; squads already generated are unaffected."
+    },
+    "recurrenceToastStopped": {
+      "zh-CN": "已停止每周固定",
+      "en": "Weekly recurrence stopped"
+    },
+    "recurrenceToastFailed": {
+      "zh-CN": "停止失败：{error}",
+      "en": "Stop failed: {error}"
+    },
     "nudgeButton": {
       "zh-CN": "催报名",
       "en": "Sign-up nudge"
@@ -1351,6 +1371,14 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "zh-CN": "未设置自定义字段时，成员报名只填固定信息。",
       "en": "With no custom fields, members sign up with the standard fields only.",
       "zh-TW": "未設定自訂欄位時，成員報名只填固定資訊。"
+    },
+    "weeklyLabel": {
+      "zh-CN": "每周固定时间",
+      "en": "Weekly recurring"
+    },
+    "weeklyHint": {
+      "zh-CN": "开启后，每周同一时间自动生成下一期，座位重新开放报名",
+      "en": "When on, the next squad is generated at the same time every week and seats open for signup again"
     }
   },
   "seat": {
@@ -4400,6 +4428,10 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
       "es": "Equipo no encontrado",
       "fr": "Équipe introuvable",
       "zh-TW": "組隊不存在"
+    },
+    "recurrenceNotActive": {
+      "zh-CN": "该车队没有进行中的每周固定",
+      "en": "This squad has no active weekly recurrence"
     },
     "officialEvent": {
       "zh-CN": "官方活动请联系管理员",
@@ -8654,6 +8686,10 @@ export const CATALOG: Record<string, Record<string, Record<string, string>>> = {
     "actionEventMerge": {
       "zh-CN": "合并车队",
       "en": "Merge squad"
+    },
+    "actionEventRecurrence": {
+      "zh-CN": "生成每周固定车",
+      "en": "Weekly squad generated"
     },
     "actionAgentJoin": {
       "zh-CN": "经 Agent 报名",
