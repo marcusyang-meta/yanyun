@@ -1,7 +1,10 @@
 /* ===================================================
  * Weekly recurring groupings ("every week at the same time",
  * migration 0044): the rule repository plus the materialization
- * service the daily cron runs.
+ * service — run by the daily cron for every active rule, and run
+ * for a single rule inside the request when one of its instances
+ * is completed or disbanded, so the next instance appears at once
+ * instead of at the next sweep.
  *
  * A rule is a configuration snapshot of the car its leader created
  * with the weekly switch on (the clone-copy set: title / type /
@@ -289,6 +292,26 @@ export async function materializeRecurrenceRule(
     await advanceRecurrenceRule(d1, rule.id, next, nowSec);
   }
   return { createdEventId };
+}
+
+/** The request-time trigger: run the cron's materialization for
+ * the single rule behind one instance car. Called by the complete
+ * and disband mutations right after the lifecycle change succeeds,
+ * so finishing a series car surfaces its next instance immediately.
+ * The semantics are exactly the cron's — this resolves the car's
+ * rule through the same active check and hands it to the same
+ * materializeRecurrenceRule — so a car outside a live series (no
+ * link, or the rule has stopped) is a no-op, completing an old
+ * instance while a future one exists creates nothing, and a
+ * disbanded future instance skips its week rather than reviving. */
+export async function materializeRecurrenceForEvent(
+  d1: D1Database,
+  ev: { recurrence_id?: number | null },
+  nowSec: number = Math.floor(Date.now() / 1000),
+): Promise<{ createdEventId: number | null }> {
+  const rule = await getActiveRecurrenceForEvent(d1, ev);
+  if (!rule) return { createdEventId: null };
+  return materializeRecurrenceRule(d1, rule, nowSec);
 }
 
 /** The daily cron's entry point (rides the existing scheduled
