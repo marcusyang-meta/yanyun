@@ -60,6 +60,7 @@ import {
 import { planCloneSeats, nextCloneDefaultStart } from './clone.ts';
 import {
   createRecurrenceRuleForEvent, getActiveRecurrenceForEvent, stopRecurrenceRule,
+  materializeRecurrenceForEvent,
 } from './recurrence.ts';
 import { fmtCarTimeDualZones } from './car-tz.ts';
 import {
@@ -187,6 +188,31 @@ export class GroupingShell extends ShellBase {
 
 export function toGrouping(ctx: Context, ev: any) {
   return new GroupingShell(ctx, ev);
+}
+
+/* Instant recurrence materialization: completing or disbanding a
+ * series instance runs the same per-rule materialization the daily
+ * cron runs, so the next instance appears immediately instead of at
+ * the next sweep (the cron remains the backstop for instances that
+ * simply run their course, and for anything this pass misses). The
+ * lifecycle action has already succeeded when this runs — a failure
+ * here is logged and swallowed, never failed back into the
+ * mutation. An instance created inside a request goes out on the
+ * same realtime publish as a hand-created car, which the cron
+ * (having no request context) cannot do. */
+async function materializeSeriesAfterLifecycle(
+  ctx: Context, ev: { tenant?: number; recurrence_id?: number | null } | null,
+): Promise<void> {
+  if (!ev || !ev.recurrence_id) return;
+  try {
+    const r = await materializeRecurrenceForEvent(ctx.env.DB, ev);
+    if (r.createdEventId) {
+      const slug = (await getTenantRowById(ctx.env.DB, Number(ev.tenant)).catch(() => null))?.slug || '';
+      publishGroupingEvent(ctx, slug, r.createdEventId, 'created');
+    }
+  } catch (e) {
+    console.error('[recurrence] instant materialization after lifecycle change failed', e);
+  }
 }
 
 /* ---------- Grouping templates ----------
@@ -1226,8 +1252,9 @@ export const groupingsResolvers = {
       // Weekly recurrence (migration 0044): the create form's
       // weekly switch turns this car into a series — snapshot its
       // configuration into a rule and link the car as the first
-      // instance; the daily cron materializes the following weeks
-      // from the rule (see recurrence.ts).
+      // instance; the following weeks materialize from the rule —
+      // immediately when an instance is completed or disbanded,
+      // and by the daily cron otherwise (see recurrence.ts).
       if (input.weeklyRecurring) {
         await createRecurrenceRuleForEvent(db, {
           tenant: tenantRow.id, eventId, title, type, dungeon: dungeonName,
@@ -1685,9 +1712,16 @@ export const groupingsResolvers = {
       if (!manage.canManage) {
         return dFail(ctx, ev.creator_user_id ? 'leaderOnlyDisband' : 'noCreatorRecorded');
       }
+      // The full row carries the recurrence link the instant
+      // materialization below keys off (the gate's narrow row does
+      // not) — read it before the cascade deletes the car.
+      const evFull = await getEventRow(db, gid);
       await deleteEventCascade(db, gid, null);
       const evTenantRow = await getTenantRowById(db, ev.tenant).catch(() => null);
       publishGroupingEvent(ctx, evTenantRow ? evTenantRow.slug : '', gid, 'deleted');
+      // A disbanded series instance skips its week: the next
+      // instance materializes now, one week past the disbanded one.
+      await materializeSeriesAfterLifecycle(ctx, evFull);
       return new DeletePayloadShell(ctx, { ok: true });
     },
 
@@ -1720,6 +1754,10 @@ export const groupingsResolvers = {
       const nev = await getEventRow(db, gid);
       // kind=updated: live-remove from lists + GuildHub reschedules alarms (a completed grouping is no longer a pending reminder).
       publishGroupingEvent(ctx, (await getTenantRowById(db, ev.tenant).catch(() => null))?.slug || '', gid, 'updated');
+      // A completed series instance frees the series' one-ahead
+      // slot: materialize the next instance now, not at the next
+      // daily sweep.
+      await materializeSeriesAfterLifecycle(ctx, ev);
       return new GroupingPayloadShell(ctx, { ok: true, grouping: toGrouping(ctx, nev) });
     },
 

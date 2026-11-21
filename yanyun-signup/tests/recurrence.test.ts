@@ -32,6 +32,14 @@
 //     managers; stopGroupingRecurrence re-verifies the manage
 //     verdict (a non-manager member is refused) and stopping ends
 //     the series.
+//  8) Instant materialization: completing or disbanding a series
+//     instance runs the same per-rule materialization in-request —
+//     the next instance appears immediately (a disbanded future
+//     instance skips its week), with the cron's semantics verbatim:
+//     no double-create when a future instance already exists, no
+//     generation for a stopped series, no effect on plain cars,
+//     and a materialization failure never fails the lifecycle
+//     mutation itself (the daily cron remains the backstop).
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
 import { describe, it, expect } from 'vitest';
 
@@ -314,5 +322,122 @@ describe('GraphQL surface', () => {
     });
     expect(noRule.data.stopGroupingRecurrence.ok).toBe(false);
     expect(noRule.data.stopGroupingRecurrence.errorCode).toBe('recurrenceNotActive');
+  });
+});
+
+describe('instant materialization on complete / disband', () => {
+  const completeMutation = `mutation($id: ID!) {
+    completeGrouping(id: $id) { ok error errorCode }
+  }`;
+  const disbandMutation = `mutation($id: ID!) {
+    disbandGrouping(id: $id) { ok error errorCode }
+  }`;
+  // An hour ago in the rule zone (Asia/Shanghai, UTC+8, no DST):
+  // the next weekly start is exactly +WEEK from the first car's.
+  const start = NOW - 3600;
+
+  it('completing the latest instance materializes the next week immediately', async () => {
+    const { eventId, ruleId } = await firstCarWithRule({ title: '完成即生成车', startsAtUtc: start });
+    const res = await gql(userObjA, completeMutation, { id: String(eventId) });
+    expect(res.data.completeGrouping.ok).toBe(true);
+    const done = await groupings.getEventRow(db, eventId);
+    expect(done?.status).toBe('completed');
+    const rows = await instancesOf(ruleId);
+    expect(rows.length).toBe(2);
+    expect(rows[1].starts_at_utc).toBe(start + WEEK);
+    expect(rows[1].status).toBe('open');
+    // The cron agrees with the instant result: a sweep now adds
+    // nothing for this rule (the sweep's global count spans other
+    // scenarios' series too — assert on this rule's own instances).
+    await groupings.runDueRecurrences(db, NOW);
+    expect((await instancesOf(ruleId)).length).toBe(2);
+  });
+
+  it('disbanding the future instance skips its week — the week after materializes at once', async () => {
+    const { ruleId } = await firstCarWithRule({ title: '解散跳周车', startsAtUtc: start });
+    await groupings.runDueRecurrences(db, NOW);
+    const before = await instancesOf(ruleId);
+    expect(before.length).toBe(2);
+    const future = before[1];
+    expect(future.starts_at_utc).toBe(start + WEEK);
+    const res = await gql(userObjA, disbandMutation, { id: String(future.id) });
+    expect(res.data.disbandGrouping.ok).toBe(true);
+    const rows = await instancesOf(ruleId);
+    expect(rows.length).toBe(2);
+    expect(rows.some((r) => r.id === future.id)).toBe(false);
+    expect(rows.some((r) => r.starts_at_utc === start + WEEK)).toBe(false);
+    expect(rows[1].starts_at_utc).toBe(start + 2 * WEEK);
+  });
+
+  it('completing an old instance while a future one exists creates nothing', async () => {
+    const { eventId, ruleId } = await firstCarWithRule({ title: '完成旧期车', startsAtUtc: start });
+    await groupings.runDueRecurrences(db, NOW);
+    expect((await instancesOf(ruleId)).length).toBe(2);
+    const res = await gql(userObjA, completeMutation, { id: String(eventId) });
+    expect(res.data.completeGrouping.ok).toBe(true);
+    expect((await instancesOf(ruleId)).length).toBe(2);
+  });
+
+  it('a stopped series generates nothing when its car is completed', async () => {
+    const { eventId, ruleId } = await firstCarWithRule({ title: '停后完成车', startsAtUtc: start });
+    await groupings.stopRecurrenceRule(db, ruleId, NOW);
+    const res = await gql(userObjA, completeMutation, { id: String(eventId) });
+    expect(res.data.completeGrouping.ok).toBe(true);
+    expect((await instancesOf(ruleId)).length).toBe(1);
+  });
+
+  it('plain cars complete and disband exactly as before — no rule, no instance', async () => {
+    const rulesBefore = await db.prepare('SELECT COUNT(*) AS c FROM grouping_recurrences')
+      .first<any>();
+    const mk = async (title: string) => {
+      const r = await groupings.insertEvent(db, {
+        tenant: GID, title, type: 'activity', description: '',
+        starts_at: '', starts_at_utc: start, max_slots: 10, status: 'open',
+        origin: 'member', created_by: '热心侠客', dungeon: '',
+        creator_user_id: userA, created_tz: 'Asia/Shanghai',
+      });
+      return r.last_row_id;
+    };
+    const plainComplete = await mk('普通完成车');
+    const doneRes = await gql(userObjA, completeMutation, { id: String(plainComplete) });
+    expect(doneRes.data.completeGrouping.ok).toBe(true);
+    const doneRow = await groupings.getEventRow(db, plainComplete);
+    expect(doneRow?.status).toBe('completed');
+    expect(doneRow?.recurrence_id).toBeNull();
+
+    const plainDisband = await mk('普通解散车');
+    const disRes = await gql(userObjA, disbandMutation, { id: String(plainDisband) });
+    expect(disRes.data.disbandGrouping.ok).toBe(true);
+    expect(await groupings.getEventRow(db, plainDisband)).toBeNull();
+
+    const rulesAfter = await db.prepare('SELECT COUNT(*) AS c FROM grouping_recurrences')
+      .first<any>();
+    expect(rulesAfter.c).toBe(rulesBefore.c);
+  });
+
+  it('a materialization failure never fails the completion — the cron backstop still delivers', async () => {
+    const { eventId, ruleId } = await firstCarWithRule({ title: '故障注入车', startsAtUtc: start });
+    // Sabotage inserts of the materialized instance only: the
+    // lifecycle mutation itself writes no events row.
+    await db.prepare(
+      `CREATE TRIGGER inject_recurrence_fail BEFORE INSERT ON events
+       WHEN NEW.title = '故障注入车'
+       BEGIN SELECT RAISE(ABORT, 'injected materialization failure'); END`,
+    ).run();
+    try {
+      const res = await gql(userObjA, completeMutation, { id: String(eventId) });
+      expect(res.data.completeGrouping.ok).toBe(true);
+      const done = await groupings.getEventRow(db, eventId);
+      expect(done?.status).toBe('completed');
+      expect((await instancesOf(ruleId)).length).toBe(1);
+    } finally {
+      await db.prepare('DROP TRIGGER inject_recurrence_fail').run();
+    }
+    // With the fault gone, the daily sweep creates the instance —
+    // the failure cost a delay, never the series.
+    await groupings.runDueRecurrences(db, NOW);
+    const rows = await instancesOf(ruleId);
+    expect(rows.length).toBe(2);
+    expect(rows[1].starts_at_utc).toBe(start + WEEK);
   });
 });
