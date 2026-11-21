@@ -231,13 +231,14 @@ const TOOLS: ToolDef[] = [
   },
   {
     name: 'join_grouping', write: true, scopeAtom: 'signup',
-    description: 'Sign the member up for a grouping, into their OWN seat only (proxy signup is impossible on this surface). Answer the grouping\'s customFields via answers when it defines any.',
+    description: 'Sign the member up for a grouping, into their OWN seat only (proxy signup is impossible on this surface). Answer the grouping\'s customFields via answers when it defines any. If the member already holds a seat in ANOTHER grouping in the same week, the first call returns ok:false with errorCode "alreadyBookedThisWeek" and needsConfirmation:true (the error names the grouping they already booked) and writes nothing: show that to the member, and only when they agree call again with confirm:true to complete the second signup.',
     inputSchema: {
       type: 'object',
       properties: {
         groupingId: { type: 'string' },
         weapon: { type: 'string', description: 'The member\'s school/build name （流派）, e.g. 破竹·樽.' },
         seatIndex: { type: 'integer', description: 'Optional preferred seat index.' },
+        confirm: { type: 'boolean', description: 'Set true ONLY after the member has confirmed a second same-week signup (see the alreadyBookedThisWeek flow in the tool description).' },
         answers: {
           type: 'array',
           items: {
@@ -565,12 +566,24 @@ async function callTool(env: any, session: McpSession, name: string, args: any):
       if (Array.isArray(args?.answers)) {
         input.answers = args.answers.map((a: any) => ({ fieldId: String(a?.fieldId || ''), value: String(a?.value ?? '') }));
       }
+      // The weekly-duplicate confirmation: only an explicit
+      // confirm:true from the agent (after the member agreed) maps
+      // to the mutation's confirm flag.
+      if (args?.confirm === true) input.confirmWeekDuplicate = true;
       // No forDiscordId is ever set: the seat lands on the caller's
       // own identity stamp by construction.
       const r = await runField(env, session, DOC_JOIN, { input }, ['joinGrouping']);
       if ('error' in r) return toolErr(r.error);
       const payload = r.value;
-      if (!payload?.ok) return toolOk({ ok: false, error: payload?.error ?? null, errorCode: payload?.errorCode ?? null });
+      if (!payload?.ok) {
+        // The same-week refusal is not a plain failure: flag it so
+        // the agent asks the member and retries with confirm:true.
+        // Nothing was written and nothing is audited for it.
+        if (payload?.errorCode === 'alreadyBookedThisWeek') {
+          return toolOk({ ok: false, needsConfirmation: true, error: payload?.error ?? null, errorCode: payload.errorCode });
+        }
+        return toolOk({ ok: false, error: payload?.error ?? null, errorCode: payload?.errorCode ?? null });
+      }
       const grouping = await readbackGrouping(env, session, groupingId);
       await auditAgentWrite(env, session, Number(groupingId), 'agent.join');
       return toolOk({ ok: true, grouping, mySeatIndexes: mySeatsOf(grouping) });
