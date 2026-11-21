@@ -21430,6 +21430,30 @@
         }
       ],
       "types": []
+    },
+    "7zjd6VLmq/4O+QVnpuL0BQ==": {
+      "description": "Title text for the duplicate-week-signup confirmation, used as the confirmation dialog heading when a member signs up for a second squad in the same week.",
+      "id": "groupings/seat_weekDuplicateTitle",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "Already booked this week",
+          "variations": {}
+        }
+      ],
+      "types": []
+    },
+    "TKfe0VVpNNmBkeKn0NEIww==": {
+      "description": "Confirmation prompt for squad signup, used when a member who already holds a seat in another squad in the same week signs up for this one and must confirm the second signup, where {title} is the other squad's title and {time} is its start time.",
+      "id": "platform/errors_alreadyBookedThisWeek",
+      "tokens": [],
+      "translations": [
+        {
+          "translation": "You've already signed up for “{title}” ({time}) this week. Are you sure you want to sign up for this one too?",
+          "variations": {}
+        }
+      ],
+      "types": []
     }
   }
 }

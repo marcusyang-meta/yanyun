@@ -158,6 +158,7 @@ export type GroupingsStringKey =
   | 'seat_toastLeaveFailed'
   | 'seat_leaveConfirmTitle'
   | 'seat_leaveConfirmMessage'
+  | 'seat_weekDuplicateTitle'
   | 'seat_roleHealer'
   | 'seat_roleDps'
   | 'seat_roleFlex'
@@ -532,6 +533,7 @@ export const GROUPINGS_STRING_KEYS: readonly GroupingsStringKey[] = [
   'seat_toastLeaveFailed',
   'seat_leaveConfirmTitle',
   'seat_leaveConfirmMessage',
+  'seat_weekDuplicateTitle',
   'seat_roleHealer',
   'seat_roleDps',
   'seat_roleFlex',

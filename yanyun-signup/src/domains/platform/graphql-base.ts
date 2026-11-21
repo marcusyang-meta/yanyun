@@ -509,6 +509,14 @@ export class GroupingPayloadShell extends PayloadBase {
   genGrouping(){ return this.data.grouping || null; }
 }
 export class SeatPayloadShell extends PayloadBase {
+  /* Error copy may carry catalog params (the weekly-duplicate
+   * rejection names the already-booked car in its message), same
+   * override as GroupingPayloadShell. */
+  genError(){
+    return this.data.errorCode
+      ? translateError(this.data.errorCode, (this.ctx && this.ctx.locale) || 'zh-CN', this.data.errorParams)
+      : null;
+  }
   genSeats(){ return this.data.seats || null; }
 }
 export class DeletePayloadShell extends PayloadBase {}

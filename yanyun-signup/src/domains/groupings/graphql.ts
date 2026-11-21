@@ -43,6 +43,7 @@ import {
   parseFieldOptions, type CustomFieldDef,
 } from './index.ts';
 import { carOgImageUrl, guildWeekOgImageUrl } from './reminder.ts';
+import { findWeekDuplicateCar } from './week-duplicate.ts';
 import { scheduleResolvers } from './schedule-graphql.ts';
 import { resolveSharedGrouping } from './shareview.ts';
 import { schedulingAdviceResolvers, composeGroupingSchedulingAdvice, composeCrossCarAdvice, renderAdviceReason, adviceRoleLabel } from './scheduling-graphql.ts';
@@ -97,6 +98,16 @@ import { selfStampFor, identityNamesFor, canonicalSignupName, identityNameForDis
  * names so the editor knows exactly what to put on a roster first. */
 const seatNamesNotInRosterFail = (ctx: Context, names: string[]) => new GroupingPayloadShell(ctx, {
   ok: false, errorCode: 'seatNamesNotInRoster', errorParams: { names: names.join('、') },
+});
+
+/* Weekly duplicate signup: the member already holds a seat in
+ * another car in the target car's week; the rejection names that
+ * car (title + start time, formatted for the viewer) so the client
+ * can ask for confirmation with real information. */
+const weekDuplicateFail = (ctx: Context, dup: { title: string; startsEpoch: number }) => new SeatPayloadShell(ctx, {
+  ok: false,
+  errorCode: 'alreadyBookedThisWeek',
+  errorParams: { title: dup.title, time: fmtStartsAt(dup.startsEpoch, ctx.locale || 'zh-CN', ctx.tz) },
 });
 
 /* Clone payload: GroupingPayload plus the names whose seats could
@@ -1024,6 +1035,7 @@ export const DETAIL_TEXT_RESOLVERS = {
     ['seatToastReadyFailedTemplate', 'seat_toastReadyFailed'],
     ['seatLeaveConfirmTitle', 'seat_leaveConfirmTitle'],
     ['seatLeaveConfirmMessageTemplate', 'seat_leaveConfirmMessage'],
+    ['seatWeekDuplicateTitle', 'seat_weekDuplicateTitle'],
     ...FORM_TEXT_SPEC,
   ]),
 };
@@ -1816,6 +1828,22 @@ export const groupingsResolvers = {
         nickname = (await canonicalSignupName(db, ctx.user, evTenantRow ? evTenantRow.slug : '')).slice(0, 30);
         if (!nickname) return sFail(ctx, 'nicknameRequired');
         stamp = String(ctx.user!.discordId);
+      }
+      // Weekly duplicate confirmation (self signup only): every
+      // existing validation above has passed and nothing is written
+      // yet. A member already seated in another car in this car's
+      // week must confirm first; the client resubmits with
+      // confirmWeekDuplicate set. Proxy signups never prompt — the
+      // confirmation belongs to the person taking the seat, and a
+      // manager seating someone else acts under the manage verdict.
+      // A car with no resolvable start time belongs to no week, so
+      // the check cannot fire for it.
+      if (!forId && input.confirmWeekDuplicate !== true) {
+        const targetEpoch = startsAtEpoch(ev);
+        if (targetEpoch != null) {
+          const dup = await findWeekDuplicateCar(db, stamp!, gid, targetEpoch);
+          if (dup) return weekDuplicateFail(ctx, dup);
+        }
       }
       try {
         const r = await insertSignupWithCapacityGuard(db, {

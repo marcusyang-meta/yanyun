@@ -2,10 +2,12 @@
 # Do not edit: extensions are merged into base types on purpose (see script).
 
 enum GroupingTab {
+  ALL
   ACTIVITY
   TALENT
   RACE
   TOWER
+  EXPLORE
 }
 
 enum GroupingType {
@@ -13,6 +15,7 @@ enum GroupingType {
   TALENT
   RACE
   TOWER
+  EXPLORE
 }
 
 enum DexTab {
@@ -313,14 +316,17 @@ type GroupingListPage {
   groupingTemplates: [GroupingTemplate!]!
   currentVersion: String!
   blocks(blocksVersion: Int, weekOffset: Int): [Block!]!
+  tabAllLabel: String!
   tabActivityLabel: String!
   tabTalentLabel: String!
   tabRaceLabel: String!
   tabTowerLabel: String!
+  tabExploreLabel: String!
   typeShortActivity: String!
   typeShortTalent: String!
   typeShortRace: String!
   typeShortTower: String!
+  typeShortCoopExplore: String!
   typeShortGather: String!
   typeShortExplore: String!
   prevWeekLabel: String!
@@ -341,12 +347,16 @@ type GroupingListPage {
   formTypeTalentLabel: String!
   formTypeRaceLabel: String!
   formTypeTowerLabel: String!
+  formTypeExploreLabel: String!
   formCapacityTemplate: String!
   formHintActivity: String!
   formHintDungeonTemplate: String!
   formHintTalent: String!
   formHintRace: String!
   formHintTower: String!
+  formHintExplore: String!
+  formSizeLabel: String!
+  formSizeOptionTemplate: String!
   formTitleLabel: String!
   formTitlePlaceholder: String!
   formStartsLabel: String!
@@ -511,6 +521,7 @@ input GroupingTemplateInput {
   type: GroupingType!
   title: String!
   dungeonId: ID
+  maxSlots: Int
   startsInDays: Int!
   startHour: Int!
   startMinute: Int!
@@ -523,6 +534,7 @@ input CreateGroupingTemplateInput {
   type: GroupingType!
   title: String!
   dungeonId: ID
+  maxSlots: Int
   startsInDays: Int!
   startHour: Int!
   startMinute: Int!
@@ -638,6 +650,7 @@ type GroupingDetailPage {
   typeShortTalent: String!
   typeShortRace: String!
   typeShortTower: String!
+  typeShortCoopExplore: String!
   typeShortGather: String!
   typeShortExplore: String!
   seatEmptyJoinLabel: String!
@@ -665,6 +678,7 @@ type GroupingDetailPage {
   seatToastLeaveFailedTemplate: String!
   seatLeaveConfirmTitle: String!
   seatLeaveConfirmMessageTemplate: String!
+  seatWeekDuplicateTitle: String!
   detailReadyProgressTemplate: String!
   seatReadyLabel: String!
   seatReadyActionLabel: String!
@@ -679,12 +693,16 @@ type GroupingDetailPage {
   formTypeTalentLabel: String!
   formTypeRaceLabel: String!
   formTypeTowerLabel: String!
+  formTypeExploreLabel: String!
   formCapacityTemplate: String!
   formHintActivity: String!
   formHintDungeonTemplate: String!
   formHintTalent: String!
   formHintRace: String!
   formHintTower: String!
+  formHintExplore: String!
+  formSizeLabel: String!
+  formSizeOptionTemplate: String!
   formTitleLabel: String!
   formTitlePlaceholder: String!
   formStartsLabel: String!
@@ -1225,6 +1243,10 @@ type SettingsPage {
   settingsLangEsLabel: String!
   settingsLangFrLabel: String!
   settingsSavedText: String!
+  settingsThemeLabel: String!
+  settingsThemeHint: String!
+  settingsThemeClassicLabel: String!
+  settingsThemeGlassLabel: String!
   feedbackEntryLabel: String!
   feedbackTitle: String!
   feedbackCategoryLabel: String!
@@ -1237,6 +1259,7 @@ type SettingsPage {
   feedbackSuccessText: String!
   localePref: String
   effectiveLocale: String!
+  themePref: String!
   accountSectionTitle: String!
   accountExportLabel: String!
   accountExportHint: String!
@@ -1273,6 +1296,7 @@ type SettingsPage {
   availabilityNoGuildsText: String!
   availabilityGuilds: [SettingsAvailabilityGuild!]!
   calendarFeed: CalendarFeedSettings
+  agentGrants: AgentGrantsSettings
 }
 
 type CalendarFeedSettings {
@@ -1283,6 +1307,33 @@ type CalendarFeedSettings {
   calendarCopiedText: String!
   calendarResetLabel: String!
   calendarResetDoneText: String!
+}
+
+type AgentGrantsSettings {
+  agentSectionTitle: String!
+  agentHintText: String!
+  agentEmptyText: String!
+  agentRevokeDoneText: String!
+  grants: [AgentGrant!]!
+}
+
+type AgentGrant {
+  id: ID!
+  clientName: String!
+  name: String!
+  scopesLabel: String!
+  sourceLabel: String!
+  tokenPrefix: String!
+  createdText: String!
+  lastUsedText: String!
+  revokeLabel: String!
+}
+
+type RevokeAgentGrantPayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  agentGrants: AgentGrantsSettings
 }
 
 type ResetCalendarFeedPayload {
@@ -1323,6 +1374,13 @@ type UpdateLocalePayload {
   errorCode: String
   localePref: String
   effectiveLocale: String!
+}
+
+type UpdateThemePayload {
+  ok: Boolean!
+  error: String
+  errorCode: String
+  themePref: String!
 }
 
 type ExportMyDataPayload {
@@ -1375,6 +1433,7 @@ type GradPage {
   gradSlots: [GradSlot!]!
   gradRates: [GradRate!]!
   gearVocabRules: GearVocabRules!
+  gradGearItems: [GradGearItem!]!
   gradEnteringText: String!
   gradTitle: String!
   gradSubtitle: String!
@@ -1422,6 +1481,9 @@ type GradPage {
   gradToastSavedTemplate: String!
   gradToastLoadedTemplate: String!
   gradToastOldSchemeText: String!
+  gradPickFromLibraryLabel: String!
+  gradLibraryEmptyText: String!
+  gradLibrarySkippedTemplate: String!
   gradConfirmLabel: String!
   gradCancelLabel: String!
   gearSlots: [String!]!
@@ -1434,6 +1496,7 @@ type GradPage {
   gearXinfa: [GearXinfaRow!]!
   gearTalentRows: [GearTalentRow!]!
   gearDingyinRows: [GearDingyinRow!]!
+  gearDingyinGroups: [GearDingyinGroup!]!
   gearDingyinLeft: [GearNameMax!]!
   gearDingyinRightMax: Float!
   gearWuxueNames: [String!]!
@@ -1493,6 +1556,7 @@ type GradPage {
   gearDyValLabel: String!
   gearSchoolsLabel: String!
   gearAddGearLabel: String!
+  gearEntryLabel: String!
   gearUpdateGearLabel: String!
   gearCancelEditLabel: String!
   gearDemoLabel: String!
@@ -1711,12 +1775,16 @@ type GuildSchedulePage {
   formTypeTalentLabel: String!
   formTypeRaceLabel: String!
   formTypeTowerLabel: String!
+  formTypeExploreLabel: String!
   formCapacityTemplate: String!
   formHintActivity: String!
   formHintDungeonTemplate: String!
   formHintTalent: String!
   formHintRace: String!
   formHintTower: String!
+  formHintExplore: String!
+  formSizeLabel: String!
+  formSizeOptionTemplate: String!
   formTitleLabel: String!
   formTitlePlaceholder: String!
   formStartsLabel: String!
@@ -1755,6 +1823,7 @@ type GuildSchedulePage {
   typeShortTalent: String!
   typeShortRace: String!
   typeShortTower: String!
+  typeShortCoopExplore: String!
   scheduleTitle: String!
   scheduleMyTitle: String!
   scheduleMyHint: String!
@@ -1891,8 +1960,10 @@ type Mutation {
   calcTiaolv(input: TiaolvInput!): TiaolvResult!
   calcGraduation(input: GraduationInput!): GraduationResult!
   resetCalendarFeedToken: ResetCalendarFeedPayload!
+  revokeAgentGrant(id: ID!): RevokeAgentGrantPayload!
   submitFeedback(category: FeedbackCategory!, text: String!): SubmitFeedbackPayload!
   updateMyLocale(locale: String): UpdateLocalePayload!
+  updateMyTheme(theme: String!): UpdateThemePayload!
   exportMyData: ExportMyDataPayload!
   requestAccountDeletion(typedUsername: String!): AccountDeletionPayload!
   cancelAccountDeletion: AccountDeletionPayload!
@@ -2039,6 +2110,7 @@ input CreateGroupingInput {
   type: GroupingType!
   startsAt: String!
   dungeonId: ID
+  maxSlots: Int
   seats: [SeatInput!]
   customFields: [CustomFieldInput!]
 }
@@ -2065,6 +2137,7 @@ input JoinGroupingInput {
   weapon: String!
   seatIndex: Int!
   forDiscordId: ID
+  confirmWeekDuplicate: Boolean
   answers: [SignupAnswerInput!]
 }
 
@@ -2484,6 +2557,11 @@ type Guild {
   homeTabMarketLabel: String!
   homeTabAlliesLabel: String
   homeAdminLabel: String
+  homeRailProfileLabel: String!
+  homeRailMoreLabel: String!
+  homeRailAppearanceLabel: String!
+  homeRailThemeClassicLabel: String!
+  homeRailThemeGlassLabel: String!
   detailNotFoundText: String!
   detailBackToListLabel: String!
   pageBackLabel: String!
@@ -2526,6 +2604,7 @@ type Viewer {
   userBarSettingsLabel: String!
   myLocalePref: String
   myEffectiveLocale: String!
+  myThemePref: String!
   pickerMyGuildsLabel: String!
   pickerMyGuildsEnLabel: String!
   pickerEmptyTitle: String!
@@ -2711,6 +2790,7 @@ type GuildAdmin {
   adminTypeTalentText: String!
   adminTypeRaceText: String!
   adminTypeTowerText: String!
+  adminTypeExploreText: String!
   adminStatusOpenText: String!
   adminStatusClosedText: String!
   adminStatusCompletedText: String!
@@ -3600,6 +3680,7 @@ type GuildAdminStatsWeek {
   carsTalent: Int!
   carsRace: Int!
   carsTower: Int!
+  carsExplore: Int!
   carsTotal: Int!
   completedCount: Int!
   totalSeats: Int!
@@ -3816,6 +3897,17 @@ type GearDingyinRow {
 
 type GearNameMax {
   name: String!
+  max: Float!
+}
+
+type GearDingyinGroup {
+  slots: [String!]!
+  options: [GearDingyinOption!]!
+}
+
+type GearDingyinOption {
+  name: String!
+  label: String!
   max: Float!
 }
 
@@ -4100,6 +4192,16 @@ type GearItem {
   dingyin: GearDingyin
   schools: [String!]!
   warnings: [String!]!
+}
+
+type GradGearItem {
+  id: ID!
+  slot: String!
+  name: String!
+  gradSlots: [String!]!
+  lines: [GearLine!]!
+  dingyin: GearLine
+  skipped: Int!
 }
 
 type GearBaseValue {

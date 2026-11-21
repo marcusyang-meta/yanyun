@@ -200,6 +200,7 @@ export abstract class SeatFbtUtils {
   static toastLeaveFailed(fbs: FbsAPI, p?: StringParams) { return fbs(["取消失败：", fbs.param("error", pv(p, "error"))], "Toast message for seat actions, used when cancelling a signup fails, where {error} is the failure reason."); }
   static leaveConfirmTitle(fbs: FbsAPI) { return fbs("取消报名", "Title text for the leave-seat confirmation, used as the confirmation dialog heading."); }
   static leaveConfirmMessage(fbs: FbsAPI, p?: StringParams) { return fbs(["确定取消「", fbs.param("nickname", pv(p, "nickname")), "」的报名吗？"], "Confirmation message for leaving a seat, used in the dialog, where {nickname} is the seated member's nickname."); }
+  static weekDuplicateTitle(fbs: FbsAPI) { return fbs("本周已报名", "Title text for the duplicate-week-signup confirmation, used as the confirmation dialog heading when a member signs up for a second squad in the same week."); }
   static roleHealer(fbs: FbsAPI) { return fbs("奶", "Role tag for seated members, used on a seat cell when the member's sect is a healer."); }
   static roleDps(fbs: FbsAPI) { return fbs("输出", "Role tag for seated members, used on a seat cell when the member's sect is a damage dealer."); }
   static roleFlex(fbs: FbsAPI) { return fbs("随意", "Role tag for seated members, used when the member can fill any role."); }
