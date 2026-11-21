@@ -1,7 +1,9 @@
 // Weekly recurring groupings (migration 0044): a car created with
 // the weekly switch becomes a series — a rule snapshots its
-// configuration and the daily cron materializes exactly one future
-// instance per week (rolling one-ahead), always with empty seats.
+// configuration, and completing or disbanding an instance
+// materializes exactly one future instance (rolling one-ahead),
+// always with empty seats. There is no scheduled sweep: the
+// lifecycle trigger is the only one.
 //
 // Real Miniflare D1 bootstrapped from the migration chain (the
 // calendar.test.ts precedent): the rule table, the events link
@@ -24,8 +26,9 @@
 //  4) A stopped series generates nothing.
 //  5) A disbanded (deleted) future instance is not resurrected —
 //     its week is skipped and the following week materializes.
-//  6) Cron downtime: missed weeks are skipped, never backfilled;
-//     exactly one future instance appears.
+//  6) Missed weeks: a series left untouched past its starts skips
+//     those weeks, never backfills; exactly one future instance
+//     appears.
 //  7) GraphQL: createGrouping with weeklyRecurring links the car
 //     and snapshots the rule; without it, no rule. The detail
 //     page's recurrence control exists only for the car's
@@ -33,13 +36,14 @@
 //     verdict (a non-manager member is refused) and stopping ends
 //     the series.
 //  8) Instant materialization: completing or disbanding a series
-//     instance runs the same per-rule materialization in-request —
-//     the next instance appears immediately (a disbanded future
-//     instance skips its week), with the cron's semantics verbatim:
-//     no double-create when a future instance already exists, no
+//     instance runs the per-rule materialization in-request — the
+//     next instance appears immediately (a disbanded future
+//     instance skips its week): no double-create when a future
+//     instance already exists or the trigger repeats, no
 //     generation for a stopped series, no effect on plain cars,
 //     and a materialization failure never fails the lifecycle
-//     mutation itself (the daily cron remains the backstop).
+//     mutation itself — a later trigger still delivers the
+//     instance.
 import { Miniflare, convertV4MiniflareOptions } from 'miniflare';
 import { describe, it, expect } from 'vitest';
 
@@ -179,11 +183,12 @@ describe('materialization', () => {
     await db.prepare('INSERT INTO signups (event_id, nickname, uid, discord_id) VALUES (?, ?, ?, ?)')
       .bind(eventId, '甲队长', 'u-seat-1', DISCORD_A).run();
 
-    const run1 = await groupings.runDueRecurrences(db, T0 + 3600);
-    expect(run1.created).toBe(1);
+    const m1 = await groupings.materializeRecurrenceForEvent(db, { recurrence_id: ruleId }, T0 + 3600);
+    expect(m1.createdEventId).toBeTruthy();
     const rows = await instancesOf(ruleId);
     expect(rows.length).toBe(2);
     const next = rows[1];
+    expect(m1.createdEventId).toBe(next.id);
     expect(next.starts_at_utc).toBe(T0 + WEEK);
     expect(next.title).toBe('每周活动车');
     expect(next.type).toBe('activity');
@@ -206,14 +211,14 @@ describe('materialization', () => {
     expect(rule?.weekday).toBe(3);
     expect(rule?.status).toBe('active');
 
-    // Idempotent: the future instance exists, a second run is a no-op.
-    const run2 = await groupings.runDueRecurrences(db, T0 + 3600);
-    expect(run2.created).toBe(0);
+    // Idempotent: the future instance exists, a repeat is a no-op.
+    const m2 = await groupings.materializeRecurrenceForEvent(db, { recurrence_id: ruleId }, T0 + 3600);
+    expect(m2.createdEventId).toBeNull();
     expect((await instancesOf(ruleId)).length).toBe(2);
 
     // After that instance's start passes, exactly one more appears.
-    const run3 = await groupings.runDueRecurrences(db, T0 + WEEK + 3600);
-    expect(run3.created).toBe(1);
+    const m3 = await groupings.materializeRecurrenceForEvent(db, { recurrence_id: ruleId }, T0 + WEEK + 3600);
+    expect(m3.createdEventId).toBeTruthy();
     const rows3 = await instancesOf(ruleId);
     expect(rows3.length).toBe(3);
     expect(rows3[2].starts_at_utc).toBe(T0 + 2 * WEEK);
@@ -222,35 +227,36 @@ describe('materialization', () => {
   it('a stopped series generates nothing', async () => {
     const { ruleId } = await firstCarWithRule({ title: '停掉的车', startsAtUtc: T0 });
     await groupings.stopRecurrenceRule(db, ruleId, NOW);
-    const run = await groupings.runDueRecurrences(db, T0 + 3600);
-    expect(run.created).toBe(0);
+    const m = await groupings.materializeRecurrenceForEvent(db, { recurrence_id: ruleId }, T0 + 3600);
+    expect(m.createdEventId).toBeNull();
     expect((await instancesOf(ruleId)).length).toBe(1);
   });
 
   it('a disbanded future instance is skipped, not resurrected — the following week materializes', async () => {
     const { ruleId } = await firstCarWithRule({ title: '解散一周车', startsAtUtc: T0 });
-    const run1 = await groupings.runDueRecurrences(db, T0 + 3600);
-    expect(run1.created).toBe(1);
+    const m1 = await groupings.materializeRecurrenceForEvent(db, { recurrence_id: ruleId }, T0 + 3600);
+    expect(m1.createdEventId).toBeTruthy();
     const rows = await instancesOf(ruleId);
     const future = rows[1];
     expect(future.starts_at_utc).toBe(T0 + WEEK);
     // Disband = the cascade delete the disband mutation runs.
     await groupings.deleteEventCascade(db, future.id, null);
-    const run2 = await groupings.runDueRecurrences(db, T0 + 3600);
-    expect(run2.created).toBe(1);
+    const m2 = await groupings.materializeRecurrenceForEvent(db, { recurrence_id: ruleId }, T0 + 3600);
+    expect(m2.createdEventId).toBeTruthy();
     const rows2 = await instancesOf(ruleId);
     expect(rows2.length).toBe(2);
     expect(rows2[1].starts_at_utc).toBe(T0 + 2 * WEEK);
   });
 
-  it('cron downtime skips missed weeks and materializes exactly one future instance', async () => {
-    const { ruleId } = await firstCarWithRule({ title: '停机三周车', startsAtUtc: T0 });
-    // runDueRecurrences is a global sweep (its `created` count spans
-    // every active rule in the database, including the other
-    // scenarios' still-active series) — assert on this rule's own
-    // instances: three missed weeks, no backfill, exactly one new
-    // future instance at the first future weekly slot.
-    await groupings.runDueRecurrences(db, T0 + 3 * WEEK + 3600);
+  it('missed weeks are skipped, never backfilled — exactly one future instance materializes', async () => {
+    const { ruleId } = await firstCarWithRule({ title: '搁置三周车', startsAtUtc: T0 });
+    // The series sits untouched for three weeks (no completion or
+    // disband — the only triggers): when a trigger finally runs the
+    // materialization, the missed weeks are not backfilled and
+    // exactly one new future instance appears at the first future
+    // weekly slot.
+    const m = await groupings.materializeRecurrenceForEvent(db, { recurrence_id: ruleId }, T0 + 3 * WEEK + 3600);
+    expect(m.createdEventId).toBeTruthy();
     const rows = await instancesOf(ruleId);
     expect(rows.length).toBe(2);
     expect(rows[1].starts_at_utc).toBe(T0 + 4 * WEEK);
@@ -346,16 +352,17 @@ describe('instant materialization on complete / disband', () => {
     expect(rows.length).toBe(2);
     expect(rows[1].starts_at_utc).toBe(start + WEEK);
     expect(rows[1].status).toBe('open');
-    // The cron agrees with the instant result: a sweep now adds
-    // nothing for this rule (the sweep's global count spans other
-    // scenarios' series too — assert on this rule's own instances).
-    await groupings.runDueRecurrences(db, NOW);
+    // The trigger is idempotent: firing the same per-rule
+    // materialization again adds nothing — the future instance
+    // already exists, so a repeated pass cannot double-create.
+    const again = await groupings.materializeRecurrenceForEvent(db, { recurrence_id: ruleId }, NOW);
+    expect(again.createdEventId).toBeNull();
     expect((await instancesOf(ruleId)).length).toBe(2);
   });
 
   it('disbanding the future instance skips its week — the week after materializes at once', async () => {
     const { ruleId } = await firstCarWithRule({ title: '解散跳周车', startsAtUtc: start });
-    await groupings.runDueRecurrences(db, NOW);
+    await groupings.materializeRecurrenceForEvent(db, { recurrence_id: ruleId }, NOW);
     const before = await instancesOf(ruleId);
     expect(before.length).toBe(2);
     const future = before[1];
@@ -371,7 +378,7 @@ describe('instant materialization on complete / disband', () => {
 
   it('completing an old instance while a future one exists creates nothing', async () => {
     const { eventId, ruleId } = await firstCarWithRule({ title: '完成旧期车', startsAtUtc: start });
-    await groupings.runDueRecurrences(db, NOW);
+    await groupings.materializeRecurrenceForEvent(db, { recurrence_id: ruleId }, NOW);
     expect((await instancesOf(ruleId)).length).toBe(2);
     const res = await gql(userObjA, completeMutation, { id: String(eventId) });
     expect(res.data.completeGrouping.ok).toBe(true);
@@ -415,7 +422,7 @@ describe('instant materialization on complete / disband', () => {
     expect(rulesAfter.c).toBe(rulesBefore.c);
   });
 
-  it('a materialization failure never fails the completion — the cron backstop still delivers', async () => {
+  it('a materialization failure never fails the completion — a later trigger still delivers', async () => {
     const { eventId, ruleId } = await firstCarWithRule({ title: '故障注入车', startsAtUtc: start });
     // Sabotage inserts of the materialized instance only: the
     // lifecycle mutation itself writes no events row.
@@ -433,9 +440,10 @@ describe('instant materialization on complete / disband', () => {
     } finally {
       await db.prepare('DROP TRIGGER inject_recurrence_fail').run();
     }
-    // With the fault gone, the daily sweep creates the instance —
+    // With the fault gone, a later trigger creates the instance —
     // the failure cost a delay, never the series.
-    await groupings.runDueRecurrences(db, NOW);
+    const retry = await groupings.materializeRecurrenceForEvent(db, { recurrence_id: ruleId }, NOW);
+    expect(retry.createdEventId).toBeTruthy();
     const rows = await instancesOf(ruleId);
     expect(rows.length).toBe(2);
     expect(rows[1].starts_at_utc).toBe(start + WEEK);
