@@ -12,6 +12,7 @@ import { Backdrop, ChromeBackdrop, ChromeSurface, GoldFill, GuildHeader, SiteChr
 import { useChrome } from '../useChrome';
 import { BLOCKS_VERSION } from '../config';
 import { DetailPageTextQuery, GroupingDetailBlocksQuery, GuildRosterQuery } from '../documents';
+import { isWeekDuplicateRefusal } from '../weekDuplicate';
 import { EditGroupingFormMount, WheelColumn } from '../components/GroupingForm';
 import {
   ECHO_TZ_EAST, ECHO_TZ_WEST, dateStripDays, dateStripIndex, minuteWheelValues, startOfLocalDay, zonedEchoParts,
@@ -775,7 +776,7 @@ function JoinModal({
     ? roster.filter((m) => m.displayName.toLowerCase().includes(q) || (m.globalName || '').toLowerCase().includes(q))
     : roster;
 
-  const doJoin = async () => {
+  const doJoin = async (confirmWeekDuplicate = false) => {
     if (!sect) { setNotice(page?.seatToastSect ?? ''); return; }
     if (mode === 'proxy' && !selected) { setNotice(page?.seatProxyPickRequired ?? ''); return; }
     setJoining(true); setNotice('');
@@ -785,8 +786,24 @@ function JoinModal({
         .map((f) => ({ fieldId: f.id, value: answers[f.id].trim() }));
       const r = mode === 'proxy'
         ? await joinGrouping(id, selected!.displayName, sect, seat, selected!.discordId, answerInputs)
-        : await joinGrouping(id, defaultNickname, sect, seat, undefined, answerInputs);
-      if (!r.ok) { setNotice(joinFailText(r.error)); return; }
+        : await joinGrouping(id, defaultNickname, sect, seat, undefined, answerInputs, confirmWeekDuplicate);
+      if (!r.ok) {
+        if (!confirmWeekDuplicate && isWeekDuplicateRefusal(r)) {
+          // Already booked into another car this week: ask before
+          // booking a second one. The alert body is the server's
+          // message (it names the booked car); cancelling writes
+          // nothing and leaves the sheet as-is.
+          Alert.alert(page?.seatWeekDuplicateTitle ?? '', r.error ?? '', [
+            { text: data.viewer?.commonCancelLabel ?? '', style: 'cancel' },
+            {
+              text: data.viewer?.commonConfirmLabel ?? '',
+              onPress: () => { void doJoin(true); },
+            },
+          ]);
+          return;
+        }
+        setNotice(joinFailText(r.error)); return;
+      }
       onDone();
     } catch {
       setNotice(joinFailText());
@@ -899,7 +916,7 @@ function JoinModal({
             <Pressable style={s.cancelBtn} onPress={onClose}>
               <Text style={s.cancelText}>{page?.seatCancelLabel ?? '取消'}</Text>
             </Pressable>
-            <Pressable style={[s.submitBtn, joining && { opacity: 0.6 }]} onPress={doJoin} disabled={joining}>
+            <Pressable style={[s.submitBtn, joining && { opacity: 0.6 }]} onPress={() => { void doJoin(); }} disabled={joining}>
               <GoldFill />
               <Text style={s.submitText}>
                 {joining ? (page?.seatJoiningLabel ?? '报名中…') : (page?.seatConfirmJoinLabel ?? '确认报名')}
