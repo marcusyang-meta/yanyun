@@ -11,7 +11,7 @@ import { yoga } from './graphql.ts';
 import { getGuildAccess, negotiateLocale } from './domains/platform/graphql-base.ts';
 import { getSessionUserChecked, sessionCookieHeaders, handleDiscordLogin, handleDiscordCallback, handleLogout, getUserLocalePref } from './domains/identity/auth.ts';
 import { runDueAccountDeletions, recordUserLastTzIfChanged } from './domains/identity/index.ts';
-import { capturedTzOrNull, runDueRecurrences } from './domains/groupings/index.ts';
+import { capturedTzOrNull } from './domains/groupings/index.ts';
 import { maybeRunCreatorBackfill } from './creatorbackfill.js';
 import { maybeRunCreatorManualFix } from './creatormanualfix.js';
 import { logError, runScheduledBackup, configureGateRuntime } from './domains/platform/index.ts';
@@ -355,9 +355,5 @@ export default {
     // sweep; the .catch is belt-and-braces so the backup above can
     // never be affected.
     ctx.waitUntil(runDueAccountDeletions(env.DB).catch(() => 0));
-    // Weekly recurring groupings ride the same daily cron: each
-    // active series is guaranteed its one future instance here.
-    // Failures are contained per rule inside the sweep.
-    ctx.waitUntil(runDueRecurrences(env.DB).catch(() => ({ created: 0 })));
   },
 };

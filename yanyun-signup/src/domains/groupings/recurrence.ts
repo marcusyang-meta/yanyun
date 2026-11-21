@@ -1,10 +1,10 @@
 /* ===================================================
  * Weekly recurring groupings ("every week at the same time",
  * migration 0044): the rule repository plus the materialization
- * service — run by the daily cron for every active rule, and run
- * for a single rule inside the request when one of its instances
- * is completed or disbanded, so the next instance appears at once
- * instead of at the next sweep.
+ * service — run for a single rule inside the request when one of
+ * its instances is completed or disbanded, so the next instance
+ * appears at once. That lifecycle trigger is the only one: there
+ * is no scheduled sweep.
  *
  * A rule is a configuration snapshot of the car its leader created
  * with the weekly switch on (the clone-copy set: title / type /
@@ -20,10 +20,10 @@
  * the previous start + 7 days at the same wall-clock reading in
  * the rule's timezone (DST seams shift the UTC instant, never the
  * local reading). Weeks whose instance was disbanded (the row is
- * deleted) or missed (cron downtime) are skipped, never backfilled
- * into the past. Idempotency is stated in the schema (unique
- * (recurrence_id, starts_at_utc)) and re-checked here before
- * inserting, so a repeated run is a no-op.
+ * deleted) or sat untouched past its start are skipped, never
+ * backfilled into the past. Idempotency is stated in the schema
+ * (unique (recurrence_id, starts_at_utc)) and re-checked here
+ * before inserting, so a repeated run is a no-op.
  * =================================================== */
 import { sql } from 'drizzle-orm';
 import { createDb, schema } from '../../db/client.ts';
@@ -88,13 +88,6 @@ export async function getRecurrenceRule(d1: D1Database, id: number): Promise<Rec
   const db = createDb(d1);
   const row = await db.get<RecurrenceRuleRow>(sql`SELECT * FROM ${groupingRecurrences} WHERE ${col('id')} = ${id}`);
   return row ?? null;
-}
-
-/** Every active rule, oldest first — the cron's work list. */
-export async function listActiveRecurrenceRules(d1: D1Database): Promise<RecurrenceRuleRow[]> {
-  const db = createDb(d1);
-  const rows = await db.all<RecurrenceRuleRow>(sql`SELECT * FROM ${groupingRecurrences} WHERE ${col('status')} = ${'active'} ORDER BY ${col('id')} ASC`);
-  return rows || [];
 }
 
 export async function setRecurrenceRuleStatus(
@@ -250,8 +243,8 @@ export async function materializeRecurrenceRule(
   // Walk whole weeks forward from the later of the pointer and the
   // latest surviving instance until the start is in the future.
   // Past weeks are skipped, never backfilled: their instance either
-  // already ran, was disbanded, or was missed while the cron was
-  // down — none of those should produce a car in the past.
+  // already ran, was disbanded, or sat untouched past its start —
+  // none of those should produce a car in the past.
   let cursor = Math.max(Number(rule.last_starts_at_utc) || 0, latestExisting);
   let next = nextWeeklyStartUtc(cursor, rule.tz);
   while (next <= nowSec) {
@@ -294,12 +287,12 @@ export async function materializeRecurrenceRule(
   return { createdEventId };
 }
 
-/** The request-time trigger: run the cron's materialization for
- * the single rule behind one instance car. Called by the complete
- * and disband mutations right after the lifecycle change succeeds,
- * so finishing a series car surfaces its next instance immediately.
- * The semantics are exactly the cron's — this resolves the car's
- * rule through the same active check and hands it to the same
+/** The only materialization trigger: run the shared
+ * materialization for the single rule behind one instance car.
+ * Called by the complete and disband mutations right after the
+ * lifecycle change succeeds, so finishing a series car surfaces
+ * its next instance immediately. This resolves the car's rule
+ * through the active check and hands it to
  * materializeRecurrenceRule — so a car outside a live series (no
  * link, or the rule has stopped) is a no-op, completing an old
  * instance while a future one exists creates nothing, and a
@@ -312,22 +305,4 @@ export async function materializeRecurrenceForEvent(
   const rule = await getActiveRecurrenceForEvent(d1, ev);
   if (!rule) return { createdEventId: null };
   return materializeRecurrenceRule(d1, rule, nowSec);
-}
-
-/** The daily cron's entry point (rides the existing scheduled
- * handler next to the backup and the account-deletion sweep): run
- * every active rule once. Failures are contained per rule — one
- * broken series never blocks the others or the co-scheduled jobs. */
-export async function runDueRecurrences(
-  d1: D1Database, nowSec: number = Math.floor(Date.now() / 1000),
-): Promise<{ created: number }> {
-  const rules = await listActiveRecurrenceRules(d1).catch(() => [] as RecurrenceRuleRow[]);
-  let created = 0;
-  for (const rule of rules) {
-    try {
-      const r = await materializeRecurrenceRule(d1, rule, nowSec);
-      if (r.createdEventId) created += 1;
-    } catch { /* contained per rule; the next run retries */ }
-  }
-  return { created };
 }
