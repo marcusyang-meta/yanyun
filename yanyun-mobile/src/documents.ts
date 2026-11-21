@@ -374,6 +374,8 @@ export const ListPageTextQuery = graphql`
       formToastPosted
       formToastCreateFailedTemplate
       formTitleTemplate
+      formWeeklyLabel
+      formWeeklyHint
       formCustomFieldsTitle
       formCustomFieldAddLabel
       formCustomFieldLabelPlaceholder
@@ -516,6 +518,13 @@ export const DetailPageTextQuery = graphql`
         toastSkippedTemplate
         defaultStartsAt
       }
+      recurrence {
+        buttonLabel
+        confirmTitle
+        confirmMessageTemplate
+        toastStopped
+        toastFailedTemplate
+      }
       nudgeCopy {
         buttonLabel
         dialogTitle
@@ -585,6 +594,8 @@ export const DetailPageTextQuery = graphql`
       formToastPosted
       formToastCreateFailedTemplate
       formTitleTemplate
+      formWeeklyLabel
+      formWeeklyHint
       typeShortActivity
       typeShortTalent
       typeShortRace
@@ -680,6 +691,18 @@ export const CloneGroupingMutation = graphql`
       ok
       error
       skippedNames
+      grouping {
+        id
+      }
+    }
+  }
+`;
+
+export const StopRecurrenceMutation = graphql`
+  mutation documentsStopRecurrenceMutation($input: StopGroupingRecurrenceInput!) {
+    stopGroupingRecurrence(input: $input) {
+      ok
+      error
       grouping {
         id
       }
@@ -938,6 +961,8 @@ export const SchedulePageQuery = graphql`
       formToastPosted
       formToastCreateFailedTemplate
       formTitleTemplate
+      formWeeklyLabel
+      formWeeklyHint
       formCustomFieldsTitle
       formCustomFieldAddLabel
       formCustomFieldLabelPlaceholder

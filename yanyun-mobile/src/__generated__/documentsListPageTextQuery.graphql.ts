@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<30a5b3facd4c9f70cc2e2972a0596e0a>>
+ * @generated SignedSource<<73e942dae32bdaf0a3972463c6a8aa38>>
  * @lightSyntaxTransform
  */
 
@@ -69,6 +69,8 @@ export type documentsListPageTextQuery$data = {
     readonly formTzEastLabel: string;
     readonly formTzEchoTemplate: string;
     readonly formTzWestLabel: string;
+    readonly formWeeklyHint: string;
+    readonly formWeeklyLabel: string;
     readonly groupingTemplates: ReadonlyArray<{
       readonly creatorName: string | null | undefined;
       readonly customFields: ReadonlyArray<{
@@ -633,6 +635,20 @@ v3 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
+        "name": "formWeeklyLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "formWeeklyHint",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
         "name": "formCustomFieldsTitle",
         "storageKey": null
       },
@@ -1022,16 +1038,16 @@ return {
     "selections": (v3/*:: as any*/)
   },
   "params": {
-    "cacheID": "eff4f10d686bea8832ae0f89b9bc27a4",
+    "cacheID": "64f8e92d65ed7e5ce23838bab62ce880",
     "id": null,
     "metadata": {},
     "name": "documentsListPageTextQuery",
     "operationKind": "query",
-    "text": "query documentsListPageTextQuery(\n  $slug: String!\n  $tab: GroupingTab!\n) {\n  viewer {\n    commonUnknownErrorText\n    guild(slug: $slug) {\n      homeAdminLabel\n    }\n  }\n  groupingListPage(slug: $slug, tab: $tab) {\n    newCarLabel\n    weekShareImageLabel\n    weekShareImageUrl\n    weekShareText\n    weekShareUrl\n    weekShareImageFailed\n    tabAllLabel\n    tabActivityLabel\n    tabTalentLabel\n    tabRaceLabel\n    tabTowerLabel\n    tabExploreLabel\n    sealText\n    statusOpenLabel\n    weekHeaderTemplate\n    currentVersion\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formTypeExploreLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formHintExplore\n    formSizeLabel\n    formSizeOptionTemplate\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formTzEastLabel\n    formTzWestLabel\n    formTzEchoTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    formCustomFieldsTitle\n    formCustomFieldAddLabel\n    formCustomFieldLabelPlaceholder\n    formCustomFieldTypeText\n    formCustomFieldTypeChoice\n    formCustomFieldOptionsPlaceholder\n    formCustomFieldRequiredLabel\n    formCustomFieldRemoveLabel\n    formCustomFieldEmptyText\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n    typeShortCoopExplore\n    templateSectionTitle\n    templateNameLabel\n    templateNamePlaceholder\n    templateSaveLabel\n    templateUpdateLabel\n    templateEditingNoticeTemplate\n    templateCancelEditLabel\n    templateEmptyText\n    templateWhenTodayTemplate\n    templateWhenTomorrowTemplate\n    templateWhenDaysTemplate\n    templateToastSaved\n    templateToastSaveFailedTemplate\n    templateToastDeleted\n    templateToastDeleteFailedTemplate\n    templateMetaTemplate\n    groupingTemplates {\n      id\n      name\n      type\n      title\n      dungeonName\n      dungeonId\n      maxSlots\n      startDaysAhead\n      startHour\n      startMinute\n      creatorName\n      customFields {\n        id\n        label\n        fieldType\n        options\n        required\n      }\n      manageActions {\n        editLabel\n        deleteLabel\n        deleteConfirmTitle\n        deleteConfirmMessageTemplate\n      }\n    }\n  }\n}\n"
+    "text": "query documentsListPageTextQuery(\n  $slug: String!\n  $tab: GroupingTab!\n) {\n  viewer {\n    commonUnknownErrorText\n    guild(slug: $slug) {\n      homeAdminLabel\n    }\n  }\n  groupingListPage(slug: $slug, tab: $tab) {\n    newCarLabel\n    weekShareImageLabel\n    weekShareImageUrl\n    weekShareText\n    weekShareUrl\n    weekShareImageFailed\n    tabAllLabel\n    tabActivityLabel\n    tabTalentLabel\n    tabRaceLabel\n    tabTowerLabel\n    tabExploreLabel\n    sealText\n    statusOpenLabel\n    weekHeaderTemplate\n    currentVersion\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formTypeExploreLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formHintExplore\n    formSizeLabel\n    formSizeOptionTemplate\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formTzEastLabel\n    formTzWestLabel\n    formTzEchoTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    formWeeklyLabel\n    formWeeklyHint\n    formCustomFieldsTitle\n    formCustomFieldAddLabel\n    formCustomFieldLabelPlaceholder\n    formCustomFieldTypeText\n    formCustomFieldTypeChoice\n    formCustomFieldOptionsPlaceholder\n    formCustomFieldRequiredLabel\n    formCustomFieldRemoveLabel\n    formCustomFieldEmptyText\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n    typeShortCoopExplore\n    templateSectionTitle\n    templateNameLabel\n    templateNamePlaceholder\n    templateSaveLabel\n    templateUpdateLabel\n    templateEditingNoticeTemplate\n    templateCancelEditLabel\n    templateEmptyText\n    templateWhenTodayTemplate\n    templateWhenTomorrowTemplate\n    templateWhenDaysTemplate\n    templateToastSaved\n    templateToastSaveFailedTemplate\n    templateToastDeleted\n    templateToastDeleteFailedTemplate\n    templateMetaTemplate\n    groupingTemplates {\n      id\n      name\n      type\n      title\n      dungeonName\n      dungeonId\n      maxSlots\n      startDaysAhead\n      startHour\n      startMinute\n      creatorName\n      customFields {\n        id\n        label\n        fieldType\n        options\n        required\n      }\n      manageActions {\n        editLabel\n        deleteLabel\n        deleteConfirmTitle\n        deleteConfirmMessageTemplate\n      }\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "15c6908aa2725f1e728e708499d8051e";
+(node as any).hash = "918d4a0ef40499f0b1b2f293dd62c150";
 
 export default node;

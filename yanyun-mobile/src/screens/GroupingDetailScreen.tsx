@@ -23,7 +23,7 @@ import { BlockNode1View } from '../blocks/BlockRenderer';
 import type { ActionHandlers } from '../blocks/actions';
 import { AsyncBoundary, LoadingView } from '../components/AsyncBoundary';
 import * as Clipboard from 'expo-clipboard';
-import { cloneGrouping, completeGrouping, disbandGrouping, joinGrouping, leaveGrouping, mergeGrouping, reopenGrouping, saveGroupingTemplate, setSeatReady } from '../api';
+import { cloneGrouping, completeGrouping, disbandGrouping, joinGrouping, leaveGrouping, mergeGrouping, reopenGrouping, saveGroupingTemplate, setSeatReady, stopGroupingRecurrence } from '../api';
 import { deliverShareImage, type ShareImageDeps } from '../shareImage';
 import { useGuildLive } from '../live';
 import { useSession } from '../session';
@@ -240,6 +240,7 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
   const [showTplSave, setShowTplSave] = useState(false);
   const [showMerge, setShowMerge] = useState(false);
   const [showClone, setShowClone] = useState(false);
+  const [showStopRecurrence, setShowStopRecurrence] = useState(false);
   const [showNudge, setShowNudge] = useState(false);
   const [shareImageBusy, setShareImageBusy] = useState(false);
   const onShare = useCallback(() => {
@@ -289,6 +290,11 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
             <Text style={s.back}>{page.cloneAction.buttonLabel}</Text>
           </Pressable>
         ) : null}
+        {page?.recurrence ? (
+          <Pressable onPress={() => setShowStopRecurrence(true)} hitSlop={10} style={s.headLink}>
+            <Text style={s.back}>{page.recurrence.buttonLabel}</Text>
+          </Pressable>
+        ) : null}
         {page?.nudgeCopy ? (
           <Pressable onPress={() => setShowNudge(true)} hitSlop={10} style={s.headLink}>
             <Text style={s.back}>{page.nudgeCopy.buttonLabel}</Text>
@@ -329,6 +335,14 @@ function BackLinkLive({ slug, id }: { slug: string; id: string }) {
           groupingId={id}
           unknownErrorText={data.viewer?.commonUnknownErrorText ?? ''}
           onClose={() => setShowClone(false)}
+        />
+      )}
+      {showStopRecurrence && page?.recurrence && (
+        <StopRecurrenceModal
+          page={page}
+          groupingId={id}
+          unknownErrorText={data.viewer?.commonUnknownErrorText ?? ''}
+          onClose={() => setShowStopRecurrence(false)}
         />
       )}
       {showNudge && page?.nudgeCopy && (
@@ -515,6 +529,63 @@ function MergeModal({
               </View>
             </>
           )}
+        </SheetPanel>
+      </Pressable>
+    </Modal>
+  );
+}
+
+// Stop-weekly-recurrence confirmation: the page's recurrence
+// object exists only for managers of a grouping in an active
+// series; the dialog explains that already-generated instances
+// stay untouched, and stopGroupingRecurrence re-verifies the
+// manage verdict server-side. On success the screen refreshes
+// through the live channel (the mutation publishes an update),
+// like the merge flow.
+function StopRecurrenceModal({
+  page, groupingId, unknownErrorText, onClose,
+}: {
+  page: DetailPageData;
+  groupingId: string;
+  unknownErrorText: string;
+  onClose: () => void;
+}) {
+  const rc = page.recurrence;
+  const [notice, setNotice] = useState('');
+  const [busy, setBusy] = useState(false);
+  if (!rc) return null;
+  const doStop = async () => {
+    setBusy(true); setNotice('');
+    try {
+      const r = await stopGroupingRecurrence(groupingId);
+      if (!r.ok) {
+        setNotice(fill(rc.toastFailedTemplate ?? '', { error: r.error || unknownErrorText }));
+        return;
+      }
+      onClose();
+      Alert.alert(rc.toastStopped);
+    } catch (e) {
+      setNotice(fill(rc.toastFailedTemplate ?? '', {
+        error: e instanceof Error ? e.message : unknownErrorText,
+      }));
+    } finally { setBusy(false); }
+  };
+  return (
+    <Modal visible transparent animationType="fade" onRequestClose={onClose}>
+      <Pressable style={s.overlay} onPress={onClose}>
+        <SheetPanel>
+          <Text style={s.formTitle}>{rc.confirmTitle}</Text>
+          <Text style={s.label}>{fill(rc.confirmMessageTemplate ?? '', { title: page.grouping?.title ?? '' })}</Text>
+          {!!notice && <Text style={s.formNotice}>{notice}</Text>}
+          <View style={[s.formBtns, { marginTop: 16 }]}>
+            <Pressable style={s.cancelBtn} onPress={onClose}>
+              <Text style={s.cancelText}>{page.formCancelLabel ?? ''}</Text>
+            </Pressable>
+            <Pressable style={[s.submitBtn, busy && { opacity: 0.6 }]} onPress={doStop} disabled={busy}>
+              <GoldFill />
+              <Text style={s.submitText}>{rc.buttonLabel}</Text>
+            </Pressable>
+          </View>
         </SheetPanel>
       </Pressable>
     </Modal>

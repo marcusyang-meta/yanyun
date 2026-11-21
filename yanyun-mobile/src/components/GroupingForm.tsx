@@ -1,5 +1,5 @@
 import React, { Suspense, useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from 'react-native';
+import { Alert, Pressable, ScrollView, StyleSheet, Switch, Text, TextInput, View } from 'react-native';
 import type { NativeScrollEvent, NativeSyntheticEvent } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fetchQuery, useLazyLoadQuery, useRelayEnvironment } from 'react-relay';
@@ -107,6 +107,10 @@ export interface GroupingFormText {
   formCustomFieldRequiredLabel?: string;
   formCustomFieldRemoveLabel?: string;
   formCustomFieldEmptyText?: string;
+  // Weekly-recurrence switch copy (create mode only; the switch
+  // renders only when the hosting page selected these fields).
+  formWeeklyLabel?: string;
+  formWeeklyHint?: string;
 }
 
 // One custom signup-form field as the backend delivers it (F7):
@@ -304,6 +308,9 @@ export default function GroupingForm({
   // from the creator's identity and ignores any submitted value.
   const [nickname] = useState(defaultNickname || '');
   const [sect, setSect] = useState('');
+  // Weekly recurrence (create mode only): when on, the created
+  // grouping becomes the first instance of a weekly series.
+  const [weekly, setWeekly] = useState(false);
   const [titleErr, setTitleErr] = useState(false);
   const [nickErr, setNickErr] = useState(false);
   const [notice, setNotice] = useState('');
@@ -478,6 +485,7 @@ export default function GroupingForm({
           slug, title: t, type, startsAt,
           dungeonId: type === 'ACTIVITY' || type === 'TOWER' || type === 'EXPLORE' ? null : (dungeonId || null),
           ...(type === 'EXPLORE' ? { maxSlots: exploreSize } : {}),
+          ...(weekly ? { weeklyRecurring: true } : {}),
           seats: [{ nickname: nickname.trim(), weapon: sect }],
           customFields: fieldInputsFromDrafts(fieldDrafts),
         });
@@ -692,6 +700,15 @@ export default function GroupingForm({
                   </Pressable>
                 ))}
               </View>
+              {!!text.formWeeklyLabel && (
+                <>
+                  <View style={[s.fieldRow, { marginTop: 16 }]}>
+                    <Text style={[s.label, { flex: 1, marginBottom: 0 }]}>{text.formWeeklyLabel}</Text>
+                    <Switch value={weekly} onValueChange={setWeekly} />
+                  </View>
+                  {!!text.formWeeklyHint && <Text style={s.hint}>{text.formWeeklyHint}</Text>}
+                </>
+              )}
             </>
           )}
 
