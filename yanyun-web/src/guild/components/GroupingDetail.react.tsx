@@ -114,6 +114,7 @@ const GroupingDetailQueryNode = graphql`
       seatToastLeaveFailedTemplate
       seatLeaveConfirmTitle
       seatLeaveConfirmMessageTemplate
+      seatWeekDuplicateTitle
       detailReadyProgressTemplate
       seatReadyLabel
       seatReadyActionLabel

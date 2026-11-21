@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<dad5433faf84f466a20b16a4c6144875>>
+ * @generated SignedSource<<a0fb09a4972d4e83158310ecde30d4c5>>
  * @lightSyntaxTransform
  */
 
@@ -10,6 +10,7 @@
 import { ConcreteRequest } from 'relay-runtime';
 export type JoinGroupingInput = {
   answers?: ReadonlyArray<SignupAnswerInput> | null | undefined;
+  confirmWeekDuplicate?: boolean | null | undefined;
   forDiscordId?: string | null | undefined;
   groupingId: string;
   nickname: string;
@@ -26,6 +27,7 @@ export type SeatGridJoinMutation$variables = {
 export type SeatGridJoinMutation$data = {
   readonly joinGrouping: {
     readonly error: string | null | undefined;
+    readonly errorCode: string | null | undefined;
     readonly ok: boolean;
     readonly seats: ReadonlyArray<{
       readonly index: number;
@@ -79,6 +81,13 @@ v1 = [
         "args": null,
         "kind": "ScalarField",
         "name": "error",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "errorCode",
         "storageKey": null
       },
       {
@@ -170,16 +179,16 @@ return {
     "selections": (v1/*:: as any*/)
   },
   "params": {
-    "cacheID": "09df436cb9cdb9fc066077a7803d827f",
+    "cacheID": "cb772ef8d4db6d395cde6cd7ec9c890c",
     "id": null,
     "metadata": {},
     "name": "SeatGridJoinMutation",
     "operationKind": "mutation",
-    "text": "mutation SeatGridJoinMutation(\n  $input: JoinGroupingInput!\n) {\n  joinGrouping(input: $input) {\n    ok\n    error\n    seats {\n      index\n      nickname\n      weapon\n      role\n      uid\n      occupied\n      ready\n      mine\n    }\n  }\n}\n"
+    "text": "mutation SeatGridJoinMutation(\n  $input: JoinGroupingInput!\n) {\n  joinGrouping(input: $input) {\n    ok\n    error\n    errorCode\n    seats {\n      index\n      nickname\n      weapon\n      role\n      uid\n      occupied\n      ready\n      mine\n    }\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "126761a5450977085b8054a01fe3be31";
+(node as any).hash = "b26c76f911951247427ae84f1d765ff7";
 
 export default node;

@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<b30d9b4eb73f8f1844bd00f3087f78b3>>
+ * @generated SignedSource<<e875a00a80f534e403a247ac87162db3>>
  * @lightSyntaxTransform
  */
 
@@ -10,6 +10,7 @@
 import { ConcreteRequest } from 'relay-runtime';
 export type JoinGroupingInput = {
   answers?: ReadonlyArray<SignupAnswerInput> | null | undefined;
+  confirmWeekDuplicate?: boolean | null | undefined;
   forDiscordId?: string | null | undefined;
   groupingId: string;
   nickname: string;
