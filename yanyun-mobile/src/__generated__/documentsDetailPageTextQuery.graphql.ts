@@ -1,5 +1,5 @@
 /**
- * @generated SignedSource<<3bea48b6bb95256d8f40c1992d1cc677>>
+ * @generated SignedSource<<0700fc04866cbd91784f020e44942ef9>>
  * @lightSyntaxTransform
  */
 
@@ -74,6 +74,8 @@ export type documentsDetailPageTextQuery$data = {
     readonly formTzEastLabel: string;
     readonly formTzEchoTemplate: string;
     readonly formTzWestLabel: string;
+    readonly formWeeklyHint: string;
+    readonly formWeeklyLabel: string;
     readonly grouping: {
       readonly customFields: ReadonlyArray<{
         readonly fieldType: CustomFieldType;
@@ -112,6 +114,13 @@ export type documentsDetailPageTextQuery$data = {
       readonly emptyText: string | null | undefined;
       readonly hintText: string;
       readonly text: string | null | undefined;
+    } | null | undefined;
+    readonly recurrence: {
+      readonly buttonLabel: string;
+      readonly confirmMessageTemplate: string;
+      readonly confirmTitle: string;
+      readonly toastFailedTemplate: string;
+      readonly toastStopped: string;
     } | null | undefined;
     readonly rosterAnswers: ReadonlyArray<{
       readonly fieldId: string;
@@ -229,7 +238,21 @@ v7 = {
   "name": "emptyText",
   "storageKey": null
 },
-v8 = [
+v8 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "confirmTitle",
+  "storageKey": null
+},
+v9 = {
+  "alias": null,
+  "args": null,
+  "kind": "ScalarField",
+  "name": "confirmMessageTemplate",
+  "storageKey": null
+},
+v10 = [
   {
     "alias": null,
     "args": null,
@@ -601,20 +624,8 @@ v8 = [
           (v4/*:: as any*/),
           (v5/*:: as any*/),
           (v7/*:: as any*/),
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "confirmTitle",
-            "storageKey": null
-          },
-          {
-            "alias": null,
-            "args": null,
-            "kind": "ScalarField",
-            "name": "confirmMessageTemplate",
-            "storageKey": null
-          },
+          (v8/*:: as any*/),
+          (v9/*:: as any*/),
           {
             "alias": null,
             "args": null,
@@ -685,6 +696,28 @@ v8 = [
             "name": "defaultStartsAt",
             "storageKey": null
           }
+        ],
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "concreteType": "GroupingRecurrenceControl",
+        "kind": "LinkedField",
+        "name": "recurrence",
+        "plural": false,
+        "selections": [
+          (v4/*:: as any*/),
+          (v8/*:: as any*/),
+          (v9/*:: as any*/),
+          {
+            "alias": null,
+            "args": null,
+            "kind": "ScalarField",
+            "name": "toastStopped",
+            "storageKey": null
+          },
+          (v6/*:: as any*/)
         ],
         "storageKey": null
       },
@@ -1154,6 +1187,20 @@ v8 = [
         "alias": null,
         "args": null,
         "kind": "ScalarField",
+        "name": "formWeeklyLabel",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
+        "name": "formWeeklyHint",
+        "storageKey": null
+      },
+      {
+        "alias": null,
+        "args": null,
+        "kind": "ScalarField",
         "name": "typeShortActivity",
         "storageKey": null
       },
@@ -1198,7 +1245,7 @@ return {
     "kind": "Fragment",
     "metadata": null,
     "name": "documentsDetailPageTextQuery",
-    "selections": (v8/*:: as any*/),
+    "selections": (v10/*:: as any*/),
     "type": "Query",
     "abstractKey": null
   },
@@ -1210,19 +1257,19 @@ return {
     ],
     "kind": "Operation",
     "name": "documentsDetailPageTextQuery",
-    "selections": (v8/*:: as any*/)
+    "selections": (v10/*:: as any*/)
   },
   "params": {
-    "cacheID": "cf80d23de2584e809973ef679eeba341",
+    "cacheID": "340983c6b4c66b7dcfcb660aa5e3ffdd",
     "id": null,
     "metadata": {},
     "name": "documentsDetailPageTextQuery",
     "operationKind": "query",
-    "text": "query documentsDetailPageTextQuery(\n  $slug: String\n  $id: ID!\n) {\n  viewer {\n    commonUnknownErrorText\n    commonConfirmLabel\n    commonCancelLabel\n  }\n  groupingDetailPage(slug: $slug, id: $id) {\n    grouping {\n      id\n      title\n      type\n      startsAt\n      maxSlots\n      customFields {\n        id\n        label\n        fieldType\n        options\n        required\n      }\n    }\n    rosterAnswersTitle\n    rosterAnswers {\n      uid\n      nickname\n      fieldId\n      fieldLabel\n      value\n    }\n    detailBackToListLabel\n    detailToastDisbanded\n    detailToastDisbandFailedTemplate\n    detailToastCompleteFailedTemplate\n    detailToastRestoreFailedTemplate\n    seatToastJoined\n    seatToastJoinFailedTemplate\n    seatToastLeft\n    seatToastLeaveFailedTemplate\n    seatEmptyJoinLabel\n    seatEmptyLabel\n    seatLeaderLabel\n    seatReadyLabel\n    seatReadyActionLabel\n    seatUnreadyActionLabel\n    seatToastReadyFailedTemplate\n    detailShareLabel\n    shareUrl\n    shareImageUrl\n    detailShareImageLabel\n    detailShareImageFailed\n    templateSave {\n      buttonLabel\n      dialogTitle\n      nameLabel\n      submitLabel\n      toastSaved\n      toastFailedTemplate\n    }\n    merge {\n      buttonLabel\n      dialogTitle\n      emptyText\n      confirmTitle\n      confirmMessageTemplate\n      confirmSubmitLabel\n      toastMerged\n      toastFailedTemplate\n      candidates {\n        id\n        title\n        metaText\n      }\n    }\n    cloneAction {\n      buttonLabel\n      dialogTitle\n      toastCloned\n      toastFailedTemplate\n      toastSkippedTemplate\n      defaultStartsAt\n    }\n    nudgeCopy {\n      buttonLabel\n      dialogTitle\n      hintText\n      text\n      emptyText\n      copyLabel\n      copiedToast\n      candidateCount\n    }\n    seatModalTitleTemplate\n    seatModalSubtitle\n    seatNameLabel\n    seatNamePlaceholder\n    seatNameRequired\n    seatSelfTabLabel\n    seatProxyTabLabel\n    seatSelfNameHint\n    seatProxySearchPlaceholder\n    seatProxyPickRequired\n    seatProxyEmptyText\n    seatSectLabel\n    seatCancelLabel\n    seatConfirmJoinLabel\n    seatJoiningLabel\n    seatWeekDuplicateTitle\n    seatToastSect\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formTypeExploreLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formHintExplore\n    formSizeLabel\n    formSizeOptionTemplate\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formTzEastLabel\n    formTzWestLabel\n    formTzEchoTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n    typeShortCoopExplore\n  }\n}\n"
+    "text": "query documentsDetailPageTextQuery(\n  $slug: String\n  $id: ID!\n) {\n  viewer {\n    commonUnknownErrorText\n    commonConfirmLabel\n    commonCancelLabel\n  }\n  groupingDetailPage(slug: $slug, id: $id) {\n    grouping {\n      id\n      title\n      type\n      startsAt\n      maxSlots\n      customFields {\n        id\n        label\n        fieldType\n        options\n        required\n      }\n    }\n    rosterAnswersTitle\n    rosterAnswers {\n      uid\n      nickname\n      fieldId\n      fieldLabel\n      value\n    }\n    detailBackToListLabel\n    detailToastDisbanded\n    detailToastDisbandFailedTemplate\n    detailToastCompleteFailedTemplate\n    detailToastRestoreFailedTemplate\n    seatToastJoined\n    seatToastJoinFailedTemplate\n    seatToastLeft\n    seatToastLeaveFailedTemplate\n    seatEmptyJoinLabel\n    seatEmptyLabel\n    seatLeaderLabel\n    seatReadyLabel\n    seatReadyActionLabel\n    seatUnreadyActionLabel\n    seatToastReadyFailedTemplate\n    detailShareLabel\n    shareUrl\n    shareImageUrl\n    detailShareImageLabel\n    detailShareImageFailed\n    templateSave {\n      buttonLabel\n      dialogTitle\n      nameLabel\n      submitLabel\n      toastSaved\n      toastFailedTemplate\n    }\n    merge {\n      buttonLabel\n      dialogTitle\n      emptyText\n      confirmTitle\n      confirmMessageTemplate\n      confirmSubmitLabel\n      toastMerged\n      toastFailedTemplate\n      candidates {\n        id\n        title\n        metaText\n      }\n    }\n    cloneAction {\n      buttonLabel\n      dialogTitle\n      toastCloned\n      toastFailedTemplate\n      toastSkippedTemplate\n      defaultStartsAt\n    }\n    recurrence {\n      buttonLabel\n      confirmTitle\n      confirmMessageTemplate\n      toastStopped\n      toastFailedTemplate\n    }\n    nudgeCopy {\n      buttonLabel\n      dialogTitle\n      hintText\n      text\n      emptyText\n      copyLabel\n      copiedToast\n      candidateCount\n    }\n    seatModalTitleTemplate\n    seatModalSubtitle\n    seatNameLabel\n    seatNamePlaceholder\n    seatNameRequired\n    seatSelfTabLabel\n    seatProxyTabLabel\n    seatSelfNameHint\n    seatProxySearchPlaceholder\n    seatProxyPickRequired\n    seatProxyEmptyText\n    seatSectLabel\n    seatCancelLabel\n    seatConfirmJoinLabel\n    seatJoiningLabel\n    seatWeekDuplicateTitle\n    seatToastSect\n    formCreateTitle\n    formEditTitle\n    formTypeLabel\n    formTypeActivityLabel\n    formTypeTalentLabel\n    formTypeRaceLabel\n    formTypeTowerLabel\n    formTypeExploreLabel\n    formCapacityTemplate\n    formHintActivity\n    formHintDungeonTemplate\n    formHintTalent\n    formHintRace\n    formHintTower\n    formHintExplore\n    formSizeLabel\n    formSizeOptionTemplate\n    formTitleLabel\n    formTitlePlaceholder\n    formStartsLabel\n    formMonthTemplate\n    formDayTemplate\n    formHourTemplate\n    formMinuteTemplate\n    formTzEastLabel\n    formTzWestLabel\n    formTzEchoTemplate\n    formDungeonLabel\n    formDungeonNoneLabel\n    formNicknameLabel\n    formNicknamePlaceholder\n    formSectLabel\n    formCancelLabel\n    formSubmitCreateLabel\n    formSubmitEditLabel\n    formSubmittingLabel\n    formToastSect\n    formToastSaved\n    formToastSaveFailedTemplate\n    formToastPosted\n    formToastCreateFailedTemplate\n    formTitleTemplate\n    formWeeklyLabel\n    formWeeklyHint\n    typeShortActivity\n    typeShortTalent\n    typeShortRace\n    typeShortTower\n    typeShortCoopExplore\n  }\n}\n"
   }
 };
 })();
 
-(node as any).hash = "d7d94c24d2eb1ae8d8fde03602edb20d";
+(node as any).hash = "80f385932fae628cadf9e475d2bc5414";
 
 export default node;

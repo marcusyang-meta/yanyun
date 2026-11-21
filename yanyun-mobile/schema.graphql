@@ -391,6 +391,8 @@ type GroupingListPage {
   formCustomFieldRequiredLabel: String!
   formCustomFieldRemoveLabel: String!
   formCustomFieldEmptyText: String!
+  formWeeklyLabel: String!
+  formWeeklyHint: String!
   templateSectionTitle: String!
   templateNameLabel: String!
   templateNamePlaceholder: String!
@@ -484,6 +486,14 @@ type GroupingCloneAction {
   defaultStartsAt: String!
 }
 
+type GroupingRecurrenceControl {
+  buttonLabel: String!
+  confirmTitle: String!
+  confirmMessageTemplate: String!
+  toastStopped: String!
+  toastFailedTemplate: String!
+}
+
 type GroupingNudgeCopy {
   buttonLabel: String!
   dialogTitle: String!
@@ -507,6 +517,10 @@ input CloneGroupingInput {
   groupingId: ID!
   title: String
   startsAt: String!
+}
+
+input StopGroupingRecurrenceInput {
+  groupingId: ID!
 }
 
 type GroupingTemplatePayload {
@@ -609,6 +623,7 @@ type GroupingDetailPage {
   merge: GroupingMerge
   templateSave: GroupingTemplateSave
   cloneAction: GroupingCloneAction
+  recurrence: GroupingRecurrenceControl
   nudgeCopy: GroupingNudgeCopy
   rosterAnswers: [RosterAnswer!]
   rosterAnswersTitle: String!
@@ -737,6 +752,8 @@ type GroupingDetailPage {
   formCustomFieldRequiredLabel: String!
   formCustomFieldRemoveLabel: String!
   formCustomFieldEmptyText: String!
+  formWeeklyLabel: String!
+  formWeeklyHint: String!
 }
 
 union GroupingRecapResult = GroupingRecapReady | GroupingRecapLocked | GroupingRecapNotEnabled | GroupingRecapEmpty
@@ -1819,6 +1836,8 @@ type GuildSchedulePage {
   formCustomFieldRequiredLabel: String!
   formCustomFieldRemoveLabel: String!
   formCustomFieldEmptyText: String!
+  formWeeklyLabel: String!
+  formWeeklyHint: String!
   typeShortActivity: String!
   typeShortTalent: String!
   typeShortRace: String!
@@ -1942,6 +1961,7 @@ input VoteTimePollInput {
 type Mutation {
   createGrouping(input: CreateGroupingInput!): GroupingPayload!
   cloneGrouping(input: CloneGroupingInput!): CloneGroupingPayload!
+  stopGroupingRecurrence(input: StopGroupingRecurrenceInput!): GroupingPayload!
   updateGrouping(id: ID!, input: UpdateGroupingInput!): GroupingPayload!
   disbandGrouping(id: ID!): DeletePayload!
   completeGrouping(id: ID!): GroupingPayload!
@@ -2113,6 +2133,7 @@ input CreateGroupingInput {
   maxSlots: Int
   seats: [SeatInput!]
   customFields: [CustomFieldInput!]
+  weeklyRecurring: Boolean
 }
 
 input SeatInput {

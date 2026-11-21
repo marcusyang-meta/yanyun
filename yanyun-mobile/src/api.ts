@@ -8,6 +8,7 @@ import {
   DeleteGroupingTemplateMutation,
   SaveGroupingTemplateMutation,
   CloneGroupingMutation,
+  StopRecurrenceMutation,
   CreateGuildMutation,
   DisbandGroupingMutation,
   MergeGroupingMutation,
@@ -77,6 +78,7 @@ import type { documentsUpdateGroupingTemplateMutation } from './__generated__/do
 import type { documentsDeleteGroupingTemplateMutation } from './__generated__/documentsDeleteGroupingTemplateMutation.graphql';
 import type { documentsSaveGroupingTemplateMutation } from './__generated__/documentsSaveGroupingTemplateMutation.graphql';
 import type { documentsCloneGroupingMutation } from './__generated__/documentsCloneGroupingMutation.graphql';
+import type { documentsStopRecurrenceMutation } from './__generated__/documentsStopRecurrenceMutation.graphql';
 import type { documentsCreateGuildMutation } from './__generated__/documentsCreateGuildMutation.graphql';
 import type { documentsUpdateGroupingMutation } from './__generated__/documentsUpdateGroupingMutation.graphql';
 import type { documentsUpdateMyLocaleMutation } from './__generated__/documentsUpdateMyLocaleMutation.graphql';
@@ -377,6 +379,9 @@ export async function createGrouping(input: {
   maxSlots?: number;
   seats?: { nickname: string; weapon: string }[];
   customFields?: CustomFieldInput[];
+  // Weekly recurrence: the created grouping becomes the first
+  // instance of a weekly series (backend snapshots its config).
+  weeklyRecurring?: boolean;
 }): Promise<GroupingPayload> {
   const r = await commit<documentsCreateGroupingMutation>(CreateGroupingMutation, { input });
   return r.createGrouping as GroupingPayload;
@@ -454,6 +459,11 @@ export async function cloneGrouping(input: {
 }): Promise<ClonePayload> {
   const r = await commit<documentsCloneGroupingMutation>(CloneGroupingMutation, { input });
   return r.cloneGrouping as ClonePayload;
+}
+
+export async function stopGroupingRecurrence(groupingId: string): Promise<GroupingPayload> {
+  const r = await commit<documentsStopRecurrenceMutation>(StopRecurrenceMutation, { input: { groupingId } });
+  return r.stopGroupingRecurrence as GroupingPayload;
 }
 
 export type LocalePayload = {
