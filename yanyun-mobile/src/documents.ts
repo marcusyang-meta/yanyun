@@ -200,6 +200,7 @@ export const JoinGroupingMutation = graphql`
     joinGrouping(input: $input) {
       ok
       error
+      errorCode
       seats {
         index
         nickname
@@ -437,6 +438,8 @@ export const DetailPageTextQuery = graphql`
   query documentsDetailPageTextQuery($slug: String, $id: ID!) {
     viewer {
       commonUnknownErrorText
+      commonConfirmLabel
+      commonCancelLabel
     }
     groupingDetailPage(slug: $slug, id: $id) {
       grouping {
@@ -538,6 +541,7 @@ export const DetailPageTextQuery = graphql`
       seatCancelLabel
       seatConfirmJoinLabel
       seatJoiningLabel
+      seatWeekDuplicateTitle
       seatToastSect
       formCreateTitle
       formEditTitle

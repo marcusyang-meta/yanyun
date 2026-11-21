@@ -162,7 +162,7 @@ export type Seat = {
   ready?: boolean;
   mine?: boolean;
 };
-export type SeatPayload = { ok: boolean; error?: string | null; seats?: Seat[] | null };
+export type SeatPayload = { ok: boolean; error?: string | null; errorCode?: string | null; seats?: Seat[] | null };
 
 // Platform-home recruit section (Viewer.homeRecruit): composed by the
 // server per viewer — directory entries carry an application section
@@ -300,12 +300,17 @@ export async function joinGrouping(
   forDiscordId?: string,
   // F7 custom-form answers for this car's fields (empty = none).
   answers?: SignupAnswerInput[],
+  // Weekly-duplicate confirmation: set only when the member has
+  // confirmed the second same-week signup after the backend refused
+  // the first attempt with alreadyBookedThisWeek.
+  confirmWeekDuplicate?: boolean,
 ): Promise<SeatPayload> {
   const r = await commit<documentsJoinGroupingMutation>(JoinGroupingMutation, {
     input: {
       groupingId, nickname, weapon, seatIndex,
       ...(forDiscordId ? { forDiscordId } : {}),
       ...(answers && answers.length ? { answers } : {}),
+      ...(confirmWeekDuplicate ? { confirmWeekDuplicate: true } : {}),
     },
   });
   return r.joinGrouping as SeatPayload;
