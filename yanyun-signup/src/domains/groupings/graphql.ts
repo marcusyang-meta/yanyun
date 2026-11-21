@@ -2288,6 +2288,13 @@ export const groupingsResolvers = {
     toastSkippedTemplate: (p: any) => p.toastSkippedTemplate,
     defaultStartsAt: (p: any) => p.defaultStartsAt,
   },
+  GroupingRecurrenceControl: {
+    buttonLabel: (p: any) => p.buttonLabel,
+    confirmTitle: (p: any) => p.confirmTitle,
+    confirmMessageTemplate: (p: any) => p.confirmMessageTemplate,
+    toastStopped: (p: any) => p.toastStopped,
+    toastFailedTemplate: (p: any) => p.toastFailedTemplate,
+  },
   CloneGroupingPayload: {
     ok: (p: any) => p.genOk(),
     grouping: (p: any) => p.genGrouping(),
