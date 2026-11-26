@@ -543,9 +543,12 @@ export default function GearLibrary(props: {
     schools: [] as string[],
   }));
 
-  const runPaste = () => {
-    const text = pasteText.trim();
-    if (!text) { toast(t.gearPasteEmptyText); return; }
+  const parseGearText = (rawText: string, fromFile = false) => {
+    const text = rawText.trim();
+    if (!text) { toast(fromFile ? t.gearImportFailedToast : t.gearPasteEmptyText); return; }
+    const clearPaste = () => {
+      if (!fromFile) setPasteText((current) => current === rawText ? '' : current);
+    };
     commitPaste({
       variables: { text },
       onCompleted: (resp) => {
@@ -555,7 +558,7 @@ export default function GearLibrary(props: {
           if (parsed.ok) {
             importItems(parsed.items, (added) => {
               toast(`${t.gearPasteFullText} ${fill(t.gearImportedToastTemplate, { n: added.length })}`);
-              setPasteText('');
+              clearPaste();
             });
             return;
           }
@@ -571,8 +574,8 @@ export default function GearLibrary(props: {
             let msg = fill(t.gearPasteOkTemplate, { mode: r.mode, n: added.length, lines: linesTotal });
             if (r.unknown > 0) msg += ' ' + fill(t.gearPasteUnknownTemplate, { n: r.unknown });
             toast(msg);
-            setPasteText('');
-          });
+            clearPaste();
+          }, r.mode === 'WWM Dashboard' ? { source: 'wwm-dashboard' } : undefined);
         } else {
           toast(t.gearPasteFailText);
         }
@@ -610,8 +613,13 @@ export default function GearLibrary(props: {
   const onImportFile = (f: File) => {
     f.text().then((text) => {
       const parsed = parseImportFile(text);
-      if (!parsed.ok) { toast(t.gearImportFailedToast); return; }
-      importItems(parsed.items, (added) => toast(fill(t.gearImportedToastTemplate, { n: added.length })));
+      if (parsed.ok) {
+        importItems(parsed.items, (added) => toast(fill(t.gearImportedToastTemplate, { n: added.length })));
+        return;
+      }
+      const data: { source?: unknown } | null = JSON.parse(text);
+      if (data?.source === 'wwm-dashboard') parseGearText(text, true);
+      else toast(t.gearImportFailedToast);
     }).catch(() => toast(t.gearImportFailedToast));
   };
   const loadDemo = () => {
@@ -929,7 +937,7 @@ export default function GearLibrary(props: {
         <button style={btnQuiet} disabled={!loggedIn} onClick={loadDemo}>{t.gearDemoLabel}</button>
         <button style={btnQuiet} onClick={exportFile}>{t.gearExportLabel}</button>
         <button style={btnQuiet} disabled={!loggedIn} onClick={() => fileRef.current?.click()}>{t.gearImportLabel}</button>
-        <input ref={fileRef} type="file" accept=".json,application/json" style={{ display: 'none' }}
+        <input ref={fileRef} type="file" accept=".json,.txt,application/json,text/plain" style={{ display: 'none' }}
           onChange={(e) => { const f = e.target.files?.[0]; if (f) onImportFile(f); e.target.value = ''; }} />
         <button style={btnQuiet} disabled={!loggedIn || !items.length} onClick={() => setConfirmClear(true)}>{t.gearClearLibLabel}</button>
       </div>
@@ -947,7 +955,7 @@ export default function GearLibrary(props: {
           onChange={(e) => setPasteText(e.target.value)} placeholder={t.gearPastePlaceholder}
         />
         <div style={{ display: 'flex', gap: 8, marginTop: 8, flexWrap: 'wrap' }}>
-          <button style={btnGold} disabled={!loggedIn} onClick={runPaste}>{t.gearPasteButtonLabel}</button>
+          <button style={btnGold} disabled={!loggedIn} onClick={() => parseGearText(pasteText)}>{t.gearPasteButtonLabel}</button>
           <button style={btnGhost} onClick={fillDemoPaste}>{t.gearPasteDemoLabel}</button>
         </div>
         </>)}
