@@ -307,7 +307,7 @@ export default function GearLibrary(props: {
             if (r.unknown > 0) msg += ' ' + fill(t.gearPasteUnknownTemplate, { n: r.unknown });
             gearToast(msg);
             setPasteText('');
-          });
+          }, r.mode === 'WWM Dashboard' ? { source: 'wwm-dashboard' } : undefined);
         } else {
           gearToast(t.gearPasteFailText);
         }
