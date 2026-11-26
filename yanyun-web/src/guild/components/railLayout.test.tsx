@@ -31,16 +31,20 @@
 import { readFileSync } from 'node:fs';
 import { resolve } from 'node:path';
 import { beforeAll, describe, expect, it } from 'vitest';
-import { act } from 'react';
+import { act, Suspense } from 'react';
 import { createRoot } from 'react-dom/client';
 import { MemoryRouter } from 'react-router-dom';
 import { RelayEnvironmentProvider } from 'react-relay';
 import GuildRail from './GuildRail.react.tsx';
+import GearLibrary from './GearLibrary.react.tsx';
+import { defaultWorkState, loadWorkState, saveWorkState } from './gearStore';
 import { relayEnvironment } from '../../lib/relay';
 import { clearSessionConfirmedTheme, getSessionConfirmedTheme } from '../../lib/theme';
 import SettingsDialogQueryNode from '../../auth/__generated__/SettingsDialogQuery.graphql';
 import GearLibraryQueryNode, { type GearLibraryQuery$data } from './__generated__/GearLibraryQuery.graphql';
 import type { GearLibraryUpdateItemMutation$variables } from './__generated__/GearLibraryUpdateItemMutation.graphql';
+import type { GearLibraryImportMutation$variables } from './__generated__/GearLibraryImportMutation.graphql';
+import type { GearLibraryPasteMutation$variables } from './__generated__/GearLibraryPasteMutation.graphql';
 
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
 window.HTMLElement.prototype.scrollIntoView ??= () => {};
@@ -143,6 +147,8 @@ function selectValue(select: HTMLSelectElement, value: string) {
  * The theme mutation echoes the selected theme and sign-out is recorded. */
 const fetchCalls: { url: string; method?: string; name: string; theme?: string }[] = [];
 const gearUpdates: GearLibraryUpdateItemMutation$variables[] = [];
+const gearPastes: GearLibraryPasteMutation$variables[] = [];
+const gearImports: GearLibraryImportMutation$variables[] = [];
 const weaponDingyin = [
   { name: '外功穿透', label: 'Physical Penetration', max: 12.8 },
   { name: '外功抗性', label: '外功抗性', max: 12.8 },
@@ -157,6 +163,7 @@ const gearItems = [
   { id: '30000000001', slot: '武器', name: '测试长剑', dingyin: { name: '外功抗性', val: 9.2 }, lines: [], schools: [], warnings: [] },
   { id: '30000000002', slot: '冠胄', name: '旧版冠胄', dingyin: { name: '九重春色·蓄力技增伤', val: 4.3 }, lines: [], schools: [], warnings: [] },
 ] satisfies GearLibraryQuery$data['myGearItems'];
+const importedWeapon = { id: '30000000003', slot: '武器', name: '导入武器', lines: [{ key: 'dawai', val: 85.2 }], dingyin: null, schools: [], warnings: [] };
 const savedBuilds = [{
   id: '31000000001', name: '保存的方案', buildLabel: '鸣金-虹 · 玉斗', school: '鸣金-虹', targetIdx: 0,
   baseValues: [], bowKind: '', extraAcc: 0, extraCrit: 0, extraInt: 0, gradDingyinOn: true,
@@ -169,6 +176,10 @@ const gearPage: Partial<GearLibraryQuery$data['gradPage']> = {
   gearEntryLabel: '录入装备',
   gearAddGearLabel: '存入装备库',
   gearPasteTitle: '粘贴代码导入',
+  gearPasteButtonLabel: '解析并导入装备库',
+  gearPasteOkTemplate: '导入 {n} 件装备',
+  gearImportLabel: '导入数据',
+  gearImportedToastTemplate: '导入 {n} 件装备',
   gearOcrTitle: '截图导入（本地识别，不上传）',
   gearManualTitle: '手动录入',
   gearGearSlots: ['武器', ...armorSlots, '环', '佩'],
@@ -242,6 +253,20 @@ function installFetchStub() {
       data.myGearBuilds = savedBuilds;
       Object.assign(data.gradPage, gearPage);
       Object.assign(data.gradPage.gearVocabRules, { weaponSlot: '武器', weaponPositions: [] });
+    } else if (name === 'GearLibraryPasteMutation') {
+      gearPastes.push(body.variables);
+      data.gearParsePaste = {
+        mode: 'WWM Dashboard', unknown: 0, fullExportJson: null,
+        gears: [{ slot: '副武器', name: importedWeapon.name, lines: importedWeapon.lines, dingyin: null }],
+      };
+    } else if (name === 'GearLibraryImportMutation') {
+      const variables: GearLibraryImportMutation$variables = body.variables;
+      gearImports.push(variables);
+      items = [...items, importedWeapon];
+      data.importGearItems = {
+        ok: true, error: null, items: [importedWeapon],
+        autoSelect: variables.source === 'wwm-dashboard' ? [{ slot: '副武器', gearId: importedWeapon.id }] : [],
+      };
     } else if (name === 'GearLibraryUpdateItemMutation') {
       const variables: GearLibraryUpdateItemMutation$variables = body.variables;
       gearUpdates.push(variables);
@@ -418,6 +443,70 @@ describe('rail profile entry (IG web shape, DOM)', () => {
     editGear('旧版冠胄');
     expect(dingyin.value).toBe('九重春色·蓄力技增伤');
     expect(value.value).toBe('4.3');
+  });
+});
+
+describe('gear library imports (DOM)', () => {
+  it.each(['dashboard file', 'dashboard paste', 'native file'])('imports %s through the gear entry controls', async (entry) => {
+    installFetchStub();
+    gearPastes.length = 0;
+    gearImports.length = 0;
+    const previousWork = loadWorkState();
+    const existingLoadout = { 主武器: Number(gearItems[0].id), 副武器: 30000000009 };
+    saveWorkState({ ...defaultWorkState(), loadout: existingLoadout });
+    const nativeFile = entry === 'native file';
+    const text = JSON.stringify(nativeFile
+      ? { app: 'gear-planner-100', lib: [importedWeapon] }
+      : { source: 'wwm-dashboard', v: 1, wearEquips: { 2: 1101779 } });
+    const container = document.createElement('div');
+    document.body.append(container);
+    const root = createRoot(container);
+    const buttonFor = (label: string) => {
+      const button = [...container.querySelectorAll('button')].find((node) => node.textContent === label);
+      expect(button, label).toBeDefined();
+      return button!;
+    };
+
+    try {
+      act(() => root.render(
+        <RelayEnvironmentProvider environment={relayEnvironment}>
+          <Suspense fallback={null}><GearLibrary mode="profile" /></Suspense>
+        </RelayEnvironmentProvider>,
+      ));
+      await flush(150);
+      click(buttonFor('录入装备'));
+
+      if (entry === 'dashboard paste') {
+        const textarea = container.querySelector('textarea')!;
+        act(() => {
+          Object.getOwnPropertyDescriptor(window.HTMLTextAreaElement.prototype, 'value')!.set!.call(textarea, text);
+          textarea.dispatchEvent(new window.Event('input', { bubbles: true }));
+        });
+        click(buttonFor('解析并导入装备库'));
+      } else {
+        click(buttonFor('导入数据'));
+        const picker = container.querySelector<HTMLInputElement>('input[type="file"][accept*=".txt"]')!;
+        expect(picker).not.toBeNull();
+        const filename = nativeFile ? 'gear-library.json' : 'wwm-dashboard.txt';
+        const file = Object.assign(new window.File([text], filename), { text: async () => text });
+        Object.defineProperty(picker, 'files', { value: [file] });
+        act(() => picker.dispatchEvent(new window.Event('change', { bubbles: true })));
+      }
+      await flush(30);
+
+      expect(gearPastes).toEqual(nativeFile ? [] : [{ text }]);
+      expect(gearImports).toMatchObject([{
+        source: nativeFile ? null : 'wwm-dashboard',
+        items: [{ slot: nativeFile ? '武器' : '副武器', name: importedWeapon.name, lines: importedWeapon.lines }],
+      }]);
+      expect(loadWorkState().loadout).toEqual(nativeFile ? existingLoadout : {
+        ...existingLoadout, 副武器: Number(importedWeapon.id),
+      });
+    } finally {
+      act(() => root.unmount());
+      container.remove();
+      saveWorkState(previousWork);
+    }
   });
 });
 
