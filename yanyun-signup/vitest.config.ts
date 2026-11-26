@@ -42,7 +42,10 @@ export default defineConfig({
           include: ['tests-server/**/*.test.ts'],
           environment: 'node',
           globalSetup: ['tests-server/global-setup.ts'],
-          fileParallelism: false,
+          // Vitest schedules forks using the root fileParallelism setting.
+          // Give this project one fork so its fixtures never share D1 concurrently.
+          pool: 'forks',
+          poolOptions: { forks: { singleFork: true } },
           testTimeout: 600_000,
           hookTimeout: 600_000,
         },
