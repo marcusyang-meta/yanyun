@@ -41,7 +41,7 @@ import {
   GP_SLOT_ALIAS, GP_OCR_EXTRA_ALIAS, GP_LEGACY_KEY, GP_SCHOOL_TAG_LIST,
   GP_DEMO_KIT, GP_DIM_ROWS, GP_QUICK_BAR_NAMES, GP_BUILD_SECT, GP_WUXUE_NAMES,
   gpTalentText, gpClassOf, gpSanitizeGearData, gpPlan, gpAutoCombine,
-  gpParsePaste, gpQuickCalc, gpIsLeftDingyinSlot,
+  gpParsePaste, gpQuickCalc, gpIsLeftDingyinSlot, WWM_DASHBOARD_SOURCE,
   TL_SUIT_OPTIONS, TL_BOW_OPTIONS, TL_WUKU_OPTIONS, TL_SECT_WUXUE, TL_TUNE_ROWS,
   tlSuitName, tlBowName, tlWukuName, GRAD_SLOTS, GRAD_RATES, gearVocabRules,
   gradRowsForGearItem, gradSlotIdsForGearSlot,
@@ -798,6 +798,15 @@ export const gearResolvers = {
       if (!saved) {
         if (isOcr && await getOcrBatchesUsedToday(db, did, now) >= limits.ocrBatchesPerDay) return dailyLimitError();
         return overflowError(await countGearItemRows(db, did));
+      }
+      if (source === WWM_DASHBOARD_SOURCE) {
+        // The dashboard positions are explicit, including each weapon hand. The
+        // library stores both hands as 武器, so read the positions from the input.
+        const autoSelect = saved.flatMap((item, index) => {
+          const slot = list[index].slot;
+          return GP_SLOTS.includes(slot) ? [{ slot, gearId: item.id }] : [];
+        });
+        return { ok: true, items: saved, autoSelect, error: null, errorCode: null };
       }
       // Auto-select (per the original importParsedGears): weapons fill main hand then off hand; everything else takes an empty slot
       const lo: Record<string, any> = {};

@@ -7,6 +7,10 @@
 // (original site, section 44).
 // All pure functions: state (target build / character base / other sources
 // / loadout / sim tier) is passed in explicitly; nothing reads globals.
+import { WWM_AFFIX_IDS, WWM_ATTUNEMENT_IDS } from './wwm-dashboard-affixes.ts';
+
+export const WWM_DASHBOARD_SOURCE = 'wwm-dashboard';
+
 export const GP_SLOTS: any = ["主武器","副武器","冠胄","胸甲","环","佩","胫甲","腕甲"];
 export const GP_GEAR_SLOTS: any = ["武器","冠胄","胸甲","环","佩","胫甲","腕甲"];
 export const GP_AFFIX: any = [{"key":"dawai","label":"大外功","short":"大外","max":90.6,"cy":85.2,"unit":""},{"key":"xiaowai","label":"小外功","short":"小外","max":90.6,"cy":85.2,"unit":""},{"key":"shu_mj_da","label":"最大鸣金攻击","short":"大鸣金","max":51.4,"cy":48.3,"unit":"","sys":"鸣金","size":"da"},{"key":"shu_mj_xiao","label":"最小鸣金攻击","short":"小鸣金","max":51.4,"cy":48.3,"unit":"","sys":"鸣金","size":"xiao"},{"key":"shu_ls_da","label":"最大裂石攻击","short":"大裂石","max":51.4,"cy":48.3,"unit":"","sys":"裂石","size":"da"},{"key":"shu_ls_xiao","label":"最小裂石攻击","short":"小裂石","max":51.4,"cy":48.3,"unit":"","sys":"裂石","size":"xiao"},{"key":"shu_pz_da","label":"最大破竹攻击","short":"大破竹","max":51.4,"cy":48.3,"unit":"","sys":"破竹","size":"da"},{"key":"shu_pz_xiao","label":"最小破竹攻击","short":"小破竹","max":51.4,"cy":48.3,"unit":"","sys":"破竹","size":"xiao"},{"key":"shu_qs_da","label":"最大牵丝攻击","short":"大牵丝","max":51.4,"cy":48.3,"unit":"","sys":"牵丝","size":"da"},{"key":"shu_qs_xiao","label":"最小牵丝攻击","short":"小牵丝","max":51.4,"cy":48.3,"unit":"","sys":"牵丝","size":"xiao"},{"key":"shu_wx_da","label":"最大无相攻击","short":"大无相","max":51.4,"cy":48.3,"unit":"","sys":"无相","size":"da"},{"key":"shu_wx_xiao","label":"最小无相攻击","short":"小无相","max":51.4,"cy":48.3,"unit":"","sys":"无相","size":"xiao"},{"key":"ti","label":"体","short":"体","max":57.4,"cy":54,"unit":""},{"key":"jin","label":"劲","short":"劲","max":57.4,"cy":54,"unit":""},{"key":"yu","label":"御","short":"御","max":57.4,"cy":54,"unit":""},{"key":"min","label":"敏","short":"敏","max":57.4,"cy":54,"unit":""},{"key":"shi","label":"势","short":"势","max":57.4,"cy":54,"unit":""},{"key":"jingzhun","label":"精准率","short":"精准","max":9.4,"cy":8.8,"unit":"%"},{"key":"huixin","label":"会心率","short":"会心","max":10.4,"cy":9.8,"unit":"%"},{"key":"huiyi","label":"会意率","short":"会意","max":5.2,"cy":4.9,"unit":"%"},{"key":"wuqizeng","label":"武器增效","short":"武器增","max":7.4,"cy":7,"unit":"%"},{"key":"quanwu","label":"全武学增效","short":"全武","max":3.6,"cy":3.4,"unit":"%"},{"key":"shouling","label":"首领增伤","short":"首领","max":3.8,"cy":3.6,"unit":"%"},{"key":"wanjia","label":"玩家增伤","short":"玩家","max":3.8,"cy":3.6,"unit":"%"},{"key":"quanqi","label":"全奇术增伤","short":"全奇术","max":11.4,"cy":10.7,"unit":"%"}];
@@ -1252,10 +1256,83 @@ return { text: txt, mode: 'Base64 文本'};
 }
 return { text: s, mode: '文本'};
 }
+const WWM_DASHBOARD_SLOTS = new Map([
+  ['1', '主武器'], ['2', '副武器'], ['3', '冠胄'], ['4', '胸甲'],
+  ['5', '胫甲'], ['8', '腕甲'], ['10', '环'], ['11', '佩'],
+]);
+
+function jsonRecord(value: unknown): Record<string, unknown> | null {
+  return value !== null && typeof value === 'object' && !Array.isArray(value)
+    ? value as Record<string, unknown>
+    : null;
+}
+
+function dashboardId(value: unknown): number | null {
+  const id = typeof value === 'string' && /^\d+$/.test(value) ? Number(value) : value;
+  return typeof id === 'number' && Number.isSafeInteger(id) && id > 0 ? id : null;
+}
+
+function dashboardRoll(value: number, percent: boolean): number {
+  // Dashboard percentages may be decimal ratios or already in percentage points.
+  const points = percent && value <= 1 ? value * 100 : value;
+  return Number(points.toFixed(8));
+}
+
+function parseDashboardGear(data: Record<string, unknown>) {
+  const gears: {
+    slot: string;
+    name: string;
+    lines: { key: string; val: number }[];
+    dingyin: { name: string; val: number } | null;
+  }[] = [];
+  const mode = 'WWM Dashboard';
+  let unknown = 0;
+  const details = jsonRecord(data.wearEquipsDetailed);
+  if (data.v !== 1 || !details) return { mode, gears, unknown };
+  const worn = jsonRecord(data.wearEquips);
+  for (const slotId of Object.keys(worn ?? details)) {
+    const wornId = dashboardId(worn?.[slotId]);
+    if (worn && wornId === null) continue;
+    const slot = WWM_DASHBOARD_SLOTS.get(slotId);
+    const item = jsonRecord(details[slotId]);
+    const itemId = dashboardId(item?.no);
+    const rows = jsonRecord(item?.exVo)?.baseAffixes;
+    if (!slot || (wornId !== null && itemId !== null && wornId !== itemId) || !Array.isArray(rows) || !rows.length) {
+      unknown++;
+      continue;
+    }
+    const lines: { key: string; val: number }[] = [];
+    let dingyin: { name: string; val: number } | null = null;
+    for (const [index, row] of rows.entries()) {
+      const tuple = jsonRecord(row)?.equipmentDetails;
+      const id = Array.isArray(tuple) ? dashboardId(tuple[0]) : null;
+      const value = Array.isArray(tuple) ? tuple[1] : null;
+      if (id === null || typeof value !== 'number' || !Number.isFinite(value) || value < 0) {
+        unknown++;
+        continue;
+      }
+      const key = WWM_AFFIX_IDS.get(id);
+      const attunement = index === rows.length - 1 ? WWM_ATTUNEMENT_IDS.get(id) : undefined;
+      // The tuple contains the actual roll. Its separate roll ratio is already reflected in that value.
+      if (key) lines.push({ key, val: dashboardRoll(value, GP_AFFIX_BY_KEY[key]?.unit === '%') });
+      else if (attunement) dingyin = { name: attunement.name, val: dashboardRoll(value, attunement.percent) };
+      else unknown++;
+    }
+    const id = itemId ?? wornId;
+    const name = id === null ? '' : `WWM #${id}`;
+    const { gear } = gpSanitizeGearData({ slot, name, lines, dingyin });
+    unknown += lines.length - gear.lines.length + (dingyin && !gear.dingyin ? 1 : 0);
+    if (gear.lines.length) gears.push({ slot, name, lines: gear.lines, dingyin: gear.dingyin });
+  }
+  return { mode, gears, unknown };
+}
+
 // Top-level entry (per the btnPasteImport handler): returns {mode, gears, unknown} or {fullExport: data}
 export function gpParsePaste(raw: any) {
 const dec = gpDecodePasteCode(raw);
 if (!dec) return { mode: '', gears: [], unknown: 0};
+const dashboard = jsonRecord(dec.data);
+if (dashboard?.source === WWM_DASHBOARD_SOURCE) return parseDashboardGear(dashboard);
 if (dec.data && dec.data.app === 'gear-planner-100' && Array.isArray(dec.data.lib)) {
  return { mode: 'full', fullExport: dec.data, gears: [], unknown: 0};
 }

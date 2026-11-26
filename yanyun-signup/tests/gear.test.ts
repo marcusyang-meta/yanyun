@@ -343,6 +343,57 @@ r = await gql('mutation($t: String!) { gearParsePaste(text: $t) { mode unknown g
 eq('paste smoke', [r.data.gearParsePaste.gears.length, r.data.gearParsePaste.unknown], [1, 1]);
   });
 
+  it('imports dashboard gear with its actual rolls and equipped positions', async () => {
+    const user = { userId: 2030100021, discordId: 'dashboard-import', name: 'Importer' };
+    const wornItem = (no: string, rows: [number, number][]) => ({
+      no,
+      exVo: { baseAffixes: rows.map(([id, value]) => ({ equipmentDetails: [id, value, 0.94, 3, true] })) },
+    });
+    const text = JSON.stringify({
+      source: 'wwm-dashboard',
+      v: 1,
+      wearEquips: { 2: 1101779, 3: 1101731, 9: 1101767 },
+      wearEquipsDetailed: {
+        2: wornItem('1101779', [[10113001, 85.164], [10193013, 0.09776], [290701, 12.8]]),
+        3: wornItem('1101731', [[10142004, 0.09776], [99999999, 2], [289905, 7]]),
+        9: wornItem('1101767', [[10173002, 0.177]]),
+      },
+    });
+    const parsed = await gql(
+      'mutation($text: String!) { gearParsePaste(text: $text) { mode unknown gears { slot name lines { key val } dingyin { name val } } } }',
+      { user, variables: { text } },
+    );
+    const { mode, unknown, gears } = parsed.data.gearParsePaste;
+    expect(mode).toBe('WWM Dashboard');
+    expect(unknown).toBe(2);
+    expect(gears.map((item) => item.slot)).toEqual(['副武器', '冠胄']);
+    expect(gears[0].lines).toEqual([
+      { key: 'xiaowai', val: 85.164 },
+      { key: 'huixin', val: expect.closeTo(9.776, 6) },
+    ]);
+    expect(gears[0].dingyin).toEqual({ name: '外功穿透', val: 12.8 });
+    expect(gears[1].dingyin).toEqual({ name: '十方破阵·蓄力技增伤', val: expect.closeTo(7, 6) });
+
+    const previous = await gql(
+      'mutation { addGearItem(input: {slot: "武器", name: "Previous", lines: [{key: "dawai", val: 80}]}) { item { id } } }',
+      { user },
+    );
+    const previousId = previous.data.addGearItem.item.id;
+    const imported = await gql(
+      'mutation($items: [GearItemCreateInput!]!, $loadout: [GearLoadoutEntryInput!]) { importGearItems(source: "wwm-dashboard", items: $items, loadout: $loadout) { ok items { id slot } autoSelect { slot gearId } } }',
+      { user, variables: { items: gears, loadout: [{ slot: '副武器', gearId: previousId }] } },
+    );
+    const stored = imported.data.importGearItems;
+    expect(stored.ok).toBe(true);
+    expect(stored.items.map((item) => item.slot)).toEqual(['武器', '冠胄']);
+    expect(stored.autoSelect).toEqual([
+      { slot: '副武器', gearId: stored.items[0].id },
+      { slot: '冠胄', gearId: stored.items[1].id },
+    ]);
+    const library = await gql('{ myGearItems { id } }', { user });
+    expect(library.data.myGearItems.map((item) => item.id)).toContain(previousId);
+  });
+
   it('(11) Sect graduation-affix builds (sectPage.gradBuilds)', async () => {
 /* ---------------- (11) Sect graduation-affix builds (sectPage.gradBuilds) ---------------- */
 // Pure-data integrity of the recipe table the page derives from.
